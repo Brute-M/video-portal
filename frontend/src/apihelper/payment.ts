@@ -1,0 +1,20 @@
+import api from './api';
+import { ENDPOINTS } from './endpoints';
+
+export const verifyPayment = async (data: { videoId: string; paymentId: string }) => {
+    const response = await api.post(ENDPOINTS.PAYMENT.VERIFY, data, {
+        headers: {
+            'orange-secret-key': '86295b07-a5f4-4283-8302-48971ea34905',
+        },
+    });
+    return response.data;
+
+};
+
+export const downloadInvoiceAPI = async (videoId: string) => {
+    const response = await api.get(`${ENDPOINTS.VIDEOS.LIST}/invoice/${videoId}`, {
+        responseType: 'blob'
+    });
+    return response.data;
+};
+
