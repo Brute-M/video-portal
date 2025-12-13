@@ -12,7 +12,8 @@ const storage = multerS3({
     bucket: 'brpl-uploads',
     contentType: multerS3.AUTO_CONTENT_TYPE,
     key: function (req, file, cb) {
-        cb(null, 'dashboard-' + Date.now() + path.extname(file.originalname));
+        const userId = req.userId ? req.userId.toString() : 'anonymous';
+        cb(null, `${userId}/${Date.now()}-${file.originalname}`);
     }
 });
 
