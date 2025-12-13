@@ -8,7 +8,8 @@ const locationRoute = require("./routes/locationRoute");
 const path = require("path");
 const app = express();
 const port = 5000;
-const dbURI = "mongodb://localhost:27017/videoPortal";
+// const dbURI = "mongodb://localhost:27017/videoPortal";
+const dbURI = "mongodb+srv://ektadev531_db_user:PLKibNBAsz34iqrU@mycluster.rrydwwg.mongodb.net/brpl";
 
 app.use(cors());
 app.use(express.json());
