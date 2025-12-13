@@ -568,7 +568,7 @@ const Videos = () => {
                                         controls
                                         autoPlay
                                         className="w-full h-full"
-                                        src={`http://localhost:5000/${selectedVideo.path.replace(/\\/g, '/')}`}
+                                        src={selectedVideo.path}
                                     >
                                         Your browser does not support the video tag.
                                     </video>
