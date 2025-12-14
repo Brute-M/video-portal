@@ -32,12 +32,12 @@ const PaidUsers = () => {
 
     return (
         <div className="space-y-6 animate-fade-in">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-3xl font-display font-bold text-foreground">Paid Users</h1>
                     <p className="text-muted-foreground mt-1">Manage users who have completed payment.</p>
                 </div>
-                <div className="flex items-center gap-2 px-4 py-2 bg-green-500/10 text-green-500 rounded-lg">
+                <div className="flex items-center gap-2 px-4 py-2 bg-green-500/10 text-green-500 rounded-lg self-start sm:self-auto">
                     <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
                     <span className="font-medium">{users.length} Records Found</span>
                 </div>

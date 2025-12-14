@@ -378,7 +378,7 @@ const Videos = () => {
                         {videos.map((video) => (
                             <div
                                 key={video.id}
-                                className="glass-card p-4 flex items-center gap-4 transition-all hover:bg-secondary/40"
+                                className="glass-card p-4 flex flex-col sm:flex-row sm:items-center gap-4 transition-all hover:bg-secondary/40"
                             >
                                 <div className="w-12 h-12 rounded-lg bg-secondary flex items-center justify-center flex-shrink-0">
                                     <Video className="w-6 h-6 text-primary" />
