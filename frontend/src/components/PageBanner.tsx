@@ -29,7 +29,7 @@ const PageBanner: React.FC<PageBannerProps> = ({ title, currentPage }) => {
             {/* Content Overlay */}
             <div className="absolute inset-0 z-10 container mx-auto px-4 md:px-8 lg:px-12 flex flex-col justify-center h-full">
                 <h1
-                    className="text-white text-5xl md:text-6xl lg:text-[64px] font-bold uppercase tracking-tight mb-3 mt-8"
+                    className="text-white text-3xl sm:text-4xl md:text-6xl lg:text-[64px] font-bold uppercase tracking-tight mb-3 mt-8"
                     style={{ fontFamily: "'Oswald', sans-serif" }}
                 >
                     {title}
