@@ -277,7 +277,7 @@ const Videos = () => {
             if (!currentVideoId) throw new Error("No video ID");
 
             // 1. Create Order
-            const order = await createRazorpayOrder(1);
+            const order = await createRazorpayOrder(1499);
 
             // 2. Options
             const options: any = {
@@ -567,11 +567,11 @@ const Videos = () => {
                         <div className="glass-card p-4 bg-secondary/30">
                             <div className="flex justify-between items-center">
                                 <span className="text-muted-foreground">Video Upload</span>
-                                <span className="text-foreground font-medium">₹ 1.0</span>
+                                <span className="text-foreground font-medium">₹ 1499</span>
                             </div>
                             <div className="flex justify-between items-center mt-2 pt-2 border-t border-border">
                                 <span className="text-foreground font-medium">Total</span>
-                                <span className="text-xl font-display font-bold gradient-text">₹ 1.0</span>
+                                <span className="text-xl font-display font-bold gradient-text">₹ 1499</span>
                             </div>
                         </div>
 
@@ -630,7 +630,7 @@ const Videos = () => {
                             ) : (
                                 <div className="p-4 border border-blue-500/30 bg-blue-500/10 rounded-lg text-center animate-in fade-in slide-in-from-top-2">
                                     <p className="text-sm text-blue-200">
-                                        You will be redirected to Razorpay secure checkout to complete your payment of <span className="font-bold">₹ 1.0</span>.
+                                        You will be redirected to Razorpay secure checkout to complete your payment of <span className="font-bold">₹ 1499</span>.
                                     </p>
                                 </div>
                             )}
@@ -651,7 +651,7 @@ const Videos = () => {
                             ) : (
                                 <>
                                     <CreditCard className="w-5 h-5 mr-2" />
-                                    Pay ₹ 1.0
+                                    Pay ₹ 1499
                                 </>
                             )}
                         </Button>

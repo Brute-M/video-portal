@@ -97,8 +97,8 @@ const verifyPayment = async (req, res) => {
         }
 
         const baseUrl = process.env.BASE_URL || 'http://localhost:5000';
-        const previewLink = `${baseUrl}/api/video/invoice/${video._id}?type=view`;
-        const downloadLink = `${baseUrl}/api/video/invoice/${video._id}`;
+        const previewLink = `${baseUrl}/video/invoice/${video._id}?type=view`;
+        const downloadLink = `${baseUrl}/video/invoice/${video._id}`;
 
         if (user) {
             sendInvoiceEmail(user, video, downloadLink, previewLink, pdfBuffer)

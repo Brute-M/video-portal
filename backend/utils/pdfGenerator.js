@@ -75,7 +75,7 @@ const generateInvoicePDF = (video, user) => {
                 {
                     item: "Video Upload",
                     description: video.originalName || "Video Upload Service",
-                    amount: 1.0,
+                    amount: 1499,
                     quantity: 1
                 }
             ];
@@ -106,7 +106,7 @@ const generateInvoicePDF = (video, user) => {
 
             doc.font("Helvetica-Bold");
             doc.text("Total:", 350, totalTop);
-            doc.text("Rs. 1.0", 450, totalTop, { align: "right" });
+            doc.text("Rs. 1499", 450, totalTop, { align: "right" });
 
             // Footer
             doc.fontSize(10)
@@ -152,7 +152,7 @@ const drawInvoice = (doc, video, user) => {
 
     const contentWidth = pageWidth - marginLeft - marginRight;
 
-    const baseAmount = 1.0;
+    const baseAmount = 1499;
     const taxableAmount = baseAmount;
     const cgst = +(taxableAmount * 0.09).toFixed(2);
     const sgst = +(taxableAmount * 0.09).toFixed(2);

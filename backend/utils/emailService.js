@@ -52,7 +52,7 @@ const sendInvoiceEmail = async (user, video, downloadLink, previewLink, pdfBuffe
 
                 <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin: 20px 0;">
                     <p style="margin: 5px 0;"><strong>Transaction ID:</strong> ${video.paymentId}</p>
-                    <p style="margin: 5px 0;"><strong>Amount Paid:</strong> Rs. 1.0</p>
+                    <p style="margin: 5px 0;"><strong>Amount Paid:</strong> Rs. 1499</p>
                     <p style="margin: 5px 0;"><strong>Date:</strong> ${new Date().toLocaleDateString()}</p>
                 </div>
 
