@@ -47,7 +47,7 @@ exports.verifyPayment = async (req, res) => {
                 if (video) {
                     video.status = 'completed';
                     video.paymentId = razorpay_payment_id;
-                    video.amount = 1499.99; // Or pass amount from frontend if needed
+                    video.amount = 1.0; // Or pass amount from frontend if needed
                     await video.save();
                     return res.json({ message: "Payment verified and video updated successfully", success: true });
                 }
