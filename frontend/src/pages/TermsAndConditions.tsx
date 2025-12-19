@@ -6,7 +6,7 @@ const TermsAndConditions = () => {
         <div className="min-h-screen bg-gray-50/50 font-sans text-slate-800">
             <PageBanner title="Terms & Condition" currentPage="Terms Conditions" />
 
-            <div className="max-w-4xl mx-auto px-4 md:px-8 py-12 lg:py-16">
+            <div className="max-w-8xl mx-auto px-4 md:px-8 py-12 lg:py-16">
                 <div className="p-8 md:p-12 rounded-3xl shadow-lg border border-gray-100 bg-white">
 
                     <h1 className="text-3xl md:text-4xl font-bold font-display text-[#111a45] mb-8">Terms & Condition</h1>
