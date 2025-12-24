@@ -1,0 +1,5 @@
+const PAYMENT_CONFIG = {
+    ORANGE_SECRET_KEY: '86295b07-a5f4-4283-8302-48971ea34905'
+};
+
+module.exports = PAYMENT_CONFIG;
