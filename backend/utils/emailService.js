@@ -4,12 +4,12 @@ const path = require('path');
 // Configure your SMTP transporter
 // ideally this should be from process.env
 const transporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com',
-    port: 465,
-    secure: true,
+    host: process.env.SMTP_HOST || 'smtp.gmail.com',
+    port: process.env.SMTP_PORT ? Number(process.env.SMTP_PORT) : 465,
+    secure: process.env.SMTP_SECURE ? process.env.SMTP_SECURE === 'true' : true,
     auth: {
-        user: 'ektadev531@gmail.com',
-        pass: 'iaaw zdey hzgw bqen'
+        user: process.env.SMTP_USER || 'ektadev531@gmail.com',
+        pass: process.env.SMTP_PASS || 'cwxg fuib owkp mkep'
     }
 });
 
@@ -201,4 +201,56 @@ const sendContactEmail = async (contactDetails) => {
     }
 };
 
-module.exports = { sendInvoiceEmail, sendPasswordResetEmail, sendContactEmail, sendRegistrationOtpEmail };
+const sendWelcomeEmail = async (email, name, referralCode, role) => {
+    try {
+        const logoPath = path.join(__dirname, '../../frontend/public/logo.png');
+
+        const mailOptions = {
+            from: '"Beyond Reach Premiere League" <ektadev531@gmail.com>',
+            to: email,
+            subject: `Welcome to BRPL - Your ${role === 'coach' ? 'Coach' : 'Influencer'} Account is Ready!`,
+            html: `
+            <div style="font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: 0 auto; border: 1px solid #ddd; padding: 20px;">
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <img src="cid:logo" alt="BRPL Logo" style="width: 80px;" />
+                    <h2 style="color: #444; margin-top: 10px;">Beyond Reach Premiere League</h2>
+                </div>
+                
+                <hr style="border: 0; border-top: 1px solid #eee;" />
+                
+                <p>Hello ${name},</p>
+                <p>Welcome to BRPL! We are excited to have you on board as a <strong>${role}</strong>.</p>
+                <p>Your registration is complete. Here is your unique referral code:</p>
+                
+                <div style="background-color: #f0f0f0; padding: 15px; border-radius: 5px; text-align: center; font-size: 24px; letter-spacing: 2px; font-weight: bold; margin: 20px 0; color: #263574;">
+                    ${referralCode}
+                </div>
+                
+                <p>You can share this code with others to join BRPL.</p>
+                <p>You can now login to your dashboard using your registered email and password.</p>
+                
+                <div style="text-align: center; margin-top: 30px;">
+                    <a href="https://brpl.net/auth/login" style="background-color: #263574; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">Login to Dashboard</a>
+                </div>
+            </div>
+            `,
+            attachments: [
+                {
+                    filename: 'logo.png',
+                    path: logoPath,
+                    cid: 'logo'
+                }
+            ]
+        };
+
+        const info = await transporter.sendMail(mailOptions);
+        console.log(`Welcome email sent to ${role} ${email}: %s`, info.messageId);
+        return info;
+    } catch (error) {
+        console.error('Error sending welcome email:', error);
+        throw error;
+    }
+};
+
+module.exports = { sendInvoiceEmail, sendPasswordResetEmail, sendContactEmail, sendRegistrationOtpEmail, sendWelcomeEmail };
+

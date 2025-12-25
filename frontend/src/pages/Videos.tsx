@@ -8,7 +8,7 @@ import {
     Loader2,
     Upload,
     Plus,
-    Video as VideoIcon,
+    Video,
     Check,
     Eye,
     FileText,
@@ -50,19 +50,27 @@ const Videos = () => {
     const navigate = useNavigate();
     const { Razorpay } = useRazorpay();
 
-    // Hidden input ref for changing video
     const changeVideoInputRef = useRef<HTMLInputElement>(null);
     const [videoToChangeId, setVideoToChangeId] = useState<string | null>(null);
-
+    const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
         fetchVideos();
     }, []);
 
+    // Cleanup video URLs on unmount
+    useEffect(() => {
+        return () => {
+            if (selectedVideo?.path && selectedVideo.path.startsWith('blob:')) {
+                URL.revokeObjectURL(selectedVideo.path);
+            }
+        };
+    }, [selectedVideo]);
+
     const fetchVideos = async () => {
+        setIsLoading(true);
         try {
             const response = await getVideos();
-            // Handle various response structures
             const list = Array.isArray(response) ? response : (response.videos || response.data || []);
 
             const mappedVideos: VideoFile[] = list.map((v: any) => ({
@@ -74,17 +82,45 @@ const Videos = () => {
             }));
 
             setVideos(prev => {
-                const uploading = prev.filter(p => p.status !== 'completed' && p.status !== 'pending-payment');
-
-                // Merge lists preventing duplicates based on ID
+                const uploading = prev.filter(p => p.status === 'uploading');
                 const existingIds = new Set(uploading.map(v => v.id));
                 const uniqueMapped = mappedVideos.filter(v => !existingIds.has(v.id));
-
                 return [...uploading, ...uniqueMapped];
             });
         } catch (error) {
             console.error("Failed to fetch videos", error);
+            toast({
+                variant: "destructive",
+                title: "Fetch Failed",
+                description: "Could not load your videos. Please refresh the page.",
+            });
+        } finally {
+            setIsLoading(false);
         }
+    };
+
+    const validateFile = (file: File): boolean => {
+        const maxSize = 1024 * 1024 * 1024; // 1GB
+
+        if (!file.type.startsWith('video/')) {
+            toast({
+                variant: "destructive",
+                title: "Invalid File Type",
+                description: "Please upload a valid video file.",
+            });
+            return false;
+        }
+
+        if (file.size > maxSize) {
+            toast({
+                variant: "destructive",
+                title: "File Too Large",
+                description: "Video must be under 1GB in size.",
+            });
+            return false;
+        }
+
+        return true;
     };
 
     const handleDeleteVideo = async (id: string) => {
@@ -95,16 +131,15 @@ const Videos = () => {
                 title: "Video Deleted",
                 description: "The video has been successfully removed.",
             });
-        } catch (error) {
+        } catch (error: any) {
             console.error("Delete failed", error);
             toast({
                 variant: "destructive",
                 title: "Delete Failed",
-                description: "Could not delete the video. Please try again.",
+                description: error?.response?.data?.message || "Could not delete the video. Please try again.",
             });
         }
     };
-
 
     const handleViewVideo = async (id: string) => {
         try {
@@ -112,12 +147,12 @@ const Videos = () => {
             const videoData = response.data || response;
             setSelectedVideo(videoData);
             setIsPreviewOpen(true);
-        } catch (error) {
+        } catch (error: any) {
             console.error("Failed to fetch video details", error);
             toast({
                 variant: "destructive",
                 title: "Error",
-                description: "Could not fetch video details.",
+                description: error?.response?.data?.message || "Could not fetch video details.",
             });
         }
     };
@@ -134,13 +169,14 @@ const Videos = () => {
         if (files && files.length > 0 && videoToChangeId) {
             const file = files[0];
 
-            // Delete old video first
-            try {
-                // Optimistically remove from UI or mark as changing?
-                // For simplicity, let's just delete then upload.
-                await deleteVideo(videoToChangeId);
+            if (!validateFile(file)) {
+                e.target.value = "";
+                setVideoToChangeId(null);
+                return;
+            }
 
-                // Remove old video from state
+            try {
+                await deleteVideo(videoToChangeId);
                 setVideos(prev => prev.filter(v => v.id !== videoToChangeId));
 
                 toast({
@@ -148,24 +184,20 @@ const Videos = () => {
                     description: "Old video removed. Uploading new video...",
                 });
 
-                // Upload new video
                 handleUpload(file);
-
-            } catch (error) {
+            } catch (error: any) {
                 console.error("Failed to change video", error);
                 toast({
                     variant: "destructive",
                     title: "Change Failed",
-                    description: "Could not remove the old video.",
+                    description: error?.response?.data?.message || "Could not remove the old video.",
                 });
             } finally {
                 setVideoToChangeId(null);
-                // Reset input
                 e.target.value = "";
             }
         }
     };
-
 
     const handleDragOver = useCallback((e: React.DragEvent) => {
         e.preventDefault();
@@ -177,8 +209,9 @@ const Videos = () => {
         setIsDragging(false);
     }, []);
 
-
     const handleUpload = async (file: File) => {
+        if (!validateFile(file)) return;
+
         const newVideo: VideoFile = {
             id: uuidv4(),
             name: file.name,
@@ -194,7 +227,7 @@ const Videos = () => {
 
         try {
             const response = await uploadVideo(formData, (progressEvent) => {
-                const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+                const percentCompleted = Math.round((progressEvent.loaded * 100) / (progressEvent.total || 1));
                 setVideos((prev) =>
                     prev.map((v) =>
                         v.id === newVideo.id ? { ...v, progress: percentCompleted } : v
@@ -202,24 +235,16 @@ const Videos = () => {
                 );
             });
 
-            // Handle various potential response structures for the ID
-            // Expand search for common patterns
             const serverId = response.id || response._id ||
                 response.video?.id || response.video?._id ||
                 response.data?.id || response.data?._id ||
-                response.data?.videoId || // Added specific check for videoId
+                response.data?.videoId ||
                 response.newItem?._id || response.createdVideo?._id ||
                 response.upload?._id;
 
             if (!serverId) {
-                console.error("CRITICAL: Could not find video ID in upload response. Keys found:", Object.keys(response));
-                toast({
-                    variant: "destructive",
-                    title: "Upload Error",
-                    description: "Video uploaded but server ID was missing. Cannot proceed to payment.",
-                });
-                // Stop here to prevent sending bad data to verify-payment
-                return;
+                console.error("CRITICAL: Could not find video ID in upload response. Response:", response);
+                throw new Error("Server did not return a valid video ID");
             }
 
             toast({
@@ -229,22 +254,19 @@ const Videos = () => {
 
             setVideos((prev) =>
                 prev.map((v) =>
-                    v.id === newVideo.id ? { ...v, status: "pending-payment", id: serverId } : v
+                    v.id === newVideo.id ? { ...v, status: "pending-payment", id: serverId, progress: 100 } : v
                 )
             );
 
             setCurrentVideoId(serverId);
-            // Don't auto-show payment modal on 'Change' action if we want to preview first, 
-            // but for standard flow it's fine. 
-            // Let's keep it to ensure they know they need to pay.
             setShowPaymentModal(true);
 
-        } catch (error) {
+        } catch (error: any) {
             console.error("Upload failed", error);
             toast({
                 variant: "destructive",
                 title: "Upload Failed",
-                description: "There was an error uploading your video.",
+                description: error?.response?.data?.message || error.message || "There was an error uploading your video.",
             });
             setVideos((prev) => prev.filter(v => v.id !== newVideo.id));
         }
@@ -258,6 +280,15 @@ const Videos = () => {
             file.type.startsWith("video/")
         );
 
+        if (files.length === 0) {
+            toast({
+                variant: "destructive",
+                title: "No Video Files",
+                description: "Please drop valid video files.",
+            });
+            return;
+        }
+
         files.forEach((file) => {
             handleUpload(file);
         });
@@ -268,24 +299,38 @@ const Videos = () => {
             file.type.startsWith("video/")
         );
 
+        if (files.length === 0) {
+            toast({
+                variant: "destructive",
+                title: "No Video Files",
+                description: "Please select valid video files.",
+            });
+            return;
+        }
+
         files.forEach((file) => {
             handleUpload(file);
         });
+
+        e.target.value = "";
     };
 
-
-
     const handleRazorpayPayment = async () => {
+        if (!currentVideoId) {
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: "No video selected for payment.",
+            });
+            return;
+        }
+
         setIsProcessingPayment(true);
         try {
-            if (!currentVideoId) throw new Error("No video ID");
-
-            // 1. Create Order
             const order = await createRazorpayOrder(1499);
 
-            // 2. Options
             const options: any = {
-                key: "rzp_live_RsBsR05m5SGbtT", // Live key as requested
+                key: "rzp_live_RsBsR05m5SGbtT",
                 amount: order.amount,
                 currency: order.currency,
                 name: "Beyond Reach Premier League",
@@ -293,7 +338,6 @@ const Videos = () => {
                 order_id: order.id,
                 handler: async (response: any) => {
                     try {
-                        // 3. Verify
                         await verifyRazorpayPayment({
                             ...response,
                             videoId: currentVideoId
@@ -304,20 +348,21 @@ const Videos = () => {
                                 v.id === currentVideoId ? { ...v, status: "completed" } : v
                             )
                         );
-                        await fetchVideos(); // Sync
 
                         setShowPaymentModal(false);
                         toast({
                             title: "Payment Successful",
                             description: "Razorpay payment verified successfully.",
                         });
+
+                        await fetchVideos();
                         navigate("/payment-successfull");
-                    } catch (verifyError) {
+                    } catch (verifyError: any) {
                         console.error("Verification failed", verifyError);
                         toast({
                             variant: "destructive",
                             title: "Verification Failed",
-                            description: "Payment successful but verification failed.",
+                            description: verifyError?.response?.data?.message || "Payment successful but verification failed.",
                         });
                     }
                 },
@@ -329,6 +374,11 @@ const Videos = () => {
                 theme: {
                     color: "#3399cc",
                 },
+                modal: {
+                    ondismiss: function () {
+                        setIsProcessingPayment(false);
+                    }
+                }
             };
 
             const rzp1 = new Razorpay(options);
@@ -336,24 +386,22 @@ const Videos = () => {
                 toast({
                     variant: "destructive",
                     title: "Payment Failed",
-                    description: response.error.description,
+                    description: response.error?.description || "Payment failed. Please try again.",
                 });
+                setIsProcessingPayment(false);
             });
             rzp1.open();
 
-        } catch (error) {
+        } catch (error: any) {
             console.error("Razorpay init failed", error);
             toast({
                 variant: "destructive",
                 title: "Error",
-                description: "Could not initiate Razorpay payment.",
+                description: error?.response?.data?.message || "Could not initiate Razorpay payment.",
             });
-        } finally {
             setIsProcessingPayment(false);
         }
     };
-
-
 
     const formatFileSize = (bytes: number) => {
         if (bytes === 0) return "0 Bytes";
@@ -413,7 +461,6 @@ const Videos = () => {
                 </p>
             </div>
 
-            {/* Hidden Input for Changing Video */}
             <input
                 type="file"
                 accept="video/*"
@@ -422,14 +469,13 @@ const Videos = () => {
                 onChange={handleFileChangeForUpdate}
             />
 
-            {/* Upload Area */}
             <div
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
                 className={`glass-card p-12 border-2 border-dashed transition-all duration-300 ${isDragging
-                    ? "border-primary bg-primary/5 scale-[14992]"
-                    : "border-border hover:border-primary/50"
+                        ? "border-primary bg-primary/5 scale-[1.02]"
+                        : "border-border hover:border-primary/50"
                     }`}
             >
                 <div className="flex flex-col items-center justify-center text-center">
@@ -464,8 +510,13 @@ const Videos = () => {
                 </div>
             </div>
 
-            {/* Videos List */}
-            {videos.length > 0 && (
+            {isLoading && (
+                <div className="flex justify-center items-center py-8">
+                    <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                </div>
+            )}
+
+            {!isLoading && videos.length > 0 && (
                 <div className="mt-8">
                     <h2 className="text-xl font-display font-semibold text-foreground mb-4">
                         Your Videos
@@ -477,7 +528,7 @@ const Videos = () => {
                                 className="glass-card p-4 flex flex-col sm:flex-row sm:items-center gap-4 transition-all hover:bg-secondary/40"
                             >
                                 <div className="w-12 h-12 rounded-lg bg-secondary flex items-center justify-center flex-shrink-0">
-                                    <VideoIcon className="w-6 h-6 text-primary" />
+                                    <Video className="w-6 h-6 text-primary" />
                                 </div>
                                 <div className="flex-1 min-w-0">
                                     <div className="flex items-center justify-between mb-1">
@@ -590,7 +641,12 @@ const Videos = () => {
                 </div>
             )}
 
-            {/* Payment Modal */}
+            {!isLoading && videos.length === 0 && (
+                <div className="text-center py-12 text-muted-foreground">
+                    No videos uploaded yet. Start by uploading your first video!
+                </div>
+            )}
+
             <Dialog open={showPaymentModal} onOpenChange={setShowPaymentModal}>
                 <DialogContent className="glass-card border-border sm:max-w-md">
                     <DialogHeader>
@@ -641,13 +697,10 @@ const Videos = () => {
                                 </>
                             )}
                         </Button>
-
-
                     </div>
                 </DialogContent>
             </Dialog>
 
-            {/* Video Preview Modal */}
             <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
                 <DialogContent className="glass-card border-border sm:max-w-3xl">
                     <DialogHeader>

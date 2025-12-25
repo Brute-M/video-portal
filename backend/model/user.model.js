@@ -4,7 +4,7 @@ const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema({
   fname: { type: String, required: true },
-  lname: { type: String, required: true },
+  lname: { type: String },
   email: {
     type: String,
     required: true,
@@ -17,17 +17,23 @@ const userSchema = new mongoose.Schema({
   },
   mobile: { type: String, required: true },
   otp: { type: String }, // Storing OTP for verification logic if needed, or just as a field as requested
-  gender: { type: String, required: true },
-  zone_id: { type: String, required: true }, // Assuming string ID
+  gender: { type: String },
+  zone_id: { type: String }, // Assuming string ID
   city: { type: String, required: true },
   state: { type: String, required: true },
-  pincode: { type: String, required: true },
-  address1: { type: String, required: true },
+  pincode: { type: String },
+  address1: { type: String },
   address2: { type: String },
   aadhar: { type: String, required: false },
   trail_video: { type: String }, // Path to the uploaded trail video file
   playerRole: { type: String },
-  isPaid: { type: Boolean, default: false }
+  isPaid: { type: Boolean, default: false },
+  paymentAmount: { type: Number },
+  paymentId: { type: String },
+  isFromLandingPage: { type: Boolean, default: false },
+  referralCodeUsed: { type: String },
+  referralSourceRole: { type: String, enum: ['coach', 'influencer'] },
+  referralSourceId: { type: mongoose.Schema.Types.ObjectId, refPath: 'referralSourceRole' }
 }, { timestamps: true });
 
 

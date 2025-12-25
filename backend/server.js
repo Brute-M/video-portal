@@ -8,6 +8,7 @@ const videoRoutes = require("./routes/videoRoute");
 const locationRoute = require("./routes/locationRoute");
 const contactRoute = require("./routes/contactRoute");
 const paymentRoute = require("./routes/paymentRoute");
+const adminRoutes = require("./routes/adminRoute");
 
 const path = require("path");
 const app = express();
@@ -40,6 +41,7 @@ app.use("/api", userRoutes);
 app.use("/api/locations", locationRoute);
 app.use("/api/contact", contactRoute);
 app.use("/api/payment", paymentRoute);
+app.use("/admin", adminRoutes);
 
 app.listen(port, () => {
   console.log(`server is running on port ${port}`);
