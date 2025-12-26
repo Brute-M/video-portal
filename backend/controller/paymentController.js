@@ -13,7 +13,7 @@ exports.createOrder = async (req, res) => {
 
     try {
         const options = {
-            amount: amount * 100, // amount in smallest currency unit
+            amount: 1499 * 100, // amount in smallest currency unit (1499 INR)
             currency,
             receipt,
         };
@@ -22,6 +22,25 @@ exports.createOrder = async (req, res) => {
         res.json(order);
     } catch (error) {
         console.error('Error creating Razorpay order:', error);
+        res.status(500).send(error);
+    }
+};
+
+// Create order for landing page
+exports.createOrderLanding = async (req, res) => {
+    const { amount, currency = 'INR', receipt } = req.body;
+
+    try {
+        const options = {
+            amount: 1499 * 100, // amount in smallest currency unit (1499 INR)
+            currency,
+            receipt,
+        };
+
+        const order = await razorpay.orders.create(options);
+        res.json(order);
+    } catch (error) {
+        console.error('Error creating Razorpay order for landing:', error);
         res.status(500).send(error);
     }
 };
@@ -47,7 +66,7 @@ exports.verifyPayment = async (req, res) => {
                 if (video) {
                     video.status = 'completed';
                     video.paymentId = razorpay_payment_id;
-                    video.amount = 1499; // Or pass amount from frontend if needed
+                    video.amount = 1499; // Fixed amount
                     await video.save();
                     return res.json({ message: "Payment verified and video updated successfully", success: true });
                 }
@@ -58,6 +77,26 @@ exports.verifyPayment = async (req, res) => {
             console.error("Error updating video status:", error);
             res.status(500).json({ message: "Payment verified but failed to update status", success: false });
         }
+    } else {
+        res.status(400).json({ message: "Invalid signature", success: false });
+    }
+};
+
+// Verify landing page payment
+exports.verifyLandingPayment = async (req, res) => {
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
+
+    const body = razorpay_order_id + "|" + razorpay_payment_id;
+
+    const expectedSignature = crypto
+        .createHmac('sha256', '1pFXfyat0LN1xPEeadrz1RN4')
+        .update(body.toString())
+        .digest('hex');
+
+    const isAuthentic = expectedSignature === razorpay_signature;
+
+    if (isAuthentic) {
+        res.json({ message: "Payment verified successfully", success: true });
     } else {
         res.status(400).json({ message: "Invalid signature", success: false });
     }

@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { login, register, upload, sendOtp, verifyOtp, forgotPassword, resetPassword } = require('../controller/authController');
+const { login, register, upload, sendOtp, verifyOtp, forgotPassword, resetPassword, registerCoach, loginCoach, resendWelcomeEmail, getPartnerProfile, getCoachMyPlayers, trackVisit, getVisits } = require('../controller/authController');
 const authenticate = require('../middleware/authMiddleware');
 const User = require('../model/user.model');
 
@@ -13,6 +13,15 @@ router.post('/send-otp', sendOtp);
 router.post('/verify-otp', verifyOtp);
 router.post('/forgot-password', forgotPassword);
 router.post('/reset-password', resetPassword);
+
+// Coach & Influencer Routes
+router.post('/register-coach', upload.single('image'), registerCoach);
+router.post('/login-coach', loginCoach);
+router.post('/resend-welcome-email', resendWelcomeEmail);
+router.post('/track-visit', trackVisit);
+router.get('/partner/profile', authenticate, getPartnerProfile);
+router.get('/coach/my-players', authenticate, getCoachMyPlayers);
+router.get('/visits', getVisits);
 
 router.get('/profile', authenticate, async (req, res) => {
   try {

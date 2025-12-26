@@ -62,6 +62,7 @@ const Auth = ({ forceRegister }: AuthProps) => {
     // aadhar: "",
     otp: "",
     playerRole: "",
+    referralCode: "", // Add referralCode field
   });
 
   const [locations, setLocations] = useState<any[]>([]);
@@ -94,6 +95,12 @@ const Auth = ({ forceRegister }: AuthProps) => {
 
     const mode = searchParams.get("mode");
     setIsRegister(mode === "register");
+
+    // Auto-fill referral code
+    const refCode = searchParams.get("ref") || localStorage.getItem("brpl_ref_code");
+    if (refCode) {
+      setFormData(prev => ({ ...prev, referralCode: refCode }));
+    }
   }, [searchParams, forceRegister]);
 
 
@@ -272,7 +279,16 @@ const Auth = ({ forceRegister }: AuthProps) => {
 
     try {
       if (isRegister) {
-        await register(formData);
+        // Collect tracking data from localStorage or URL
+        const trackingId = localStorage.getItem('brpl_tracking_id') || searchParams.get('trackingId');
+        const fbclid = localStorage.getItem('brpl_fbclid') || searchParams.get('fbclid');
+
+        await register({
+          ...formData,
+          referralCodeUsed: formData.referralCode,
+          trackingId,
+          fbclid
+        });
         // Removed success toast as per requirement
         navigate("/thank-you");
         setIsRegister(false);
@@ -548,6 +564,11 @@ const Auth = ({ forceRegister }: AuthProps) => {
                         </SelectContent>
                       </Select>
                     </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="referralCode" className="text-foreground">Referral Code (Optional)</Label>
+                    <Input id="referralCode" value={formData.referralCode} onChange={handleChange} placeholder="Enter Code (e.g. EARNYOURJERSEY2025)" />
                   </div>
 
                   <Separator className="my-2" />

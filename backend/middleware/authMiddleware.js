@@ -10,7 +10,9 @@ const authenticate = (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.userId = decoded.userId; 
+    req.userId = decoded.userId;
+    req.role = decoded.role;
+    req.email = decoded.email;
     next(); 
   } catch (error) {
     console.error(error);
