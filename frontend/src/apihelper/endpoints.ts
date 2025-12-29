@@ -20,5 +20,8 @@ export const ENDPOINTS = {
     },
     USERS: {
         LIST: '/api/users',
+    },
+    ADMIN: {
+        RECORDS: '/admin/records',
     }
 };

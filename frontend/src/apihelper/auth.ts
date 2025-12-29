@@ -30,3 +30,8 @@ export const resetPassword = async (data: any) => {
     const response = await api.post(ENDPOINTS.AUTH.RESET_PASSWORD, data);
     return response.data;
 };
+
+export const getProfile = async () => {
+    const response = await api.get('/auth/profile');
+    return response.data;
+};

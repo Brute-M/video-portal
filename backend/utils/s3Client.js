@@ -36,6 +36,3 @@ const getPresignedUrl = async (key) => {
 };
 
 module.exports = { s3Client, deleteFromS3, getPresignedUrl };
-
-
-

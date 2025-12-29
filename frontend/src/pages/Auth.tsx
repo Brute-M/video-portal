@@ -566,10 +566,12 @@ const Auth = ({ forceRegister }: AuthProps) => {
                     </div>
                   </div>
 
+                  {/* 
                   <div className="space-y-2">
                     <Label htmlFor="referralCode" className="text-foreground">Referral Code (Optional)</Label>
                     <Input id="referralCode" value={formData.referralCode} onChange={handleChange} placeholder="Enter Code (e.g. EARNYOURJERSEY2025)" />
                   </div>
+                  */}
 
                   <Separator className="my-2" />
 

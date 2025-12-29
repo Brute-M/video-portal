@@ -27,6 +27,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { uploadVideo, getVideos, deleteVideo, getVideoById } from "@/apihelper/video";
 import { verifyPayment, downloadInvoiceAPI, createRazorpayOrder, verifyRazorpayPayment } from "@/apihelper/payment";
+import { getProfile } from "@/apihelper/auth";
 import { v4 as uuidv4 } from "uuid";
 import { useRazorpay } from "react-razorpay";
 
@@ -53,10 +54,21 @@ const Videos = () => {
     const changeVideoInputRef = useRef<HTMLInputElement>(null);
     const [videoToChangeId, setVideoToChangeId] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
+    const [userProfile, setUserProfile] = useState<any>(null);
 
     useEffect(() => {
         fetchVideos();
+        fetchProfile();
     }, []);
+
+    const fetchProfile = async () => {
+        try {
+            const response = await getProfile();
+            setUserProfile(response.data?.data || response.data);
+        } catch (error) {
+            console.error("Failed to fetch profile", error);
+        }
+    };
 
     // Cleanup video URLs on unmount
     useEffect(() => {
@@ -247,19 +259,24 @@ const Videos = () => {
                 throw new Error("Server did not return a valid video ID");
             }
 
+            const serverStatus = response.status || response.data?.status || (response.data?.isFromLandingPage ? 'completed' : 'pending-payment');
+            const isLandingPageUser = response.isFromLandingPage || response.data?.isFromLandingPage;
+
             toast({
-                title: "Upload Successful",
-                description: "Video uploaded successfully. Please proceed to payment.",
+                title: isLandingPageUser ? "Upload Successful" : "Upload Successful",
+                description: isLandingPageUser ? "Video uploaded successfully and is now active." : "Video uploaded successfully. Please proceed to payment.",
             });
 
             setVideos((prev) =>
                 prev.map((v) =>
-                    v.id === newVideo.id ? { ...v, status: "pending-payment", id: serverId, progress: 100 } : v
+                    v.id === newVideo.id ? { ...v, status: serverStatus === 'completed' ? 'completed' : 'pending-payment', id: serverId, progress: 100 } : v
                 )
             );
 
-            setCurrentVideoId(serverId);
-            setShowPaymentModal(true);
+            if (!isLandingPageUser) {
+                setCurrentVideoId(serverId);
+                setShowPaymentModal(true);
+            }
 
         } catch (error: any) {
             console.error("Upload failed", error);
@@ -474,8 +491,8 @@ const Videos = () => {
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
                 className={`glass-card p-12 border-2 border-dashed transition-all duration-300 ${isDragging
-                        ? "border-primary bg-primary/5 scale-[1.02]"
-                        : "border-border hover:border-primary/50"
+                    ? "border-primary bg-primary/5 scale-[1.02]"
+                    : "border-border hover:border-primary/50"
                     }`}
             >
                 <div className="flex flex-col items-center justify-center text-center">
@@ -549,10 +566,16 @@ const Videos = () => {
                                         {video.status === "uploading" && (
                                             <span className="text-xs text-primary animate-pulse">Uploading...</span>
                                         )}
-                                        {video.status === "pending-payment" && (
+                                        {video.status === "pending-payment" && !userProfile?.isFromLandingPage && (
                                             <span className="text-xs text-accent flex items-center gap-1">
                                                 <CreditCard className="w-3 h-3" />
                                                 Awaiting payment
+                                            </span>
+                                        )}
+                                        {video.status === "pending-payment" && userProfile?.isFromLandingPage && (
+                                            <span className="text-xs text-green-500 flex items-center gap-1">
+                                                <Check className="w-3 h-3" />
+                                                Processing (Registration included)
                                             </span>
                                         )}
                                         {video.status === "completed" && (
@@ -593,16 +616,18 @@ const Videos = () => {
                                         >
                                             <Trash2 className="w-5 h-5" />
                                         </Button>
-                                        <Button
-                                            variant="hero"
-                                            size="sm"
-                                            onClick={() => {
-                                                setCurrentVideoId(video.id);
-                                                setShowPaymentModal(true);
-                                            }}
-                                        >
-                                            Pay Now
-                                        </Button>
+                                        {!userProfile?.isFromLandingPage && (
+                                            <Button
+                                                variant="hero"
+                                                size="sm"
+                                                onClick={() => {
+                                                    setCurrentVideoId(video.id);
+                                                    setShowPaymentModal(true);
+                                                }}
+                                            >
+                                                Pay Now
+                                            </Button>
+                                        )}
                                     </div>
                                 )}
 

@@ -34,6 +34,16 @@ const userSchema = new mongoose.Schema({
   referralCodeUsed: { type: String },
   referralSourceRole: { type: String, enum: ['coach', 'influencer'] },
   referralSourceId: { type: mongoose.Schema.Types.ObjectId, refPath: 'referralSourceRole' },
+  couponCodeUsed: { type: String },
+  couponBenefits: {
+    type: [
+      {
+        name: { type: String, required: true },
+        description: { type: String }
+      }
+    ],
+    default: []
+  },
   // Tracking Fields
   ipAddress: { type: String },
   userAgent: { type: String },

@@ -3,6 +3,7 @@ const Coach = require('../model/coach.model');
 const Influencer = require('../model/influencer.model');
 const Otp = require('../model/otp.model');
 const Visit = require('../model/visit.model');
+const Coupon = require('../model/coupon.model');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
@@ -85,7 +86,8 @@ const register = async (req, res) => {
       gender, zone_id, city, state, pincode,
       address1, address2, aadhar, playerRole,
       isFromLandingPage, paymentAmount, paymentId,
-      referralCodeUsed, trackingId, fbclid
+      referralCodeUsed, trackingId, fbclid,
+      couponCode
     } = req.body;
 
     if (!email || !password || !fname || !mobile) {
@@ -167,6 +169,21 @@ const register = async (req, res) => {
       }
     }
 
+    let normalizedCouponCode = couponCode ? String(couponCode).trim().toUpperCase() : '';
+    let appliedCouponBenefits = [];
+    let matchedCoupon = null;
+
+    if (normalizedCouponCode) {
+      matchedCoupon = await Coupon.findOne({ code: normalizedCouponCode, isActive: true });
+      if (!matchedCoupon) {
+        return res.status(400).json({
+          statusCode: 400,
+          data: { message: 'Invalid coupon code' }
+        });
+      }
+      appliedCouponBenefits = Array.isArray(matchedCoupon.benefits) ? matchedCoupon.benefits : [];
+    }
+
     const newUser = new User({
       fname, lname, email, password: hashedPassword,
       mobile, otp, gender, zone_id, city, state, pincode,
@@ -179,6 +196,8 @@ const register = async (req, res) => {
       referralCodeUsed: normalizedReferralCode || undefined,
       referralSourceRole,
       referralSourceId,
+      couponCodeUsed: normalizedCouponCode || undefined,
+      couponBenefits: appliedCouponBenefits,
       isPaid: !!paymentId, // Set isPaid to true if paymentId is present
       ipAddress: clientIp,
       userAgent: clientUa,
@@ -188,6 +207,13 @@ const register = async (req, res) => {
     });
 
     await newUser.save();
+
+    if (matchedCoupon) {
+      matchedCoupon.usedCount = (matchedCoupon.usedCount || 0) + 1;
+      matchedCoupon.usedBy = matchedCoupon.usedBy || [];
+      matchedCoupon.usedBy.push(newUser._id);
+      await matchedCoupon.save();
+    }
 
     // Mark visit as converted if matched
     if (matchedVisit) {
@@ -402,7 +428,14 @@ const verifyOtp = async (req, res) => {
     // OTP valid - optionally delete it to prevent reuse
     await Otp.deleteOne({ _id: record._id });
 
-    res.status(200).json({ message: "OTP verified successfully", success: true });
+    const existingUser = await User.findOne({ mobile });
+
+    res.status(200).json({
+      message: "OTP verified successfully",
+      success: true,
+      isAlreadyRegistered: !!existingUser,
+      isPaid: existingUser ? (existingUser.isPaid || !!existingUser.paymentId) : false
+    });
   } catch (error) {
     console.error("Verify OTP Error:", error);
     res.status(500).json({ message: "Failed to verify OTP", error: error.message });

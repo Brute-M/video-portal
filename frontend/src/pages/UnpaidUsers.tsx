@@ -8,16 +8,32 @@ const UnpaidUsers = () => {
     const { toast } = useToast();
     const [users, setUsers] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [page, setPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const [totalRecords, setTotalRecords] = useState(0);
+    const limit = 10;
 
     useEffect(() => {
         fetchUsers({});
-    }, []);
+    }, [page]);
 
     const fetchUsers = async (filters: any) => {
         setIsLoading(true);
         try {
-            const data = await getUsers('unpaid', filters);
-            setUsers(data || []);
+            const data: any = await getUsers('unpaid', { ...filters, page, limit });
+            // Handle both array (legacy/fallback) and paginated response
+            if (data && data.items) {
+                setUsers(data.items);
+                setTotalPages(data.pagination.pages);
+                setTotalRecords(data.pagination.total);
+            } else if (Array.isArray(data)) {
+                // Fallback if backend not updated immediately or error
+                setUsers(data);
+                setTotalRecords(data.length);
+            } else {
+                setUsers([]);
+                setTotalRecords(0);
+            }
         } catch (error: any) {
             console.error("Failed to fetch unpaid users", error);
             toast({
@@ -39,13 +55,20 @@ const UnpaidUsers = () => {
                 </div>
                 <div className="flex items-center gap-2 px-4 py-2 bg-orange-500/10 text-orange-500 rounded-lg self-start sm:self-auto">
                     <span className="w-2 h-2 rounded-full bg-orange-500" />
-                    <span className="font-medium">{users.length} Records Found</span>
+                    <span className="font-medium">{totalRecords} Records Found</span>
                 </div>
             </div>
 
-            <FilterBar onFilterChange={fetchUsers} />
+            <FilterBar onFilterChange={(filters) => { setPage(1); fetchUsers(filters); }} />
 
-            <UserTable users={users} isLoading={isLoading} type="unpaid" />
+            <UserTable
+                users={users}
+                isLoading={isLoading}
+                type="unpaid"
+                page={page}
+                totalPages={totalPages}
+                onPageChange={setPage}
+            />
         </div>
     );
 };

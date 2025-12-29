@@ -73,8 +73,29 @@ const getUsers = async (req, res) => {
           isPaid: '$isUserPaid',
           createdAt: 1,
           videoCount: { $size: '$userVideos' },
+          paymentAmount: {
+            $add: [
+              { $ifNull: ['$paymentAmount', 0] },
+              {
+                $sum: {
+                  $map: {
+                    input: {
+                      $filter: {
+                        input: '$userVideos',
+                        as: 'v',
+                        cond: { $eq: ['$$v.status', 'completed'] }
+                      }
+                    },
+                    as: 'paidVideo',
+                    in: { $ifNull: ['$$paidVideo.amount', 0] }
+                  }
+                }
+              }
+            ]
+          },
           lastPaymentId: {
             $ifNull: [
+              '$paymentId',
               {
                 $let: {
                   vars: {
@@ -94,10 +115,34 @@ const getUsers = async (req, res) => {
           }
         }
       },
-      { $sort: { createdAt: -1 } }
+      { $sort: { createdAt: -1 } },
+      {
+        $facet: {
+          metadata: [
+            { $count: "total" }
+          ],
+          data: [
+            { $skip: (parseInt(req.query.page || 1) - 1) * parseInt(req.query.limit || 10) },
+            { $limit: parseInt(req.query.limit || 10) }
+          ]
+        }
+      }
     ]);
 
-    res.json(users);
+    const data = users[0].data;
+    const total = users[0].metadata[0] ? users[0].metadata[0].total : 0;
+    const page = parseInt(req.query.page || 1);
+    const limit = parseInt(req.query.limit || 10);
+
+    res.json({
+      items: data,
+      pagination: {
+        total,
+        page,
+        limit,
+        pages: Math.ceil(total / limit)
+      }
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server error' });

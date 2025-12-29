@@ -2,8 +2,19 @@ import { useState, useEffect } from "react";
 import { getUsers } from "@/apihelper/user";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 import { Users, UserCheck, UserX, TrendingUp } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table";
+import { getAdminRecords, AdminRecord } from "@/apihelper/admin";
 
 const AdminDashboard = () => {
     const { toast } = useToast();
@@ -15,10 +26,32 @@ const AdminDashboard = () => {
     // Simplified registration & revenue data for charts
     const [chartData, setChartData] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [users, setUsers] = useState<AdminRecord[]>([]);
+    const [isLoadingUsers, setIsLoadingUsers] = useState(false);
 
     useEffect(() => {
         fetchStats();
+        fetchUsers();
     }, []);
+
+    const fetchUsers = async () => {
+        setIsLoadingUsers(true);
+        try {
+            const response = await getAdminRecords(1, 5, '', 'users');
+            if (response && response.data && response.data.items) {
+                setUsers(response.data.items);
+            }
+        } catch (error) {
+            console.error("Failed to fetch users", error);
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: "Failed to fetch registered users.",
+            });
+        } finally {
+            setIsLoadingUsers(false);
+        }
+    };
 
     const fetchStats = async () => {
         setIsLoading(true);
@@ -159,6 +192,60 @@ const AdminDashboard = () => {
                     </CardContent>
                 </Card>
             </div>
+
+            {/* Registered Users Table */}
+            <Card className="glass-card">
+                <CardHeader className="flex flex-row items-center justify-between">
+                    <CardTitle className="text-lg">Recent Registered Users (Landing Page)</CardTitle>
+                    <Button variant="outline" size="sm" asChild>
+                        <Link to="/admin/registered-users">View All</Link>
+                    </Button>
+                </CardHeader>
+                <CardContent>
+                    {isLoadingUsers ? (
+                        <div className="text-center py-4">Loading users...</div>
+                    ) : (
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>No.</TableHead>
+                                    <TableHead>Name</TableHead>
+                                    <TableHead>Email</TableHead>
+                                    <TableHead>Mobile</TableHead>
+                                    <TableHead>Registered At</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {users.length === 0 ? (
+                                    <TableRow>
+                                        <TableCell colSpan={5} className="text-center text-muted-foreground h-24">
+                                            No users found.
+                                        </TableCell>
+                                    </TableRow>
+                                ) : (
+                                    users.map((user, index) => (
+                                        <TableRow key={user._id}>
+                                            <TableCell className="font-medium">{index + 1}</TableCell>
+                                            <TableCell>{user.fname ? `${user.fname} ${user.lname || ''}` : user.name || 'N/A'}</TableCell>
+                                            <TableCell>{user.email}</TableCell>
+                                            <TableCell>{user.mobile || 'N/A'}</TableCell>
+                                            <TableCell>
+                                                {new Date(user.createdAt).toLocaleDateString('en-IN', {
+                                                    day: '2-digit',
+                                                    month: 'short',
+                                                    year: 'numeric',
+                                                    hour: '2-digit',
+                                                    minute: '2-digit'
+                                                })}
+                                            </TableCell>
+                                        </TableRow>
+                                    ))
+                                )}
+                            </TableBody>
+                        </Table>
+                    )}
+                </CardContent>
+            </Card>
 
         </div>
     );

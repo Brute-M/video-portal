@@ -1,48 +1,48 @@
 const User = require('../model/user.model');
 const Coach = require('../model/coach.model');
 const Influencer = require('../model/influencer.model');
- const jwt = require('jsonwebtoken');
+const jwt = require('jsonwebtoken');
 
- const adminLandingLogin = async (req, res) => {
-     try {
-         const { email, password } = req.body;
+const adminLandingLogin = async (req, res) => {
+    try {
+        const { email, password } = req.body;
 
-         if (!email || !password) {
-             return res.status(400).json({ message: 'Email and password are required' });
-         }
+        if (!email || !password) {
+            return res.status(400).json({ message: 'Email and password are required' });
+        }
 
-         const adminEmail = (process.env.ADMIN_EMAIL || 'admin@brpl.com').toLowerCase();
-         const adminPassword = process.env.ADMIN_PASSWORD || 'admin123';
-         const legacyPassword = 'Admin@123';
+        const adminEmail = (process.env.ADMIN_EMAIL || 'admin@brpl.com').toLowerCase();
+        const adminPassword = process.env.ADMIN_PASSWORD || 'admin123';
+        const legacyPassword = 'Admin@123';
 
-         const inputEmail = String(email).toLowerCase().trim();
+        const inputEmail = String(email).toLowerCase().trim();
 
-         if (inputEmail !== adminEmail || (password !== adminPassword && password !== legacyPassword)) {
-             return res.status(401).json({ message: 'Invalid credentials' });
-         }
+        if (inputEmail !== adminEmail || (password !== adminPassword && password !== legacyPassword)) {
+            return res.status(401).json({ message: 'Invalid credentials' });
+        }
 
-         const token = jwt.sign(
-             { userId: 'admin', role: 'admin', email: adminEmail },
-             process.env.JWT_SECRET,
-             { expiresIn: '24h' }
-         );
+        const token = jwt.sign(
+            { userId: 'admin', role: 'admin', email: adminEmail },
+            process.env.JWT_SECRET,
+            { expiresIn: '24h' }
+        );
 
-         return res.json({
-             statusCode: 200,
-             data: {
-                 token,
-                 user: {
-                     id: 'admin',
-                     email: adminEmail,
-                     role: 'admin'
-                 }
-             }
-         });
-     } catch (error) {
-         console.error('Admin landing login error:', error);
-         return res.status(500).json({ message: 'Server error' });
-     }
- };
+        return res.json({
+            statusCode: 200,
+            data: {
+                token,
+                user: {
+                    id: 'admin',
+                    email: adminEmail,
+                    role: 'admin'
+                }
+            }
+        });
+    } catch (error) {
+        console.error('Admin landing login error:', error);
+        return res.status(500).json({ message: 'Server error' });
+    }
+};
 
 // Fetch all records from all collections
 const getAllRecords = async (req, res) => {
@@ -84,6 +84,8 @@ const getPaginatedRecords = async (req, res) => {
         const page = Math.max(1, Number(req.query.page) || 1);
         const limit = Math.min(100, Math.max(5, Number(req.query.limit) || 10));
         const search = (req.query.search || '').toString().trim();
+        const startDate = req.query.startDate;
+        const endDate = req.query.endDate;
 
         const Model = type === 'coaches' ? Coach : type === 'influencers' ? Influencer : User;
 
@@ -100,6 +102,13 @@ const getPaginatedRecords = async (req, res) => {
                 { fname: { $regex: search, $options: 'i' } },
                 { lname: { $regex: search, $options: 'i' } }
             ];
+        }
+
+        if (startDate && endDate) {
+            filter.createdAt = {
+                $gte: new Date(startDate),
+                $lte: new Date(new Date(endDate).setHours(23, 59, 59, 999))
+            };
         }
 
         const total = await Model.countDocuments(filter);
@@ -157,6 +166,80 @@ const getAdminStats = async (req, res) => {
     } catch (error) {
         console.error('Error fetching admin stats:', error);
         return res.status(500).json({ message: 'Server error fetching stats' });
+    }
+};
+
+const getDashboardChartData = async (req, res) => {
+    try {
+        if (req.role !== 'admin' && req.userId !== 'admin') {
+            return res.status(403).json({ message: 'Forbidden' });
+        }
+
+        const sixMonthsAgo = new Date();
+        sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5);
+        sixMonthsAgo.setDate(1); // Start of the month
+        sixMonthsAgo.setHours(0, 0, 0, 0);
+
+        const chartData = await User.aggregate([
+            {
+                $match: {
+                    createdAt: { $gte: sixMonthsAgo }
+                }
+            },
+            {
+                $project: {
+                    month: { $month: "$createdAt" },
+                    year: { $year: "$createdAt" },
+                    isPaid: 1,
+                    paymentAmount: 1
+                }
+            },
+            {
+                $group: {
+                    _id: { month: "$month", year: "$year" },
+                    users: { $sum: 1 },
+                    revenue: {
+                        $sum: {
+                            $cond: [{ $eq: ["$isPaid", true] }, { $ifNull: ["$paymentAmount", 1499] }, 0]
+                        }
+                    }
+                }
+            },
+            {
+                $sort: { "_id.year": 1, "_id.month": 1 }
+            }
+        ]);
+
+        // Format data for Recharts (fill missing months if needed, or just return as is)
+        const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+        // Generate last 6 months list to ensure all months are present
+        const result = [];
+        const currentCheckDate = new Date(sixMonthsAgo);
+        const now = new Date();
+
+        while (currentCheckDate <= now) {
+            const m = currentCheckDate.getMonth() + 1;
+            const y = currentCheckDate.getFullYear();
+            const existing = chartData.find(d => d._id.month === m && d._id.year === y);
+
+            result.push({
+                name: monthNames[m - 1],
+                users: existing ? existing.users : 0,
+                revenue: existing ? existing.revenue : 0
+            });
+
+            currentCheckDate.setMonth(currentCheckDate.getMonth() + 1);
+        }
+
+        return res.json({
+            statusCode: 200,
+            data: result
+        });
+
+    } catch (error) {
+        console.error('Error fetching dashboard chart data:', error);
+        return res.status(500).json({ message: 'Server error fetching chart data' });
     }
 };
 
