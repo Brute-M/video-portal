@@ -1,4 +1,7 @@
+<<<<<<< HEAD
 
+=======
+>>>>>>> 8c09cfeefc9d939bac72912758e18842fc8583a8
 const Video = require('../model/video.model');
 const User = require('../model/user.model');
 const { s3Client, deleteFromS3, getPresignedUrl } = require('../utils/s3Client');
@@ -224,3 +227,7 @@ module.exports = {
     deleteVideo,
     downloadInvoice
 };
+<<<<<<< HEAD
+=======
+
+>>>>>>> 8c09cfeefc9d939bac72912758e18842fc8583a8

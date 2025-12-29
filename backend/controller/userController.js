@@ -73,6 +73,7 @@ const getUsers = async (req, res) => {
           isPaid: '$isUserPaid',
           createdAt: 1,
           videoCount: { $size: '$userVideos' },
+<<<<<<< HEAD
           paymentAmount: {
             $add: [
               { $ifNull: ['$paymentAmount', 0] },
@@ -96,6 +97,10 @@ const getUsers = async (req, res) => {
           lastPaymentId: {
             $ifNull: [
               '$paymentId',
+=======
+          lastPaymentId: {
+            $ifNull: [
+>>>>>>> 8c09cfeefc9d939bac72912758e18842fc8583a8
               {
                 $let: {
                   vars: {
@@ -115,6 +120,7 @@ const getUsers = async (req, res) => {
           }
         }
       },
+<<<<<<< HEAD
       { $sort: { createdAt: -1 } },
       {
         $facet: {
@@ -143,6 +149,12 @@ const getUsers = async (req, res) => {
         pages: Math.ceil(total / limit)
       }
     });
+=======
+      { $sort: { createdAt: -1 } }
+    ]);
+
+    res.json(users);
+>>>>>>> 8c09cfeefc9d939bac72912758e18842fc8583a8
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server error' });

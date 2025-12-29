@@ -3,8 +3,13 @@ const crypto = require('crypto');
 const Video = require('../model/video.model');
 
 const razorpay = new Razorpay({
+<<<<<<< HEAD
     key_id: 'rzp_live_RsBsR05m5SGbtT' || process.env.RAZORPAY_KEY_ID,
     key_secret: '1pFXfyat0LN1xPEeadrz1RN4' || process.env.RAZORPAY_KEY_SECRET,
+=======
+    key_id: 'rzp_live_RsBsR05m5SGbtT',
+    key_secret: '1pFXfyat0LN1xPEeadrz1RN4',
+>>>>>>> 8c09cfeefc9d939bac72912758e18842fc8583a8
 });
 
 // Create an order

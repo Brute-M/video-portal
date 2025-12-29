@@ -9,7 +9,10 @@ const locationRoute = require("./routes/locationRoute");
 const contactRoute = require("./routes/contactRoute");
 const paymentRoute = require("./routes/paymentRoute");
 const adminRoutes = require("./routes/adminRoute");
+<<<<<<< HEAD
 const couponRoutes = require("./routes/couponRoute");
+=======
+>>>>>>> 8c09cfeefc9d939bac72912758e18842fc8583a8
 
 const path = require("path");
 const app = express();
@@ -39,7 +42,10 @@ app.get("/", (req, res) => {
 app.use("/auth", authRoutes);
 app.use("/api/video", videoRoutes);
 app.use("/api", userRoutes);
+<<<<<<< HEAD
 app.use("/api/coupons", couponRoutes);
+=======
+>>>>>>> 8c09cfeefc9d939bac72912758e18842fc8583a8
 app.use("/api/locations", locationRoute);
 app.use("/api/contact", contactRoute);
 app.use("/api/payment", paymentRoute);

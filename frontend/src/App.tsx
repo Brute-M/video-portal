@@ -14,7 +14,10 @@ import AdminLayout from "./layouts/AdminLayout";
 import AdminDashboard from "./pages/AdminDashboard";
 import PaidUsers from "./pages/PaidUsers";
 import UnpaidUsers from "./pages/UnpaidUsers";
+<<<<<<< HEAD
 import CouponUsage from "./pages/CouponUsage";
+=======
+>>>>>>> 8c09cfeefc9d939bac72912758e18842fc8583a8
 import PublicLayout from "./layouts/PublicLayout";
 import AboutUs from "./pages/AboutUs";
 import TeamsPage from "./pages/TeamsPage";
@@ -25,7 +28,10 @@ import ThankYou from "./pages/ThankYou";
 import PaymentSuccessful from "./pages/PaymentSuccessful";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsAndConditions from "./pages/TermsAndConditions";
+<<<<<<< HEAD
 import RegisteredUsers from "./pages/RegisteredUsers";
+=======
+>>>>>>> 8c09cfeefc9d939bac72912758e18842fc8583a8
 
 import AOS from "aos";
 import "aos/dist/aos.css";
@@ -71,8 +77,11 @@ const App = () => {
                 <Route path="/admin/dashboard" element={<AdminDashboard />} />
                 <Route path="/admin/paid-users" element={<PaidUsers />} />
                 <Route path="/admin/unpaid-users" element={<UnpaidUsers />} />
+<<<<<<< HEAD
                 <Route path="/admin/coupon-usage" element={<CouponUsage />} />
                 <Route path="/admin/registered-users" element={<RegisteredUsers />} />
+=======
+>>>>>>> 8c09cfeefc9d939bac72912758e18842fc8583a8
               </Route>
 
               <Route element={<DashboardLayout />}>

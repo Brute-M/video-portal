@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { getUsers } from "@/apihelper/user";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+<<<<<<< HEAD
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { Users, UserCheck, UserX, TrendingUp } from "lucide-react";
@@ -15,6 +16,10 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import { getAdminRecords, AdminRecord } from "@/apihelper/admin";
+=======
+import { Users, UserCheck, UserX, TrendingUp } from "lucide-react";
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
+>>>>>>> 8c09cfeefc9d939bac72912758e18842fc8583a8
 
 const AdminDashboard = () => {
     const { toast } = useToast();
@@ -26,6 +31,7 @@ const AdminDashboard = () => {
     // Simplified registration & revenue data for charts
     const [chartData, setChartData] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+<<<<<<< HEAD
     const [users, setUsers] = useState<AdminRecord[]>([]);
     const [isLoadingUsers, setIsLoadingUsers] = useState(false);
 
@@ -53,6 +59,13 @@ const AdminDashboard = () => {
         }
     };
 
+=======
+
+    useEffect(() => {
+        fetchStats();
+    }, []);
+
+>>>>>>> 8c09cfeefc9d939bac72912758e18842fc8583a8
     const fetchStats = async () => {
         setIsLoading(true);
         try {
@@ -193,6 +206,7 @@ const AdminDashboard = () => {
                 </Card>
             </div>
 
+<<<<<<< HEAD
             {/* Registered Users Table */}
             <Card className="glass-card">
                 <CardHeader className="flex flex-row items-center justify-between">
@@ -247,6 +261,8 @@ const AdminDashboard = () => {
                 </CardContent>
             </Card>
 
+=======
+>>>>>>> 8c09cfeefc9d939bac72912758e18842fc8583a8
         </div>
     );
 };
