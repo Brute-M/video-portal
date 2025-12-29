@@ -3,10 +3,7 @@ const Coach = require('../model/coach.model');
 const Influencer = require('../model/influencer.model');
 const Otp = require('../model/otp.model');
 const Visit = require('../model/visit.model');
-<<<<<<< HEAD
 const Coupon = require('../model/coupon.model');
-=======
->>>>>>> 8c09cfeefc9d939bac72912758e18842fc8583a8
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
@@ -89,12 +86,8 @@ const register = async (req, res) => {
       gender, zone_id, city, state, pincode,
       address1, address2, aadhar, playerRole,
       isFromLandingPage, paymentAmount, paymentId,
-<<<<<<< HEAD
       referralCodeUsed, trackingId, fbclid,
       couponCode
-=======
-      referralCodeUsed, trackingId, fbclid
->>>>>>> 8c09cfeefc9d939bac72912758e18842fc8583a8
     } = req.body;
 
     if (!email || !password || !fname || !mobile) {
@@ -176,7 +169,6 @@ const register = async (req, res) => {
       }
     }
 
-<<<<<<< HEAD
     let normalizedCouponCode = couponCode ? String(couponCode).trim().toUpperCase() : '';
     let appliedCouponBenefits = [];
     let matchedCoupon = null;
@@ -192,8 +184,6 @@ const register = async (req, res) => {
       appliedCouponBenefits = Array.isArray(matchedCoupon.benefits) ? matchedCoupon.benefits : [];
     }
 
-=======
->>>>>>> 8c09cfeefc9d939bac72912758e18842fc8583a8
     const newUser = new User({
       fname, lname, email, password: hashedPassword,
       mobile, otp, gender, zone_id, city, state, pincode,
@@ -206,11 +196,8 @@ const register = async (req, res) => {
       referralCodeUsed: normalizedReferralCode || undefined,
       referralSourceRole,
       referralSourceId,
-<<<<<<< HEAD
       couponCodeUsed: normalizedCouponCode || undefined,
       couponBenefits: appliedCouponBenefits,
-=======
->>>>>>> 8c09cfeefc9d939bac72912758e18842fc8583a8
       isPaid: !!paymentId, // Set isPaid to true if paymentId is present
       ipAddress: clientIp,
       userAgent: clientUa,
@@ -221,7 +208,6 @@ const register = async (req, res) => {
 
     await newUser.save();
 
-<<<<<<< HEAD
     if (matchedCoupon) {
       matchedCoupon.usedCount = (matchedCoupon.usedCount || 0) + 1;
       matchedCoupon.usedBy = matchedCoupon.usedBy || [];
@@ -229,8 +215,6 @@ const register = async (req, res) => {
       await matchedCoupon.save();
     }
 
-=======
->>>>>>> 8c09cfeefc9d939bac72912758e18842fc8583a8
     // Mark visit as converted if matched
     if (matchedVisit) {
       matchedVisit.converted = true;
@@ -444,7 +428,6 @@ const verifyOtp = async (req, res) => {
     // OTP valid - optionally delete it to prevent reuse
     await Otp.deleteOne({ _id: record._id });
 
-<<<<<<< HEAD
     const existingUser = await User.findOne({ mobile });
 
     res.status(200).json({
@@ -453,9 +436,6 @@ const verifyOtp = async (req, res) => {
       isAlreadyRegistered: !!existingUser,
       isPaid: existingUser ? (existingUser.isPaid || !!existingUser.paymentId) : false
     });
-=======
-    res.status(200).json({ message: "OTP verified successfully", success: true });
->>>>>>> 8c09cfeefc9d939bac72912758e18842fc8583a8
   } catch (error) {
     console.error("Verify OTP Error:", error);
     res.status(500).json({ message: "Failed to verify OTP", error: error.message });

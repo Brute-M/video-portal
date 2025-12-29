@@ -1,7 +1,4 @@
-<<<<<<< HEAD
 import { useState } from "react";
-=======
->>>>>>> 8c09cfeefc9d939bac72912758e18842fc8583a8
 import {
     Table,
     TableBody,
@@ -11,40 +8,28 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-<<<<<<< HEAD
 import { Button } from "@/components/ui/button";
 import { Eye, ChevronLeft, ChevronRight } from "lucide-react";
 import { UserDetailsDialog } from "./UserDetailsDialog";
 
 export interface User {
-=======
-
-interface User {
->>>>>>> 8c09cfeefc9d939bac72912758e18842fc8583a8
     _id: string;
     fname: string;
     lname: string;
     email: string;
-<<<<<<< HEAD
     mobile?: string;
-=======
->>>>>>> 8c09cfeefc9d939bac72912758e18842fc8583a8
     playerRole?: string;
     videoCount: number;
     createdAt: string;
     lastPaymentId?: string;
     isPaid: boolean;
-<<<<<<< HEAD
     paymentAmount: number;
-=======
->>>>>>> 8c09cfeefc9d939bac72912758e18842fc8583a8
 }
 
 interface UserTableProps {
     users: User[];
     isLoading: boolean;
     type: 'paid' | 'unpaid';
-<<<<<<< HEAD
     page: number;
     totalPages: number;
     onPageChange: (page: number) => void;
@@ -57,25 +42,15 @@ export const UserTable = ({ users, isLoading, type, page, totalPages, onPageChan
         setSelectedUser(user);
     };
 
-=======
-}
-
-export const UserTable = ({ users, isLoading, type }: UserTableProps) => {
->>>>>>> 8c09cfeefc9d939bac72912758e18842fc8583a8
     if (isLoading) {
         return <div className="p-8 text-center text-muted-foreground">Loading users...</div>;
     }
 
-<<<<<<< HEAD
     if (!isLoading && users.length === 0) {
-=======
-    if (users.length === 0) {
->>>>>>> 8c09cfeefc9d939bac72912758e18842fc8583a8
         return <div className="p-8 text-center text-muted-foreground">No users found.</div>;
     }
 
     return (
-<<<<<<< HEAD
         <div className="space-y-4">
             <div className="rounded-md border glass-card overflow-x-auto">
                 <Table>
@@ -163,49 +138,6 @@ export const UserTable = ({ users, isLoading, type }: UserTableProps) => {
                 open={!!selectedUser}
                 onOpenChange={(open) => !open && setSelectedUser(null)}
             />
-=======
-        <div className="rounded-md border glass-card overflow-x-auto">
-            <Table>
-                <TableHeader className="bg-muted/50">
-                    <TableRow>
-                        <TableHead>Name</TableHead>
-                        <TableHead>Email</TableHead>
-                        <TableHead>Role</TableHead>
-                        <TableHead>Videos</TableHead>
-                        <TableHead>Joined</TableHead>
-                        {type === 'paid' && <TableHead>Payment ID</TableHead>}
-                        <TableHead>Status</TableHead>
-                    </TableRow>
-                </TableHeader>
-                <TableBody>
-                    {users.map((user) => (
-                        <TableRow key={user._id} className="hover:bg-muted/30 transition-colors">
-                            <TableCell className="font-medium">{user.fname} {user.lname}</TableCell>
-                            <TableCell className="text-muted-foreground">{user.email}</TableCell>
-                            <TableCell>
-                                <Badge variant="outline" className="bg-primary/5">
-                                    {user.playerRole || 'Player'}
-                                </Badge>
-                            </TableCell>
-                            <TableCell className="font-mono">{user.videoCount || 0}</TableCell>
-                            <TableCell className="text-muted-foreground text-sm">
-                                {new Date(user.createdAt).toLocaleDateString()}
-                            </TableCell>
-                            {type === 'paid' && (
-                                <TableCell className="font-mono text-xs text-muted-foreground">
-                                    {user.lastPaymentId !== 'N/A' ? user.lastPaymentId : '-'}
-                                </TableCell>
-                            )}
-                            <TableCell>
-                                <Badge variant={type === 'paid' ? 'default' : 'secondary'} className={type === 'paid' ? 'bg-green-500 hover:bg-green-600' : 'bg-orange-500 hover:bg-orange-600 text-white'}>
-                                    {type === 'paid' ? 'Active' : 'Unpaid'}
-                                </Badge>
-                            </TableCell>
-                        </TableRow>
-                    ))}
-                </TableBody>
-            </Table>
->>>>>>> 8c09cfeefc9d939bac72912758e18842fc8583a8
         </div>
     );
 };

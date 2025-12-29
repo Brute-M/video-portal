@@ -35,11 +35,8 @@ const AdminLayout = () => {
         { icon: LayoutDashboard, label: "Dashboard", path: "/admin/dashboard" },
         { icon: UserCheck, label: "Paid Users", path: "/admin/paid-users" },
         { icon: UserX, label: "Unpaid Users", path: "/admin/unpaid-users" },
-<<<<<<< HEAD
         { icon: Users, label: "Coupon Usage", path: "/admin/coupon-usage" },
         { icon: Users, label: "Registered Users", path: "/admin/registered-users" },
-=======
->>>>>>> 8c09cfeefc9d939bac72912758e18842fc8583a8
     ];
 
     return (

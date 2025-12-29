@@ -34,7 +34,6 @@ const userSchema = new mongoose.Schema({
   referralCodeUsed: { type: String },
   referralSourceRole: { type: String, enum: ['coach', 'influencer'] },
   referralSourceId: { type: mongoose.Schema.Types.ObjectId, refPath: 'referralSourceRole' },
-<<<<<<< HEAD
   couponCodeUsed: { type: String },
   couponBenefits: {
     type: [
@@ -45,8 +44,6 @@ const userSchema = new mongoose.Schema({
     ],
     default: []
   },
-=======
->>>>>>> 8c09cfeefc9d939bac72912758e18842fc8583a8
   // Tracking Fields
   ipAddress: { type: String },
   userAgent: { type: String },

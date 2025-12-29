@@ -8,7 +8,6 @@ const PaidUsers = () => {
     const { toast } = useToast();
     const [users, setUsers] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
-<<<<<<< HEAD
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [totalRecords, setTotalRecords] = useState(0);
@@ -17,17 +16,10 @@ const PaidUsers = () => {
     useEffect(() => {
         fetchUsers({});
     }, [page]);
-=======
-
-    useEffect(() => {
-        fetchUsers({});
-    }, []);
->>>>>>> 8c09cfeefc9d939bac72912758e18842fc8583a8
 
     const fetchUsers = async (filters: any) => {
         setIsLoading(true);
         try {
-<<<<<<< HEAD
             const data: any = await getUsers('paid', { ...filters, page, limit });
             // Handle both array (legacy/fallback) and paginated response
             if (data && data.items) {
@@ -42,10 +34,6 @@ const PaidUsers = () => {
                 setUsers([]);
                 setTotalRecords(0);
             }
-=======
-            const data = await getUsers('paid', filters);
-            setUsers(data || []);
->>>>>>> 8c09cfeefc9d939bac72912758e18842fc8583a8
         } catch (error: any) {
             console.error("Failed to fetch paid users", error);
             toast({
@@ -67,7 +55,6 @@ const PaidUsers = () => {
                 </div>
                 <div className="flex items-center gap-2 px-4 py-2 bg-green-500/10 text-green-500 rounded-lg self-start sm:self-auto">
                     <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-<<<<<<< HEAD
                     <span className="font-medium">{totalRecords} Records Found</span>
                 </div>
             </div>
@@ -82,15 +69,6 @@ const PaidUsers = () => {
                 totalPages={totalPages}
                 onPageChange={setPage}
             />
-=======
-                    <span className="font-medium">{users.length} Records Found</span>
-                </div>
-            </div>
-
-            <FilterBar onFilterChange={fetchUsers} />
-
-            <UserTable users={users} isLoading={isLoading} type="paid" />
->>>>>>> 8c09cfeefc9d939bac72912758e18842fc8583a8
         </div>
     );
 };
