@@ -10,6 +10,12 @@ export interface AdminRecord {
     mobile?: string;
     createdAt: string;
     isFromLandingPage?: boolean;
+    isPaid?: boolean;
+    paymentId?: string;
+    lastPaymentId?: string;
+    notificationSent?: boolean;
+    trail_video?: string;
+    videos?: any[];
     // Add other fields as needed
 }
 
@@ -37,5 +43,15 @@ export const getAdminRecords = async (page: number = 1, limit: number = 10, sear
     if (endDate) params.append('endDate', endDate.toISOString());
 
     const response = await api.get<PaginatedResponse<AdminRecord>>(`${ENDPOINTS.ADMIN.RECORDS}?${params.toString()}`);
+    return response.data;
+};
+
+export const getDashboardStats = async () => {
+    const response = await api.get(`${ENDPOINTS.ADMIN.STATS}`);
+    return response.data;
+};
+
+export const getDashboardCharts = async () => {
+    const response = await api.get(`${ENDPOINTS.ADMIN.CHARTS}`);
     return response.data;
 };

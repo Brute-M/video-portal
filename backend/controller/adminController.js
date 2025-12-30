@@ -116,11 +116,89 @@ const getPaginatedRecords = async (req, res) => {
         const safePage = Math.min(page, pages);
         const skip = (safePage - 1) * limit;
 
-        const items = await Model.find(filter)
-            .select('-password')
-            .sort({ createdAt: -1 })
-            .skip(skip)
-            .limit(limit);
+        let items;
+        if (type === 'users') {
+            items = await User.aggregate([
+                { $match: filter },
+                { $sort: { createdAt: -1 } },
+                { $skip: skip },
+                { $limit: limit },
+                {
+                    $lookup: {
+                        from: 'videos',
+                        localField: '_id',
+                        foreignField: 'userId',
+                        as: 'userVideos'
+                    }
+                },
+                {
+                    $addFields: {
+                        fullName: { $concat: ['$fname', ' ', '$lname'] }
+                    }
+                },
+                {
+                    $project: {
+                        fname: 1,
+                        lname: 1,
+                        email: 1,
+                        mobile: 1,
+                        playerRole: 1,
+                        isPaid: 1,
+                        createdAt: 1,
+                        trail_video: 1,
+                        isFromLandingPage: 1,
+                        videoCount: { $size: '$userVideos' },
+                        videos: '$userVideos',
+                        paymentAmount: {
+                            $add: [
+                                { $ifNull: ['$paymentAmount', 0] },
+                                {
+                                    $sum: {
+                                        $map: {
+                                            input: {
+                                                $filter: {
+                                                    input: '$userVideos',
+                                                    as: 'v',
+                                                    cond: { $eq: ['$$v.status', 'completed'] }
+                                                }
+                                            },
+                                            as: 'paidVideo',
+                                            in: { $ifNull: ['$$paidVideo.amount', 0] }
+                                        }
+                                    }
+                                }
+                            ]
+                        },
+                        lastPaymentId: {
+                            $ifNull: [
+                                '$paymentId',
+                                {
+                                    $let: {
+                                        vars: {
+                                            paidVideos: {
+                                                $filter: {
+                                                    input: '$userVideos',
+                                                    as: 'v',
+                                                    cond: { $ne: [{ $ifNull: ['$$v.paymentId', null] }, null] }
+                                                }
+                                            }
+                                        },
+                                        in: { $last: '$$paidVideos.paymentId' }
+                                    }
+                                },
+                                'N/A'
+                            ]
+                        }
+                    }
+                }
+            ]);
+        } else {
+            items = await Model.find(filter)
+                .select('-password')
+                .sort({ createdAt: -1 })
+                .skip(skip)
+                .limit(limit);
+        }
 
         return res.json({
             statusCode: 200,
@@ -147,17 +225,25 @@ const getAdminStats = async (req, res) => {
             return res.status(403).json({ message: 'Forbidden' });
         }
 
-        const [totalUsers, totalCoaches, totalInfluencers] = await Promise.all([
-            User.countDocuments({ isFromLandingPage: true }),
+        const [paidUsers, unpaidUsers, totalCoaches, totalInfluencers] = await Promise.all([
+            User.find({ isPaid: true }),
+            User.find({ isPaid: false }),
             Coach.countDocuments(),
             Influencer.countDocuments()
         ]);
+
+        const paidCount = paidUsers.length;
+        const unpaidCount = unpaidUsers.length;
+        const totalRevenue = paidUsers.reduce((sum, user) => sum + (user.paymentAmount || 0), 0);
 
         return res.json({
             statusCode: 200,
             data: {
                 stats: {
-                    totalUsers,
+                    totalUsers: paidCount + unpaidCount,
+                    paidCount,
+                    unpaidCount,
+                    totalRevenue,
                     totalCoaches,
                     totalInfluencers
                 }
@@ -200,7 +286,7 @@ const getDashboardChartData = async (req, res) => {
                     users: { $sum: 1 },
                     revenue: {
                         $sum: {
-                            $cond: [{ $eq: ["$isPaid", true] }, { $ifNull: ["$paymentAmount", 1499] }, 0]
+                            $cond: [{ $eq: ["$isPaid", true] }, { $ifNull: ["$paymentAmount", 1] }, 0]
                         }
                     }
                 }
@@ -247,5 +333,6 @@ module.exports = {
     adminLandingLogin,
     getAllRecords,
     getPaginatedRecords,
-    getAdminStats
+    getAdminStats,
+    getDashboardChartData
 };

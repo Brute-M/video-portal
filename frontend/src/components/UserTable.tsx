@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Eye, ChevronLeft, ChevronRight } from "lucide-react";
+import { Eye, ChevronLeft, ChevronRight, Video } from "lucide-react";
 import { UserDetailsDialog } from "./UserDetailsDialog";
 
 export interface User {
@@ -24,6 +24,9 @@ export interface User {
     lastPaymentId?: string;
     isPaid: boolean;
     paymentAmount: number;
+    paymentId?: string;
+    trail_video?: string;
+    videos?: any[];
 }
 
 interface UserTableProps {
@@ -70,7 +73,12 @@ export const UserTable = ({ users, isLoading, type, page, totalPages, onPageChan
                     <TableBody>
                         {users.map((user) => (
                             <TableRow key={user._id} className="hover:bg-muted/30 transition-colors">
-                                <TableCell className="font-medium">{user.fname} {user.lname}</TableCell>
+                                <TableCell className="font-medium flex items-center gap-2">
+                                    {user.fname} {user.lname}
+                                    {(user.trail_video || (user.videos && user.videos.length > 0)) && (
+                                        <Video className="w-4 h-4 text-primary" />
+                                    )}
+                                </TableCell>
                                 <TableCell className="text-muted-foreground">{user.email}</TableCell>
                                 <TableCell>
                                     <Badge variant="outline" className="bg-primary/5">
@@ -86,7 +94,7 @@ export const UserTable = ({ users, isLoading, type, page, totalPages, onPageChan
                                 </TableCell>
                                 {type === 'paid' && (
                                     <TableCell className="font-mono text-xs text-muted-foreground">
-                                        {user.lastPaymentId !== 'N/A' ? user.lastPaymentId : '-'}
+                                        {(user.lastPaymentId && user.lastPaymentId !== 'N/A') ? user.lastPaymentId : (user.paymentId || '-')}
                                     </TableCell>
                                 )}
                                 <TableCell>

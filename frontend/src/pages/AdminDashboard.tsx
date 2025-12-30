@@ -14,7 +14,7 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import { getAdminRecords, AdminRecord } from "@/apihelper/admin";
+import { getAdminRecords, AdminRecord, getDashboardStats, getDashboardCharts } from "@/apihelper/admin";
 
 const AdminDashboard = () => {
     const { toast } = useToast();
@@ -56,28 +56,20 @@ const AdminDashboard = () => {
     const fetchStats = async () => {
         setIsLoading(true);
         try {
-            const paid = await getUsers('paid');
-            const unpaid = await getUsers('unpaid');
+            const statsRes = await getDashboardStats();
+            const chartsRes = await getDashboardCharts();
 
-            const paidCount = paid?.length || 0;
-            const unpaidCount = unpaid?.length || 0;
-            // Assuming flat rate 1 for now as per previous logic
-            const totalRevenue = paidCount * 1;
+            if (statsRes && statsRes.data && statsRes.data.stats) {
+                setStats({
+                    paidCount: statsRes.data.stats.paidCount,
+                    unpaidCount: statsRes.data.stats.unpaidCount,
+                    totalRevenue: statsRes.data.stats.totalRevenue,
+                });
+            }
 
-            setStats({
-                paidCount,
-                unpaidCount,
-                totalRevenue
-            });
-
-            // Mock Data for Charts (Last 6 Months)
-            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
-            const mockChartData = months.map(month => ({
-                name: month,
-                users: Math.floor(Math.random() * 50) + 10,
-                revenue: Math.floor(Math.random() * 50000) + 10000
-            }));
-            setChartData(mockChartData);
+            if (chartsRes && chartsRes.data) {
+                setChartData(chartsRes.data);
+            }
 
         } catch (error: any) {
             console.error("Failed to fetch stats", error);
@@ -174,7 +166,7 @@ const AdminDashboard = () => {
 
                 <Card className="glass-card">
                     <CardHeader>
-                        <CardTitle className="text-lg">Revenue Overview (Mock)</CardTitle>
+                        <CardTitle className="text-lg">Revenue Overview</CardTitle>
                     </CardHeader>
                     <CardContent className="h-[300px] w-full">
                         <ResponsiveContainer width="100%" height="100%">

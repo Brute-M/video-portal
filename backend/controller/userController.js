@@ -73,6 +73,7 @@ const getUsers = async (req, res) => {
           isPaid: '$isUserPaid',
           createdAt: 1,
           videoCount: { $size: '$userVideos' },
+          videos: '$userVideos',
           paymentAmount: {
             $add: [
               { $ifNull: ['$paymentAmount', 0] },

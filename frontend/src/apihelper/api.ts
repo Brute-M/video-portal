@@ -3,7 +3,7 @@ import axios from 'axios';
 const api = axios.create({
     // baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000',
     // baseURL: 'http://72.61.239.4:5000',
-    baseURL: 'https://brpl.net/api',
+    baseURL: import.meta.env.VITE_API_URL || 'https://brpl.net/api',
     headers: {
         'Content-Type': 'application/json',
     },

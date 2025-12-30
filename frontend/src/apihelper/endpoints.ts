@@ -22,6 +22,9 @@ export const ENDPOINTS = {
         LIST: '/api/users',
     },
     ADMIN: {
+        BASE: '/admin',
         RECORDS: '/admin/records',
+        STATS: '/admin/stats',
+        CHARTS: '/admin/charts',
     }
 };

@@ -3,6 +3,7 @@ import { getAdminRecords, AdminRecord } from "@/apihelper/admin";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
     Table,
     TableBody,
@@ -11,9 +12,10 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Eye, Video } from "lucide-react";
 
 import { FilterBar } from "@/components/FilterBar";
+import { UserDetailsDialog } from "@/components/UserDetailsDialog";
 
 const RegisteredUsers = () => {
     const { toast } = useToast();
@@ -23,6 +25,7 @@ const RegisteredUsers = () => {
     const [totalPages, setTotalPages] = useState(1);
     const [totalRecords, setTotalRecords] = useState(0);
     const [filters, setFilters] = useState<{ search: string, startDate?: Date, endDate?: Date }>({ search: '' });
+    const [selectedUser, setSelectedUser] = useState<AdminRecord | null>(null);
     const limit = 10;
 
     useEffect(() => {
@@ -60,6 +63,10 @@ const RegisteredUsers = () => {
         setPage(1); // Reset to first page on filter change
     };
 
+    const handleViewUser = (user: AdminRecord) => {
+        setSelectedUser(user);
+    };
+
     const handlePrevPage = () => {
         if (page > 1) setPage(page - 1);
     };
@@ -93,7 +100,10 @@ const RegisteredUsers = () => {
                                         <TableHead>Name</TableHead>
                                         <TableHead>Email</TableHead>
                                         <TableHead>Mobile</TableHead>
+                                        <TableHead>Status</TableHead>
+                                        <TableHead>Payment ID</TableHead>
                                         <TableHead>Registered At</TableHead>
+                                        <TableHead className="text-right">Actions</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
@@ -107,9 +117,22 @@ const RegisteredUsers = () => {
                                         users.map((user, index) => (
                                             <TableRow key={user._id}>
                                                 <TableCell className="font-medium">{(page - 1) * limit + index + 1}</TableCell>
-                                                <TableCell>{user.fname ? `${user.fname} ${user.lname || ''}` : user.name || 'N/A'}</TableCell>
+                                                <TableCell className="font-medium flex items-center gap-2">
+                                                    {user.fname ? `${user.fname} ${user.lname || ''}` : user.name || 'N/A'}
+                                                    {(user.trail_video || (user.videos && user.videos.length > 0)) && (
+                                                        <Video className="w-4 h-4 text-primary" />
+                                                    )}
+                                                </TableCell>
                                                 <TableCell>{user.email}</TableCell>
                                                 <TableCell>{user.mobile || 'N/A'}</TableCell>
+                                                <TableCell>
+                                                    <Badge variant={user.isPaid ? 'default' : 'secondary'} className={user.isPaid ? 'bg-green-500 hover:bg-green-600' : 'bg-orange-500 hover:bg-orange-600 text-white'}>
+                                                        {user.isPaid ? 'Paid' : 'Unpaid'}
+                                                    </Badge>
+                                                </TableCell>
+                                                <TableCell className="font-mono text-xs text-muted-foreground">
+                                                    {(user.lastPaymentId && user.lastPaymentId !== 'N/A') ? user.lastPaymentId : (user.paymentId || '-')}
+                                                </TableCell>
                                                 <TableCell>
                                                     {new Date(user.createdAt).toLocaleDateString('en-IN', {
                                                         day: '2-digit',
@@ -118,6 +141,12 @@ const RegisteredUsers = () => {
                                                         hour: '2-digit',
                                                         minute: '2-digit'
                                                     })}
+                                                </TableCell>
+                                                <TableCell className="text-right">
+                                                    <Button variant="ghost" size="sm" onClick={() => handleViewUser(user)}>
+                                                        <Eye className="w-4 h-4 mr-1" />
+                                                        View
+                                                    </Button>
                                                 </TableCell>
                                             </TableRow>
                                         ))
@@ -153,6 +182,12 @@ const RegisteredUsers = () => {
                     )}
                 </CardContent>
             </Card>
+
+            <UserDetailsDialog
+                user={selectedUser}
+                open={!!selectedUser}
+                onOpenChange={(open) => !open && setSelectedUser(null)}
+            />
         </div>
     );
 };
