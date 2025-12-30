@@ -384,9 +384,9 @@ const Videos = () => {
                     }
                 },
                 prefill: {
-                    name: "Creator Name",
-                    email: "creator@example.com",
-                    contact: "9999999999",
+                    name: userProfile ? [userProfile.fname, userProfile.lname].filter(Boolean).join(' ') || "Creator Name" : "Creator Name",
+                    email: userProfile?.email || "creator@example.com",
+                    contact: userProfile?.mobile || "9999999999",
                 },
                 theme: {
                     color: "#3399cc",
