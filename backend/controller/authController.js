@@ -3,6 +3,7 @@ const Coach = require('../model/coach.model');
 const Influencer = require('../model/influencer.model');
 const Otp = require('../model/otp.model');
 const Visit = require('../model/visit.model');
+const Step1Lead = require('../model/step1_lead.model');
 const Coupon = require('../model/coupon.model');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
@@ -658,7 +659,7 @@ const loginCoach = async (req, res) => {
 
 const trackVisit = async (req, res) => {
   try {
-    const { trackingId, ipAddress, userAgent, fbclid, referralCode } = req.body;
+    const { trackingId, ipAddress, userAgent, fbclid, referralCode, trackend } = req.body;
 
     // Fallback IP/UA if not sent in body
     const finalIp = ipAddress || req.headers['x-forwarded-for'] || req.socket.remoteAddress || req.ip;
@@ -670,6 +671,7 @@ const trackVisit = async (req, res) => {
       userAgent: finalUa,
       fbclid,
       referralCode,
+      trackend,
       converted: false
     });
 
@@ -714,6 +716,78 @@ const getVisits = async (req, res) => {
   }
 };
 
+
+
+const saveStep1Data = async (req, res) => {
+  try {
+    const { name, mobile, role, state, city, trackingId } = req.body;
+
+    if (!mobile) {
+      return res.status(400).json({ success: false, message: 'Mobile number is required' });
+    }
+
+    // Upsert the lead data
+    await Step1Lead.findOneAndUpdate(
+      { mobile },
+      {
+        name,
+        role,
+        state,
+        city,
+        trackingId,
+        $setOnInsert: { createdAt: new Date() }
+      },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    );
+
+    res.status(200).json({ success: true, message: 'Step 1 data saved' });
+  } catch (error) {
+    console.error('Save Step 1 Data Error:', error);
+    res.status(500).json({ success: false, message: 'Failed to save step 1 data' });
+  }
+};
+
+const getStep1Leads = async (req, res) => {
+  try {
+    const page = Math.max(1, parseInt(req.query.page) || 1);
+    const limit = Math.max(1, parseInt(req.query.limit) || 10);
+    const search = (req.query.search || '').trim();
+    const skip = (page - 1) * limit;
+
+    const filter = {};
+    if (search) {
+      filter.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { mobile: { $regex: search, $options: 'i' } }
+      ];
+    }
+
+    const leads = await Step1Lead.find(filter)
+      .sort({ updatedAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    const total = await Step1Lead.countDocuments(filter);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        items: leads,
+        pagination: {
+          page,
+          limit,
+          total,
+          pages: Math.ceil(total / limit)
+        }
+      }
+    });
+
+  } catch (error) {
+    console.error('Get Step 1 Leads Error:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch leads' });
+  }
+};
+
 module.exports = {
   login,
   register,
@@ -728,5 +802,7 @@ module.exports = {
   getPartnerProfile,
   getCoachMyPlayers,
   trackVisit,
-  getVisits
+  getVisits,
+  saveStep1Data,
+  getStep1Leads
 };

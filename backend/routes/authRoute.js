@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { login, register, upload, sendOtp, verifyOtp, forgotPassword, resetPassword, registerCoach, loginCoach, resendWelcomeEmail, getPartnerProfile, getCoachMyPlayers, trackVisit, getVisits } = require('../controller/authController');
+const { login, register, upload, sendOtp, verifyOtp, forgotPassword, resetPassword, registerCoach, loginCoach, resendWelcomeEmail, getPartnerProfile, getCoachMyPlayers, trackVisit, getVisits, saveStep1Data } = require('../controller/authController');
 const authenticate = require('../middleware/authMiddleware');
 const User = require('../model/user.model');
 
@@ -19,6 +19,7 @@ router.post('/register-coach', upload.single('image'), registerCoach);
 router.post('/login-coach', loginCoach);
 router.post('/resend-welcome-email', resendWelcomeEmail);
 router.post('/track-visit', trackVisit);
+router.post('/step1-lead', saveStep1Data);
 router.get('/partner/profile', authenticate, getPartnerProfile);
 router.get('/coach/my-players', authenticate, getCoachMyPlayers);
 router.get('/visits', getVisits);
@@ -30,7 +31,7 @@ router.get('/profile', authenticate, async (req, res) => {
     if (!user) {
       return res.status(404).json({ statusCode: 404, data: { message: 'User not found' } });
     }
-    res.json({ statusCode: 200, data: { userId: user._id, email: user.email, fname: user.fname, lname: user.lname, mobile: user.mobile, isFromLandingPage: user.isFromLandingPage } });
+    res.json({ statusCode: 200, data: { userId: user._id, email: user.email, fname: user.fname, lname: user.lname, mobile: user.mobile, isFromLandingPage: user.isFromLandingPage, isPaid: user.isPaid } });
   } catch (err) {
     console.error(err);
     res.status(500).json({ statusCode: 500, data: { message: 'Error fetching user profile' } });

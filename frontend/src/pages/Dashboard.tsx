@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { getVideos } from "@/apihelper/video";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { OfferModal } from "@/components/OfferModal";
+import { getProfile } from "@/apihelper/auth";
 
 const Dashboard = () => {
   const [stats, setStats] = useState({
@@ -21,6 +22,7 @@ const Dashboard = () => {
     activeVideos: 0,
     recentVideos: [] as any[],
   });
+  const [userProfile, setUserProfile] = useState<any>(null);
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -43,7 +45,17 @@ const Dashboard = () => {
     };
 
     fetchStats();
+    fetchProfile();
   }, []);
+
+  const fetchProfile = async () => {
+    try {
+      const response = await getProfile();
+      setUserProfile(response.data?.data || response.data);
+    } catch (error) {
+      console.error("Failed to fetch profile", error);
+    }
+  };
 
   const formatFileSize = (bytes: number) => {
     if (bytes === 0) return "0 Bytes";
@@ -77,12 +89,14 @@ const Dashboard = () => {
               Manage your cricket highlights, track your performance, and engage with fans.
             </p>
             <div className="pt-4 flex gap-4">
-              <Button variant="hero" size="lg" asChild className="shadow-lg shadow-primary/20 hover:scale-105 transition-transform">
-                <Link to="/dashboard/videos">
-                  <Upload className="w-5 h-5 mr-2" />
-                  Upload your video
-                </Link>
-              </Button>
+              {!userProfile?.isPaid && (
+                <Button variant="hero" size="lg" asChild className="shadow-lg shadow-primary/20 hover:scale-105 transition-transform">
+                  <Link to="/dashboard/videos">
+                    <Upload className="w-5 h-5 mr-2" />
+                    Upload your video
+                  </Link>
+                </Button>
+              )}
             </div>
           </div>
 

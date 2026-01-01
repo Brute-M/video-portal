@@ -486,46 +486,48 @@ const Videos = () => {
                 onChange={handleFileChangeForUpdate}
             />
 
-            <div
-                onDragOver={handleDragOver}
-                onDragLeave={handleDragLeave}
-                onDrop={handleDrop}
-                className={`glass-card p-12 border-2 border-dashed transition-all duration-300 ${isDragging
-                    ? "border-primary bg-primary/5 scale-[1.02]"
-                    : "border-border hover:border-primary/50"
-                    }`}
-            >
-                <div className="flex flex-col items-center justify-center text-center">
-                    <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4 transition-transform group-hover:scale-110">
-                        <Upload className="w-8 h-8 text-primary" />
+            {!userProfile?.isPaid && (
+                <div
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onDrop={handleDrop}
+                    className={`glass-card p-12 border-2 border-dashed transition-all duration-300 ${isDragging
+                        ? "border-primary bg-primary/5 scale-[1.02]"
+                        : "border-border hover:border-primary/50"
+                        }`}
+                >
+                    <div className="flex flex-col items-center justify-center text-center">
+                        <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4 transition-transform group-hover:scale-110">
+                            <Upload className="w-8 h-8 text-primary" />
+                        </div>
+                        <h3 className="text-xl font-display font-semibold text-foreground mb-2">
+                            Drop your videos here
+                        </h3>
+                        <p className="text-muted-foreground mb-6">
+                            or click to browse from your computer
+                        </p>
+                        <input
+                            type="file"
+                            accept="video/*"
+                            multiple
+                            onChange={handleFileSelect}
+                            className="hidden"
+                            id="video-upload"
+                        />
+                        <label htmlFor="video-upload">
+                            <Button variant="hero" size="lg" asChild className="cursor-pointer">
+                                <span>
+                                    <Plus className="w-5 h-5 mr-2" />
+                                    Select Videos
+                                </span>
+                            </Button>
+                        </label>
+                        <p className="text-xs text-muted-foreground mt-4">
+                            Supports MP4, MOV, AVI, WMV up to 1GB
+                        </p>
                     </div>
-                    <h3 className="text-xl font-display font-semibold text-foreground mb-2">
-                        Drop your videos here
-                    </h3>
-                    <p className="text-muted-foreground mb-6">
-                        or click to browse from your computer
-                    </p>
-                    <input
-                        type="file"
-                        accept="video/*"
-                        multiple
-                        onChange={handleFileSelect}
-                        className="hidden"
-                        id="video-upload"
-                    />
-                    <label htmlFor="video-upload">
-                        <Button variant="hero" size="lg" asChild className="cursor-pointer">
-                            <span>
-                                <Plus className="w-5 h-5 mr-2" />
-                                Select Videos
-                            </span>
-                        </Button>
-                    </label>
-                    <p className="text-xs text-muted-foreground mt-4">
-                        Supports MP4, MOV, AVI, WMV up to 1GB
-                    </p>
                 </div>
-            </div>
+            )}
 
             {isLoading && (
                 <div className="flex justify-center items-center py-8">
@@ -616,7 +618,7 @@ const Videos = () => {
                                         >
                                             <Trash2 className="w-5 h-5" />
                                         </Button>
-                                        {!userProfile?.isFromLandingPage && (
+                                        {!userProfile?.isFromLandingPage && !userProfile?.isPaid && (
                                             <Button
                                                 variant="hero"
                                                 size="sm"
