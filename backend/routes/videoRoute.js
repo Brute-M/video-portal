@@ -6,6 +6,7 @@ const {
     upload,
     getUserVideos,
     getVideoById,
+    getLatestVideo,
     deleteVideo,
     downloadInvoice
 } = require('../controller/videoController');
@@ -19,6 +20,7 @@ router.post('/upload', authenticate, upload.single('video'), uploadVideo);
 router.post('/verify-payment', authenticate, verifyPayment);
 
 // CRUD Routes
+router.get('/latest', authenticate, getLatestVideo); // Get most recent video
 router.get('/', authenticate, getUserVideos); // List all user's videos
 router.get('/:id', authenticate, getVideoById); // Get single video details
 router.delete('/:id', authenticate, deleteVideo); // Delete video

@@ -13,6 +13,7 @@ import {
     Eye,
     FileText,
     RefreshCw,
+    Lock as LockIcon,
 } from "lucide-react";
 
 import { useToast } from "@/hooks/use-toast";
@@ -55,6 +56,7 @@ const Videos = () => {
     const [videoToChangeId, setVideoToChangeId] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [userProfile, setUserProfile] = useState<any>(null);
+    const [isProfileLoading, setIsProfileLoading] = useState(true);
 
     useEffect(() => {
         fetchVideos();
@@ -62,11 +64,14 @@ const Videos = () => {
     }, []);
 
     const fetchProfile = async () => {
+        setIsProfileLoading(true);
         try {
             const response = await getProfile();
             setUserProfile(response.data?.data || response.data);
         } catch (error) {
             console.error("Failed to fetch profile", error);
+        } finally {
+            setIsProfileLoading(false);
         }
     };
 
@@ -469,6 +474,17 @@ const Videos = () => {
         }
     };
 
+    const isPaid = userProfile?.isPaid || videos.length > 0;
+
+    if (isProfileLoading) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
+                <Loader2 className="w-10 h-10 animate-spin text-primary" />
+                <p className="text-muted-foreground animate-pulse">Loading your videos...</p>
+            </div>
+        );
+    }
+
     return (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="mb-8">
@@ -478,6 +494,7 @@ const Videos = () => {
                 </p>
             </div>
 
+            {/* Hidden Input for Updating Video */}
             <input
                 type="file"
                 accept="video/*"
@@ -486,7 +503,7 @@ const Videos = () => {
                 onChange={handleFileChangeForUpdate}
             />
 
-            {!userProfile?.isPaid && (
+            {isPaid && !videos.some(v => v.status === 'completed' || v.status === 'uploading') && (
                 <div
                     onDragOver={handleDragOver}
                     onDragLeave={handleDragLeave}
@@ -529,6 +546,23 @@ const Videos = () => {
                 </div>
             )}
 
+            {!isPaid && !isLoading && (
+                <div className="glass-card p-12 text-center space-y-6 animate-in zoom-in-95 duration-500">
+                    <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4 border border-primary/20">
+                        <LockIcon className="w-8 h-8 text-primary" />
+                    </div>
+                    <div className="max-w-md mx-auto space-y-2">
+                        <h3 className="text-2xl font-display font-bold">Payment Required</h3>
+                        <p className="text-muted-foreground">
+                            You need to complete your registration payment before you can upload videos.
+                        </p>
+                    </div>
+                    <Button variant="hero" size="lg" onClick={() => navigate("/dashboard")} className="px-8">
+                        Complete Payment on Dashboard
+                    </Button>
+                </div>
+            )}
+
             {isLoading && (
                 <div className="flex justify-center items-center py-8">
                     <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -568,19 +602,13 @@ const Videos = () => {
                                         {video.status === "uploading" && (
                                             <span className="text-xs text-primary animate-pulse">Uploading...</span>
                                         )}
-                                        {video.status === "pending-payment" && !userProfile?.isFromLandingPage && (
+                                        {video.status === "pending-payment" && !userProfile?.isPaid && !userProfile?.isFromLandingPage && (
                                             <span className="text-xs text-accent flex items-center gap-1">
                                                 <CreditCard className="w-3 h-3" />
                                                 Awaiting payment
                                             </span>
                                         )}
-                                        {video.status === "pending-payment" && userProfile?.isFromLandingPage && (
-                                            <span className="text-xs text-green-500 flex items-center gap-1">
-                                                <Check className="w-3 h-3" />
-                                                Processing (Registration included)
-                                            </span>
-                                        )}
-                                        {video.status === "completed" && (
+                                        {(video.status === "completed" || (video.status === "pending-payment" && userProfile?.isPaid)) && (
                                             <span className="text-xs text-green-500 flex items-center gap-1">
                                                 <Check className="w-3 h-3" />
                                                 Upload complete
@@ -589,7 +617,7 @@ const Videos = () => {
                                     </div>
                                 </div>
 
-                                {video.status === "pending-payment" && (
+                                {video.status === "pending-payment" && !userProfile?.isPaid && (
                                     <div className="flex gap-2">
                                         <Button
                                             variant="ghost"

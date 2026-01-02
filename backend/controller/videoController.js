@@ -29,13 +29,16 @@ const uploadVideo = async (req, res) => {
             return res.status(400).json({ statusCode: 400, data: { message: 'No video file uploaded' } });
         }
 
+        const user = await User.findById(req.userId);
+        const isAlreadyPaid = user?.isPaid || user?.isFromLandingPage;
+
         const newVideo = new Video({
             userId: req.userId,
             filename: req.file.key,
             path: req.file.location,
             originalName: req.file.originalname,
             size: req.file.size,
-            status: 'pending_payment'
+            status: isAlreadyPaid ? 'completed' : 'pending_payment'
         });
 
         await newVideo.save();
@@ -43,10 +46,11 @@ const uploadVideo = async (req, res) => {
         res.status(201).json({
             statusCode: 201,
             data: {
-                message: 'Video uploaded successfully to S3. Payment required to finalize.',
+                message: isAlreadyPaid ? 'Video uploaded successfully.' : 'Video uploaded successfully to S3. Payment required to finalize.',
                 videoId: newVideo._id,
-                status: 'pending_payment',
-                url: req.file.location
+                status: isAlreadyPaid ? 'completed' : 'pending_payment',
+                url: req.file.location,
+                isFromLandingPage: user?.isFromLandingPage
             }
         });
 
@@ -56,8 +60,7 @@ const uploadVideo = async (req, res) => {
     }
 };
 
-const { sendInvoiceEmail } = require('../utils/emailService');
-const { createInvoiceBuffer, drawInvoice } = require('../utils/pdfGenerator');
+const Payment = require('../model/payment.model');
 
 const verifyPayment = async (req, res) => {
     const { videoId, paymentId } = req.body;
@@ -89,6 +92,16 @@ const verifyPayment = async (req, res) => {
 
         const user = await User.findById(req.userId);
         await User.findByIdAndUpdate(req.userId, { isPaid: true });
+
+        // Record the payment
+        await Payment.create({
+            userId: req.userId,
+            videoId: video._id,
+            transactionId: paymentId,
+            amount: 1499,
+            type: 'video',
+            status: 'completed'
+        });
 
         let pdfBuffer = null;
         try {
@@ -215,12 +228,29 @@ const downloadInvoice = async (req, res) => {
     }
 };
 
+const getLatestVideo = async (req, res) => {
+    try {
+        const video = await Video.findOne({ userId: req.userId })
+            .sort({ createdAt: -1 });
+
+        if (!video) {
+            return res.json({ statusCode: 404, data: { message: 'No videos found for this user' } });
+        }
+
+        res.json({ statusCode: 200, data: video });
+    } catch (error) {
+        console.error('Error fetching latest video:', error);
+        res.status(500).json({ statusCode: 500, data: { message: 'Server error' } });
+    }
+};
+
 module.exports = {
     upload,
     uploadVideo,
     verifyPayment,
     getUserVideos,
     getVideoById,
+    getLatestVideo,
     deleteVideo,
     downloadInvoice
 };

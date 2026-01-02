@@ -55,3 +55,11 @@ export const getDashboardCharts = async () => {
     const response = await api.get(`${ENDPOINTS.ADMIN.CHARTS}`);
     return response.data;
 };
+
+export const downloadUserInvoice = async (userId: string) => {
+    const response = await api.get(ENDPOINTS.ADMIN.INVOICE(userId), {
+        responseType: 'blob', // Important for file download
+    });
+    return response.data; // This returns the Blob
+};
+

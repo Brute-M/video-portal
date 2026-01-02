@@ -1,6 +1,8 @@
 const Razorpay = require('razorpay');
 const crypto = require('crypto');
 const Video = require('../model/video.model');
+const User = require('../model/user.model');
+const Payment = require('../model/payment.model');
 
 const razorpay = new Razorpay({
     key_id: 'rzp_live_RsBsR05m5SGbtT' || process.env.RAZORPAY_KEY_ID,
@@ -82,9 +84,13 @@ exports.verifyPayment = async (req, res) => {
     }
 };
 
+// module level imports handled at top
+
+// ... existing code ...
+
 // Verify landing page payment
 exports.verifyLandingPayment = async (req, res) => {
-    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature, userId, amount } = req.body;
 
     const body = razorpay_order_id + "|" + razorpay_payment_id;
 
@@ -96,7 +102,31 @@ exports.verifyLandingPayment = async (req, res) => {
     const isAuthentic = expectedSignature === razorpay_signature;
 
     if (isAuthentic) {
-        res.json({ message: "Payment verified successfully", success: true });
+        try {
+            if (userId) {
+                // Update User status
+                await User.findByIdAndUpdate(userId, { isPaid: true });
+
+                // Create Payment record
+                await Payment.create({
+                    userId,
+                    transactionId: razorpay_payment_id,
+                    amount: amount || 1499,
+                    type: 'registration',
+                    status: 'completed'
+                });
+
+                // Update any pending videos to completed since user is now paid
+                await Video.updateMany(
+                    { userId: userId, status: 'pending_payment' },
+                    { status: 'completed' }
+                );
+            }
+            res.json({ message: "Payment verified successfully", success: true });
+        } catch (error) {
+            console.error("Error updating status after payment:", error);
+            res.status(500).json({ message: "Payment verified but failed to update status", success: false });
+        }
     } else {
         res.status(400).json({ message: "Invalid signature", success: false });
     }

@@ -31,7 +31,18 @@ router.get('/profile', authenticate, async (req, res) => {
     if (!user) {
       return res.status(404).json({ statusCode: 404, data: { message: 'User not found' } });
     }
-    res.json({ statusCode: 200, data: { userId: user._id, email: user.email, fname: user.fname, lname: user.lname, mobile: user.mobile, isFromLandingPage: user.isFromLandingPage, isPaid: user.isPaid } });
+    res.json({
+      statusCode: 200,
+      data: {
+        userId: user._id,
+        email: user.email,
+        fname: user.fname,
+        lname: user.lname,
+        mobile: user.mobile,
+        isFromLandingPage: user.isFromLandingPage,
+        isPaid: user.isPaid || !!user.paymentId
+      }
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ statusCode: 500, data: { message: 'Error fetching user profile' } });

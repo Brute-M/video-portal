@@ -9,8 +9,10 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Eye, ChevronLeft, ChevronRight, Video } from "lucide-react";
+import { Eye, ChevronLeft, ChevronRight, Video, Download } from "lucide-react";
 import { UserDetailsDialog } from "./UserDetailsDialog";
+import { downloadUserInvoice } from "@/apihelper/admin";
+import { useToast } from "@/hooks/use-toast";
 
 export interface User {
     _id: string;
@@ -39,7 +41,26 @@ interface UserTableProps {
 }
 
 export const UserTable = ({ users, isLoading, type, page, totalPages, onPageChange }: UserTableProps) => {
+    const { toast } = useToast();
     const [selectedUser, setSelectedUser] = useState<User | null>(null);
+
+    const handleDownloadInvoice = async (userId: string, userName: string) => {
+        try {
+            const blob = await downloadUserInvoice(userId);
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `Invoice-${userName.replace(/\s+/g, '_')}.pdf`);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(url);
+            toast({ title: "Success", description: "Invoice downloaded successfully." });
+        } catch (error) {
+            console.error("Download failed", error);
+            toast({ variant: "destructive", title: "Error", description: "Failed to download invoice." });
+        }
+    };
 
     const handleViewUser = (user: User) => {
         setSelectedUser(user);
@@ -66,6 +87,7 @@ export const UserTable = ({ users, isLoading, type, page, totalPages, onPageChan
                             <TableHead>Joined</TableHead>
                             <TableHead>Price</TableHead>
                             {type === 'paid' && <TableHead>Payment ID</TableHead>}
+                            {type === 'paid' && <TableHead>Invoice</TableHead>}
                             <TableHead>Status</TableHead>
                             <TableHead className="text-right">Actions</TableHead>
                         </TableRow>
@@ -95,6 +117,19 @@ export const UserTable = ({ users, isLoading, type, page, totalPages, onPageChan
                                 {type === 'paid' && (
                                     <TableCell className="font-mono text-xs text-muted-foreground">
                                         {(user.lastPaymentId && user.lastPaymentId !== 'N/A') ? user.lastPaymentId : (user.paymentId || '-')}
+                                    </TableCell>
+                                )}
+                                {type === 'paid' && (
+                                    <TableCell>
+                                        <Button
+                                            variant="outline"
+                                            size="icon"
+                                            className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                                            onClick={() => handleDownloadInvoice(user._id, user.fname)}
+                                            title="Download Invoice"
+                                        >
+                                            <Download className="h-4 w-4" />
+                                        </Button>
                                     </TableCell>
                                 )}
                                 <TableCell>

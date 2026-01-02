@@ -12,7 +12,8 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import { ChevronLeft, ChevronRight, Eye, Video } from "lucide-react";
+import { ChevronLeft, ChevronRight, Eye, Video, Download } from "lucide-react";
+import { downloadUserInvoice } from "@/apihelper/admin";
 
 import { FilterBar } from "@/components/FilterBar";
 import { UserDetailsDialog } from "@/components/UserDetailsDialog";
@@ -63,6 +64,24 @@ const RegisteredUsers = () => {
         setPage(1); // Reset to first page on filter change
     };
 
+    const handleDownloadInvoice = async (userId: string, userName: string) => {
+        try {
+            const blob = await downloadUserInvoice(userId);
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `Invoice-${userName.replace(/\s+/g, '_')}.pdf`);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(url);
+            toast({ title: "Success", description: "Invoice downloaded successfully." });
+        } catch (error) {
+            console.error("Download failed", error);
+            toast({ variant: "destructive", title: "Error", description: "Failed to download invoice." });
+        }
+    };
+
     const handleViewUser = (user: AdminRecord) => {
         setSelectedUser(user);
     };
@@ -102,6 +121,7 @@ const RegisteredUsers = () => {
                                         <TableHead>Mobile</TableHead>
                                         <TableHead>Status</TableHead>
                                         <TableHead>Payment ID</TableHead>
+                                        <TableHead>Invoice</TableHead>
                                         <TableHead>Registered At</TableHead>
                                         <TableHead className="text-right">Actions</TableHead>
                                     </TableRow>
@@ -132,6 +152,19 @@ const RegisteredUsers = () => {
                                                 </TableCell>
                                                 <TableCell className="font-mono text-xs text-muted-foreground">
                                                     {(user.lastPaymentId && user.lastPaymentId !== 'N/A') ? user.lastPaymentId : (user.paymentId || '-')}
+                                                </TableCell>
+                                                <TableCell>
+                                                    {user.isPaid && (
+                                                        <Button
+                                                            variant="outline"
+                                                            size="icon"
+                                                            className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                                                            onClick={() => handleDownloadInvoice(user._id, user.fname || user.name || 'User')}
+                                                            title="Download Invoice"
+                                                        >
+                                                            <Download className="h-4 w-4" />
+                                                        </Button>
+                                                    )}
                                                 </TableCell>
                                                 <TableCell>
                                                     {new Date(user.createdAt).toLocaleDateString('en-IN', {
