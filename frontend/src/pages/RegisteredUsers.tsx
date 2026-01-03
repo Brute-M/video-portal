@@ -12,8 +12,8 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import { ChevronLeft, ChevronRight, Eye, Video, Download } from "lucide-react";
-import { downloadUserInvoice } from "@/apihelper/admin";
+import { ChevronLeft, ChevronRight, Eye, Video, Download, FileSpreadsheet } from "lucide-react";
+import { downloadUserInvoice, exportUsersExcel } from "@/apihelper/admin";
 
 import { FilterBar } from "@/components/FilterBar";
 import { UserDetailsDialog } from "@/components/UserDetailsDialog";
@@ -82,6 +82,31 @@ const RegisteredUsers = () => {
         }
     };
 
+    const handleExport = async () => {
+        try {
+            toast({ description: "Generating export..." });
+            // For now, type='users' is hardcoded in fetch logic, but endpoint logic handles filter
+            // Check if we want to filter just "landing" etc. The request said "paid user and unpaid user landing page registered user"
+            // The table shows all. So exporting all current filtered view is best.
+            // But exportTypes supports 'paid'|'unpaid'|'landing'.
+            // If the user hasn't selected a specific filter in UI (UI doesn't show type filter explicitly other than implicit 'users' list), we export all matches of search.
+
+            const blob = await exportUsersExcel(filters.search, '', filters.startDate, filters.endDate);
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `Users_Export_${new Date().toISOString().split('T')[0]}.xlsx`);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(url);
+            toast({ title: "Success", description: "Export downloaded successfully." });
+        } catch (error) {
+            console.error("Export failed", error);
+            toast({ variant: "destructive", title: "Error", description: "Failed to export users." });
+        }
+    };
+
     const handleViewUser = (user: AdminRecord) => {
         setSelectedUser(user);
     };
@@ -96,7 +121,13 @@ const RegisteredUsers = () => {
 
     return (
         <div className="space-y-8 animate-fade-in">
-            <h1 className="text-3xl font-display font-bold text-foreground">Registered Users</h1>
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <h1 className="text-3xl font-display font-bold text-foreground">Registered Users</h1>
+                <Button onClick={handleExport} variant="outline" className="gap-2">
+                    <FileSpreadsheet className="w-4 h-4" />
+                    Export Excel
+                </Button>
+            </div>
 
             <FilterBar onFilterChange={handleFilterChange} />
 

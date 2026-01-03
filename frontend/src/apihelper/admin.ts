@@ -63,3 +63,16 @@ export const downloadUserInvoice = async (userId: string) => {
     return response.data; // This returns the Blob
 };
 
+export const exportUsersExcel = async (search: string = '', type: string = '', startDate?: Date, endDate?: Date) => {
+    const params = new URLSearchParams();
+    if (search) params.append('search', search);
+    if (type) params.append('type', type);
+    if (startDate) params.append('startDate', startDate.toISOString());
+    if (endDate) params.append('endDate', endDate.toISOString());
+
+    const response = await api.get(`${ENDPOINTS.USERS.LIST}/export?${params.toString()}`, {
+        responseType: 'blob'
+    });
+    return response.data;
+};
+

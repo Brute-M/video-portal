@@ -244,9 +244,16 @@ const register = async (req, res) => {
 
 const sendOtp = async (req, res) => {
   try {
-    const { mobile } = req.body;
+    const { mobile, checkExisting } = req.body;
     if (!mobile) {
       return res.status(400).json({ message: "Mobile number is required" });
+    }
+
+    if (checkExisting) {
+      const existingUser = await User.findOne({ mobile });
+      if (existingUser) {
+        return res.status(400).json({ message: "Mobile number already exists please login." });
+      }
     }
 
     // Generate 4 digit random OTP

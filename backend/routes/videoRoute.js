@@ -19,6 +19,9 @@ router.post('/upload', authenticate, upload.single('video'), uploadVideo);
 // Route to verify payment -> Status becomes 'completed'
 router.post('/verify-payment', authenticate, verifyPayment);
 
+// Route to get presigned URL
+
+
 // CRUD Routes
 router.get('/latest', authenticate, getLatestVideo); // Get most recent video
 router.get('/', authenticate, getUserVideos); // List all user's videos

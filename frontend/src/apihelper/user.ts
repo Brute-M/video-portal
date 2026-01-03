@@ -13,3 +13,8 @@ export const getUsers = async (type: 'paid' | 'unpaid', filters?: { search?: str
     const response = await api.get(`${ENDPOINTS.USERS.LIST}?${params.toString()}`);
     return response.data;
 };
+
+export const getUserById = async (id: string) => {
+    const response = await api.get(`${ENDPOINTS.USERS.LIST}/${id}`);
+    return response.data;
+};

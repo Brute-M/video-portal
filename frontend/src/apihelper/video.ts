@@ -27,6 +27,8 @@ export const getVideoById = async (id: string) => {
 };
 
 export const getLatestVideo = async () => {
-    const response = await api.get(ENDPOINTS.VIDEOS.LATEST);
+    const response = await api.get(`${ENDPOINTS.VIDEOS.LIST}/latest`); // Assuming LIST is /videos
     return response.data;
 };
+
+

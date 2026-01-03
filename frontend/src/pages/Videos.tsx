@@ -661,7 +661,7 @@ const Videos = () => {
                                     </div>
                                 )}
 
-                                {video.status === "completed" && (
+                                {((video.status === "completed") || (video.status === "pending-payment" && userProfile?.isPaid)) && (
                                     <div className="flex gap-2">
                                         <Button
                                             variant="ghost"

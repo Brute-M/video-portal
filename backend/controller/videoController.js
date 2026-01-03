@@ -7,6 +7,8 @@ const multerS3 = require('multer-s3');
 const path = require('path');
 const mongoose = require('mongoose');
 const PAYMENT_CONFIG = require('../config/payment');
+const Payment = require('../model/payment.model');
+const { drawInvoice, createInvoiceBuffer, sendInvoiceEmail } = require('../utils/pdfGenerator');
 
 const storage = multerS3({
     s3: s3Client,
@@ -60,7 +62,6 @@ const uploadVideo = async (req, res) => {
     }
 };
 
-const Payment = require('../model/payment.model');
 
 const verifyPayment = async (req, res) => {
     const { videoId, paymentId } = req.body;
@@ -244,6 +245,8 @@ const getLatestVideo = async (req, res) => {
     }
 };
 
+
+
 module.exports = {
     upload,
     uploadVideo,
@@ -252,5 +255,5 @@ module.exports = {
     getVideoById,
     getLatestVideo,
     deleteVideo,
-    downloadInvoice
+    downloadInvoice,
 };
