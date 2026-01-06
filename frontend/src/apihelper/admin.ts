@@ -76,3 +76,12 @@ export const exportUsersExcel = async (search: string = '', type: string = '', s
     return response.data;
 };
 
+export const updateUserPayment = async (userId: string, paymentId: string, paymentAmount: number) => {
+    const response = await api.patch(ENDPOINTS.ADMIN.MANUAL_PAYMENT(userId), {
+        paymentId,
+        paymentAmount,
+        isFromLandingPage: true // Assuming they are from landing page if admin is marking them paid manually for registration
+    });
+    return response.data;
+};
+

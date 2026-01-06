@@ -101,6 +101,7 @@ const UnpaidUsers = () => {
                 page={page}
                 totalPages={totalPages}
                 onPageChange={setPage}
+                onRefresh={() => fetchUsers(currentFilters)}
             />
         </div>
     );

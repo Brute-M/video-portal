@@ -9,10 +9,19 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Eye, ChevronLeft, ChevronRight, Video, Download } from "lucide-react";
+import { Eye, ChevronLeft, ChevronRight, Video, Download, CreditCard, Loader2 } from "lucide-react";
 import { UserDetailsDialog } from "./UserDetailsDialog";
-import { downloadUserInvoice } from "@/apihelper/admin";
+import { downloadUserInvoice, updateUserPayment } from "@/apihelper/admin";
 import { useToast } from "@/hooks/use-toast";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogFooter,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 export interface User {
     _id: string;
@@ -38,11 +47,17 @@ interface UserTableProps {
     page: number;
     totalPages: number;
     onPageChange: (page: number) => void;
+    onRefresh?: () => void;
 }
 
-export const UserTable = ({ users, isLoading, type, page, totalPages, onPageChange }: UserTableProps) => {
+export const UserTable = ({ users, isLoading, type, page, totalPages, onPageChange, onRefresh }: UserTableProps) => {
     const { toast } = useToast();
     const [selectedUser, setSelectedUser] = useState<User | null>(null);
+    const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+    const [paymentUser, setPaymentUser] = useState<User | null>(null);
+    const [transactionId, setTransactionId] = useState("");
+    const [paymentAmount, setPaymentAmount] = useState("1499");
+    const [isUpdating, setIsUpdating] = useState(false);
 
     const handleDownloadInvoice = async (userId: string, userName: string) => {
         try {
@@ -64,6 +79,43 @@ export const UserTable = ({ users, isLoading, type, page, totalPages, onPageChan
 
     const handleViewUser = (user: User) => {
         setSelectedUser(user);
+    };
+
+    const handleOpenPaymentModal = (user: User) => {
+        setPaymentUser(user);
+        setIsPaymentModalOpen(true);
+        setTransactionId("");
+    };
+
+    const handleMarkAsPaid = async () => {
+        if (!paymentUser || !transactionId || !paymentAmount) {
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: "Please provide both Transaction ID and Amount.",
+            });
+            return;
+        }
+
+        setIsUpdating(true);
+        try {
+            await updateUserPayment(paymentUser._id, transactionId, parseFloat(paymentAmount));
+            toast({
+                title: "Success",
+                description: "User payment status updated. They will now appear in Paid Users.",
+            });
+            setIsPaymentModalOpen(false);
+            if (onRefresh) onRefresh();
+        } catch (error) {
+            console.error("Failed to update payment", error);
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: "Failed to update payment status.",
+            });
+        } finally {
+            setIsUpdating(false);
+        }
     };
 
     if (isLoading) {
@@ -138,10 +190,23 @@ export const UserTable = ({ users, isLoading, type, page, totalPages, onPageChan
                                     </Badge>
                                 </TableCell>
                                 <TableCell className="text-right">
-                                    <Button variant="ghost" size="sm" onClick={() => handleViewUser(user)}>
-                                        <Eye className="w-4 h-4 mr-1" />
-                                        View
-                                    </Button>
+                                    <div className="flex justify-end gap-2">
+                                        {type === 'unpaid' && (
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                className="border-green-500 text-green-600 hover:bg-green-50"
+                                                onClick={() => handleOpenPaymentModal(user)}
+                                            >
+                                                <CreditCard className="w-4 h-4 mr-1" />
+                                                Mark Paid
+                                            </Button>
+                                        )}
+                                        <Button variant="ghost" size="sm" onClick={() => handleViewUser(user)}>
+                                            <Eye className="w-4 h-4 mr-1" />
+                                            View
+                                        </Button>
+                                    </div>
                                 </TableCell>
                             </TableRow>
                         ))}
@@ -175,6 +240,52 @@ export const UserTable = ({ users, isLoading, type, page, totalPages, onPageChan
                     </Button>
                 </div>
             )}
+
+            {/* Mark as Paid Modal */}
+            <Dialog open={isPaymentModalOpen} onOpenChange={setIsPaymentModalOpen}>
+                <DialogContent className="sm:max-w-[425px]">
+                    <DialogHeader>
+                        <DialogTitle>Mark User as Paid</DialogTitle>
+                    </DialogHeader>
+                    <div className="grid gap-4 py-4">
+                        <div className="grid gap-2">
+                            <Label htmlFor="userName">User</Label>
+                            <Input
+                                id="userName"
+                                value={`${paymentUser?.fname} ${paymentUser?.lname} (${paymentUser?.email})`}
+                                disabled
+                                className="bg-muted"
+                            />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label htmlFor="transactionId">Transaction ID / Payment ID</Label>
+                            <Input
+                                id="transactionId"
+                                placeholder="Enter Transaction ID"
+                                value={transactionId}
+                                onChange={(e) => setTransactionId(e.target.value)}
+                            />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label htmlFor="amount">Amount (INR)</Label>
+                            <Input
+                                id="amount"
+                                type="number"
+                                placeholder="1499"
+                                value={paymentAmount}
+                                onChange={(e) => setPaymentAmount(e.target.value)}
+                            />
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setIsPaymentModalOpen(false)}>Cancel</Button>
+                        <Button onClick={handleMarkAsPaid} disabled={isUpdating} className="bg-green-600 hover:bg-green-700">
+                            {isUpdating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            Mark as Paid
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
 
             <UserDetailsDialog
                 user={selectedUser}

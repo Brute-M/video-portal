@@ -252,5 +252,65 @@ const sendWelcomeEmail = async (email, name, referralCode, role) => {
     }
 };
 
-module.exports = { sendInvoiceEmail, sendPasswordResetEmail, sendContactEmail, sendRegistrationOtpEmail, sendWelcomeEmail };
+const sendUserRegistrationSuccessEmail = async (email, name, password) => {
+    try {
+        const logoPath = path.join(__dirname, '../../frontend/public/logo.png');
+
+        const mailOptions = {
+            from: '"Beyond Reach Premiere League" <ektadev531@gmail.com>',
+            to: email,
+            subject: 'Welcome to BRPL - Registration Successful!',
+            html: `
+            <div style="font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: 0 auto; border: 1px solid #ddd; padding: 20px;">
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <img src="cid:logo" alt="BRPL Logo" style="width: 80px;" />
+                    <h2 style="color: #444; margin-top: 10px;">Beyond Reach Premiere League</h2>
+                </div>
+                
+                <hr style="border: 0; border-top: 1px solid #eee;" />
+                
+                <p>Hello ${name},</p>
+                <p>Thank you for registering with Beyond Reach Premiere League (BRPL)! We are thrilled to have you join our community.</p>
+                
+                <p>Your account has been created successfully. Here are your login credentials:</p>
+                
+                <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin: 20px 0; border: 1px solid #eee;">
+                    <p style="margin: 5px 0;"><strong>Email:</strong> ${email}</p>
+                    <p style="margin: 5px 0;"><strong>Password:</strong> ${password}</p>
+                </div>
+                
+                <p>You can now log in to your dashboard to complete your profile and explore our features.</p>
+                
+                <div style="text-align: center; margin-top: 30px;">
+                    <a href="https://brpl.net/auth" style="background-color: #263574; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">Login to Your Account</a>
+                </div>
+                
+                <p style="margin-top: 30px; font-size: 14px; color: #555;">
+                    If you have any questions or need assistance, feel free to reply to this email or contact our support team.
+                </p>
+                
+                <p style="font-size: 12px; color: #777; margin-top: 30px; text-align: center;">
+                    &copy; ${new Date().getFullYear()} Beyond Reach Premiere League. All rights reserved.
+                </p>
+            </div>
+            `,
+            attachments: [
+                {
+                    filename: 'logo.png',
+                    path: logoPath,
+                    cid: 'logo'
+                }
+            ]
+        };
+
+        const info = await transporter.sendMail(mailOptions);
+        console.log('Registration success email sent to %s: %s', email, info.messageId);
+        return info;
+    } catch (error) {
+        console.error('Error sending registration success email:', error);
+        // Not throwing to avoid blocking the registration response
+    }
+};
+
+module.exports = { sendInvoiceEmail, sendPasswordResetEmail, sendContactEmail, sendRegistrationOtpEmail, sendWelcomeEmail, sendUserRegistrationSuccessEmail };
 

@@ -444,6 +444,46 @@ const getPayments = async (req, res) => {
     }
 };
 
+const manualUserPaymentUpdate = async (req, res) => {
+    try {
+        if (req.role !== 'admin' && req.userId !== 'admin') {
+            return res.status(403).json({ message: 'Forbidden' });
+        }
+
+        const { userId } = req.params;
+        const { paymentId, paymentAmount, isFromLandingPage } = req.body;
+
+        if (!paymentId || !paymentAmount) {
+            return res.status(400).json({ message: 'Payment ID and Amount are required' });
+        }
+
+        const updateData = {
+            isPaid: true,
+            paymentId,
+            paymentAmount,
+        };
+
+        if (isFromLandingPage !== undefined) {
+            updateData.isFromLandingPage = isFromLandingPage;
+        }
+
+        const updatedUser = await User.findByIdAndUpdate(userId, updateData, { new: true }).select('-password');
+
+        if (!updatedUser) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        res.json({
+            statusCode: 200,
+            message: 'User payment status updated successfully',
+            data: updatedUser
+        });
+    } catch (error) {
+        console.error('Error in manualUserPaymentUpdate:', error);
+        res.status(500).json({ message: 'Server error updating user payment' });
+    }
+};
+
 module.exports = {
     adminLandingLogin,
     getAllRecords,
@@ -451,6 +491,7 @@ module.exports = {
     getAdminStats,
     getDashboardChartData,
     downloadUserInvoice,
-    getPayments
+    getPayments,
+    manualUserPaymentUpdate
 };
 

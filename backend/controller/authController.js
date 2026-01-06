@@ -223,6 +223,16 @@ const register = async (req, res) => {
       await matchedVisit.save();
     }
 
+    // Send Registration Success Email if from landing page
+    if (String(isFromLandingPage).toLowerCase() === 'true') {
+      try {
+        const { sendUserRegistrationSuccessEmail } = require('../utils/emailService');
+        await sendUserRegistrationSuccessEmail(newUser.email, `${newUser.fname} ${newUser.lname || ''}`, password);
+      } catch (emailError) {
+        console.error('Registration success email failed (registration will continue):', emailError);
+      }
+    }
+
     res.status(201).json({
       statusCode: 201,
       data: {
