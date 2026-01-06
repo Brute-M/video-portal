@@ -95,9 +95,16 @@ const register = async (req, res) => {
       return res.status(400).json({ statusCode: 400, data: { message: 'Required fields are missing' } });
     }
 
-    const userExists = await User.findOne({ email });
+    const userExists = await User.findOne({
+      $or: [{ email }, { mobile }]
+    });
     if (userExists) {
-      return res.status(400).json({ statusCode: 400, data: { message: 'Email is already taken' } });
+      if (userExists.email === email) {
+        return res.status(400).json({ statusCode: 400, data: { message: 'Email is already registered' } });
+      }
+      if (userExists.mobile === mobile) {
+        return res.status(400).json({ statusCode: 400, data: { message: 'Mobile number is already registered' } });
+      }
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -259,10 +266,10 @@ const sendOtp = async (req, res) => {
       return res.status(400).json({ message: "Mobile number is required" });
     }
 
-    if (checkExisting) {
+    if (String(checkExisting).toLowerCase() === 'true') {
       const existingUser = await User.findOne({ mobile });
       if (existingUser) {
-        return res.status(400).json({ message: "Mobile number already exists please login." });
+        return res.status(400).json({ message: "Mobile number already exists. Please login." });
       }
     }
 

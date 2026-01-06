@@ -134,7 +134,7 @@ const Auth = ({ forceRegister }: AuthProps) => {
 
     setIsSendingOtp(true);
     try {
-      const response = await sendOtp(formData.mobile);
+      const response = await sendOtp(formData.mobile, isRegister);
       if (response.success) {
         toast({
           title: "OTP Sent",

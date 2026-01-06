@@ -11,8 +11,8 @@ export const register = async (data: any) => {
     return response.data;
 };
 
-export const sendOtp = async (mobile: string) => {
-    const response = await api.post(ENDPOINTS.AUTH.SEND_OTP, { mobile });
+export const sendOtp = async (mobile: string, checkExisting: boolean = false) => {
+    const response = await api.post(ENDPOINTS.AUTH.SEND_OTP, { mobile, checkExisting });
     return response.data;
 };
 
