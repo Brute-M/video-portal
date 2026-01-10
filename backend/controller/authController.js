@@ -805,14 +805,81 @@ const getStep1Leads = async (req, res) => {
         }
       }
     });
-
   } catch (error) {
     console.error('Get Step 1 Leads Error:', error);
     res.status(500).json({ success: false, message: 'Failed to fetch leads' });
   }
 };
 
+const exportStep1Leads = async (req, res) => {
+  try {
+    const { search } = req.query;
+    const filter = {};
+    if (search) {
+      filter.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { mobile: { $regex: search, $options: 'i' } }
+      ];
+    }
+
+    const leads = await Step1Lead.find(filter).sort({ updatedAt: -1 });
+
+    const ExcelJS = require('exceljs');
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Step 1 Leads');
+
+    worksheet.columns = [
+      { header: 'Mobile', key: 'mobile', width: 15 },
+      { header: 'Name', key: 'name', width: 25 },
+      { header: 'Role', key: 'role', width: 15 },
+      { header: 'State', key: 'state', width: 20 },
+      { header: 'City', key: 'city', width: 20 },
+      { header: 'Tracking ID', key: 'trackingId', width: 20 },
+      { header: 'Date', key: 'updatedAt', width: 25 }
+    ];
+
+    leads.forEach(lead => {
+      worksheet.addRow({
+        mobile: lead.mobile,
+        name: lead.name || '-',
+        role: lead.role || '-',
+        state: lead.state || '-',
+        city: lead.city || '-',
+        trackingId: lead.trackingId || '-',
+        updatedAt: lead.updatedAt ? new Date(lead.updatedAt).toLocaleString() : ''
+      });
+    });
+
+    worksheet.getRow(1).font = { bold: true };
+
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', 'attachment; filename=step1-leads.xlsx');
+
+    await workbook.xlsx.write(res);
+    res.end();
+  } catch (error) {
+    console.error('Export Step 1 Leads Error:', error);
+    res.status(500).json({ message: 'Server error during export' });
+  }
+};
+
 module.exports = {
+  login,
+  register,
+  sendOtp,
+  verifyOtp,
+  forgotPassword,
+  resetPassword,
+  registerCoach,
+  loginCoach,
+  trackVisit,
+  getVisits,
+  getCoachMyPlayers,
+  getPartnerProfile,
+  resendWelcomeEmail,
+  saveStep1Data,
+  getStep1Leads,
+  exportStep1Leads,
   login,
   register,
   upload,

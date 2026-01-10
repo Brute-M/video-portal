@@ -73,6 +73,7 @@ const Dashboard = () => {
     }
   };
 
+
   const handleRegistrationPayment = async () => {
     setIsProcessingPayment(true);
     try {

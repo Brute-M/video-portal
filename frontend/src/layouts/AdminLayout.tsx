@@ -38,6 +38,7 @@ const AdminLayout = () => {
         { icon: UserX, label: "Unpaid Users", path: "/admin/unpaid-users" },
         { icon: Users, label: "Coupon Usage", path: "/admin/coupon-usage" },
         { icon: Users, label: "Registered Users", path: "/admin/registered-users" },
+        { icon: Users, label: "Step 1 Leads", path: "/admin/step1-leads" },
     ];
 
     return (

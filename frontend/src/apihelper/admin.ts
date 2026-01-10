@@ -1,3 +1,4 @@
+
 import api from './api';
 import { ENDPOINTS } from './endpoints';
 
@@ -84,4 +85,3 @@ export const updateUserPayment = async (userId: string, paymentId: string, payme
     });
     return response.data;
 };
-

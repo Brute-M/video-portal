@@ -35,3 +35,8 @@ export const getProfile = async () => {
     const response = await api.get('/auth/profile');
     return response.data;
 };
+
+export const saveStep1Data = async (data: any) => {
+    const response = await api.post(ENDPOINTS.AUTH.SAVE_STEP1_DATA, data);
+    return response.data;
+};

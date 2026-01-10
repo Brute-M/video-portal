@@ -91,7 +91,7 @@ const RegisteredUsers = () => {
             // But exportTypes supports 'paid'|'unpaid'|'landing'.
             // If the user hasn't selected a specific filter in UI (UI doesn't show type filter explicitly other than implicit 'users' list), we export all matches of search.
 
-            const blob = await exportUsersExcel(filters.search, '', filters.startDate, filters.endDate);
+            const blob = await exportUsersExcel(filters.search, 'landing', filters.startDate, filters.endDate);
             const url = window.URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
