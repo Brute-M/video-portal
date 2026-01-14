@@ -297,3 +297,25 @@
 .animate-fade-in-right {
   animation: fadeInRight 1s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
 }
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #analysis-report-container, #analysis-report-container * {
+    visibility: visible;
+  }
+  #analysis-report-container {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+    border: none !important;
+  }
+  /* Hide close button in print */
+  .no-print {
+    display: none !important;
+  }
+}

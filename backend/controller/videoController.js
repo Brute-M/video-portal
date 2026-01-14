@@ -7,6 +7,8 @@ const multerS3 = require('multer-s3');
 const path = require('path');
 const mongoose = require('mongoose');
 const PAYMENT_CONFIG = require('../config/payment');
+const Payment = require('../model/payment.model');
+const { drawInvoice, createInvoiceBuffer, sendInvoiceEmail } = require('../utils/pdfGenerator');
 
 const storage = multerS3({
     s3: s3Client,
@@ -29,13 +31,16 @@ const uploadVideo = async (req, res) => {
             return res.status(400).json({ statusCode: 400, data: { message: 'No video file uploaded' } });
         }
 
+        const user = await User.findById(req.userId);
+        const isAlreadyPaid = user?.isPaid;
+
         const newVideo = new Video({
             userId: req.userId,
             filename: req.file.key,
             path: req.file.location,
             originalName: req.file.originalname,
             size: req.file.size,
-            status: 'pending_payment'
+            status: isAlreadyPaid ? 'completed' : 'pending_payment'
         });
 
         await newVideo.save();
@@ -43,10 +48,11 @@ const uploadVideo = async (req, res) => {
         res.status(201).json({
             statusCode: 201,
             data: {
-                message: 'Video uploaded successfully to S3. Payment required to finalize.',
+                message: isAlreadyPaid ? 'Video uploaded successfully.' : 'Video uploaded successfully to S3. Payment required to finalize.',
                 videoId: newVideo._id,
-                status: 'pending_payment',
-                url: req.file.location
+                status: isAlreadyPaid ? 'completed' : 'pending_payment',
+                url: req.file.location,
+                isFromLandingPage: user?.isFromLandingPage
             }
         });
 
@@ -56,8 +62,6 @@ const uploadVideo = async (req, res) => {
     }
 };
 
-const { sendInvoiceEmail } = require('../utils/emailService');
-const { createInvoiceBuffer, drawInvoice } = require('../utils/pdfGenerator');
 
 const verifyPayment = async (req, res) => {
     const { videoId, paymentId } = req.body;
@@ -85,10 +89,21 @@ const verifyPayment = async (req, res) => {
 
         video.status = 'completed';
         video.paymentId = paymentId;
+        video.amount = 1499;
         await video.save();
 
         const user = await User.findById(req.userId);
         await User.findByIdAndUpdate(req.userId, { isPaid: true });
+
+        // Record the payment
+        await Payment.create({
+            userId: req.userId,
+            videoId: video._id,
+            transactionId: paymentId,
+            amount: 1499,
+            type: 'video',
+            status: 'completed'
+        });
 
         let pdfBuffer = null;
         try {
@@ -215,12 +230,65 @@ const downloadInvoice = async (req, res) => {
     }
 };
 
+const getLatestVideo = async (req, res) => {
+    try {
+        const video = await Video.findOne({ userId: req.userId })
+            .sort({ createdAt: -1 });
+
+        if (!video) {
+            return res.json({ statusCode: 404, data: { message: 'No videos found for this user' } });
+        }
+
+        res.json({ statusCode: 200, data: video });
+    } catch (error) {
+        console.error('Error fetching latest video:', error);
+        res.status(500).json({ statusCode: 500, data: { message: 'Server error' } });
+    }
+};
+
+
+
+const saveVideoAnalysis = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { analysis, role } = req.body;
+
+        if (!analysis) {
+            return res.status(400).json({ statusCode: 400, data: { message: 'Analysis data is required' } });
+        }
+
+        const video = await Video.findOne({ _id: id, userId: req.userId });
+
+        if (!video) {
+            return res.status(404).json({ statusCode: 404, data: { message: 'Video not found or unauthorized' } });
+        }
+
+        video.analysis = analysis;
+        video.role = role || video.role;
+        await video.save();
+
+        res.status(200).json({
+            statusCode: 200,
+            data: {
+                message: 'Analysis saved successfully',
+                video
+            }
+        });
+
+    } catch (error) {
+        console.error("Error saving analysis:", error);
+        res.status(500).json({ statusCode: 500, data: { message: 'Server error saving analysis' } });
+    }
+};
+
 module.exports = {
     upload,
     uploadVideo,
     verifyPayment,
     getUserVideos,
     getVideoById,
+    getLatestVideo,
     deleteVideo,
-    downloadInvoice
+    downloadInvoice,
+    saveVideoAnalysis,
 };

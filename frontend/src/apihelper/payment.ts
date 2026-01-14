@@ -27,3 +27,13 @@ export const downloadInvoiceAPI = async (videoId: string) => {
     return response.data;
 };
 
+export const createLandingOrder = async (amount: number) => {
+    const response = await api.post(ENDPOINTS.PAYMENT.RAZORPAY_ORDER_LANDING, { amount });
+    return response.data;
+};
+
+export const verifyLandingPayment = async (data: any) => {
+    const response = await api.post(ENDPOINTS.PAYMENT.RAZORPAY_VERIFY_LANDING, data);
+    return response.data;
+};
+

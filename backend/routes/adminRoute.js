@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const { login } = require('../controller/authController'); // Reuse existing login logic
-const { adminLandingLogin, getAllRecords, getPaginatedRecords, getAdminStats } = require('../controller/adminController');
+const { login, getStep1Leads, exportStep1Leads } = require('../controller/authController'); // Reuse existing login logic
+const { adminLandingLogin, getAllRecords, getPaginatedRecords, getAdminStats, getDashboardChartData, downloadUserInvoice, getPayments, manualUserPaymentUpdate } = require('../controller/adminController');
 const authenticate = require('../middleware/authMiddleware');
 
 // Admin Login (using same auth logic, strictly for admin creds)
@@ -15,5 +15,16 @@ router.get('/users', authenticate, getAllRecords);
 
 router.get('/stats', authenticate, getAdminStats);
 router.get('/records', authenticate, getPaginatedRecords);
+router.get('/step1-leads', authenticate, getStep1Leads);
+router.get('/step1-leads/export', authenticate, exportStep1Leads);
+router.get('/charts', authenticate, getDashboardChartData);
+// Invoice Download
+router.get('/invoice/:userId', authenticate, downloadUserInvoice);
+
+// Payments Tracking
+router.get('/payments', authenticate, getPayments);
+
+// Manual Payment Update
+router.patch('/users/:userId/payment', authenticate, manualUserPaymentUpdate);
 
 module.exports = router;

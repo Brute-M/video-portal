@@ -159,139 +159,188 @@ const drawInvoice = (doc, video, user) => {
     const finalTotal = Number(totalAmount).toFixed(2);
 
 
-    // --- Top colored band ---
-    doc.save();
-    doc.rect(0, 0, pageWidth, 20).fill('#111a45'); // Navy Theme
-    doc.restore();
+    // --- Header Section: White Background ---
+    const topMargin = 40;
 
-    // --- Header: Logo and company / invoice details ---
+    // --- Left side: Logo and Company Details ---
     const logoPath = path.join(__dirname, '../../frontend/public/logo.png');
     if (require('fs').existsSync(logoPath)) {
-        doc.image(logoPath, marginLeft, 35, { width: 50 });
+        doc.image(logoPath, marginLeft, topMargin, { width: 60 });
     }
 
-    doc.fillColor('#111a45')
-        .fontSize(20)
-        .text('Beyond Reach Premiere League', marginLeft + 70, 40, { continued: false });
+    const companyDetailsX = marginLeft;
+    const companyDetailsY = topMargin + 70;
 
-    doc.fontSize(10)
-        .fillColor('#555555')
-        .text('TAX INVOICE', marginLeft + 70, 65);
+    doc.fillColor('#111a45').font('Helvetica-Bold').fontSize(14)
+        .text('Beyond Reach Premiere League', companyDetailsX, companyDetailsY);
 
-    const infoWidth = 200;
-    const infoX = marginLeft + contentWidth - infoWidth;
+    doc.fillColor('#444444').font('Helvetica').fontSize(8);
+    doc.text('Ground Floor, Suite G-01, Procapitus Business Park,', companyDetailsX, companyDetailsY + 16);
+    doc.text('D-247/4A, D Block, Sector 63, Noida, Uttar Pradesh – 201309', companyDetailsX, companyDetailsY + 28);
+    doc.text('Email: noreply@brpl.net', companyDetailsX, companyDetailsY + 40);
+    // doc.text('GSTIN: 36ABCBS2942R1ZR', companyDetailsX, companyDetailsY + 52);
+
+    // --- Right side: Invoice Info ---
+    const rightColX = marginLeft + 300;
+
+    doc.fillColor('#444444').font('Helvetica').fontSize(16)
+        .text('TAX INVOICE', 0, topMargin, { align: 'right', width: contentWidth + marginLeft });
+
+    doc.fontSize(8).text('Original for Recipient', 0, topMargin + 18, { align: 'right', width: contentWidth + marginLeft });
+
+    doc.fontSize(14).font('Helvetica-Bold').fillColor('#000000')
+        .text(`IN-${video.paymentId?.substring(0, 8) || '1'}`, 0, topMargin + 30, { align: 'right', width: contentWidth + marginLeft });
+
+    // --- Amount Due Bar (Blue) ---
+    const barWidth = 220;
+    const barHeight = 25;
+    const barX = pageWidth - marginRight - barWidth;
+    const barY = topMargin + 55;
+
+    doc.save()
+        .fillColor('#111a45')
+        .rect(barX, barY, barWidth, barHeight)
+        .fill();
+
+    doc.fillColor('#ffffff').font('Helvetica-Bold').fontSize(10);
+    doc.text('Amount Due:', barX + 10, barY + 8);
+    doc.text(`Rs. ${finalTotal}`, barX, barY + 8, { width: barWidth - 10, align: 'right' });
+    doc.restore();
+
+    // --- Meta Details (Right Side) ---
+    const metaY = barY + barHeight + 10;
+    const metaLabelWidth = 80;
+    const metaValueWidth = 100;
+    const metaX = pageWidth - marginRight - (metaLabelWidth + metaValueWidth);
+
+    doc.fillColor('#444444').font('Helvetica').fontSize(8);
+
+    const drawMetaRow = (label, value, y) => {
+        doc.text(label, metaX, y, { width: metaLabelWidth, align: 'right' });
+        doc.text(value, metaX + metaLabelWidth + 10, y, { width: metaValueWidth, align: 'left' });
+    };
+
     const today = new Date();
+    drawMetaRow('Issue Date:', today.toLocaleDateString(), metaY);
+    drawMetaRow('Due Date:', today.toLocaleDateString(), metaY + 12);
+    drawMetaRow('Place of Supply:', user.state || 'N/A', metaY + 24);
 
-    const infoTop = 40;
-    doc.fillColor('#000000').fontSize(10);
-    doc.text(`Invoice # : ${video.paymentId}`, infoX, infoTop, { align: 'right', width: infoWidth });
-    doc.text(`Date : ${today.toLocaleDateString()}`, infoX, infoTop + 14, { align: 'right', width: infoWidth });
-    doc.text(`Place of Supply : ${user.state || ''}`, infoX, infoTop + 28, { align: 'right', width: infoWidth });
-    // Removed GSTIN if not needed, or keep it. User asked to remove SGST/CGST, maybe GSTIN is fine or not?
-    // User said "remove sgst and cgst also". I will keep GSTIN of company for now unless asked.
-    doc.text(`GSTIN: 36ABCBS2942R1ZR`, infoX, infoTop + 42, { align: 'right', width: infoWidth });
+    // --- Bill To / Ship To ---
+    const blockTop = 180;
+    const blockWidth = contentWidth / 2 - 20;
 
-    // --- Bill To and Ship To ---
-    const blockTop = 110;
-    const blockWidth = contentWidth / 2 - 10;
-
-    doc.fontSize(10).fillColor('#555555');
+    doc.fontSize(10).font('Helvetica-Bold').fillColor('#111a45');
     doc.text('Bill To:', marginLeft, blockTop);
-    doc.fillColor('#000000').fontSize(10);
-    doc.text(`${user.fname || ''} ${user.lname || ''}`.trim(), marginLeft, blockTop + 14);
-    doc.text(`${user.address1 || ''}${user.address2 ? ', ' + user.address2 : ''}`, marginLeft, blockTop + 28, { width: blockWidth });
-    doc.text(`${user.city || ''}, ${user.state || ''} - ${user.pincode || ''}`, marginLeft, blockTop + 42, { width: blockWidth });
+
+    doc.fontSize(9).font('Helvetica').fillColor('#000000');
+    doc.text(`${user.fname || ''} ${user.lname || ''}`.trim(), marginLeft, blockTop + 15);
+    doc.text(`${user.address1 || ''}${user.address2 ? ', ' + user.address2 : ''}`, marginLeft, blockTop + 27, { width: blockWidth });
+    doc.text(`${user.city || ''}, ${user.state || ''} - ${user.pincode || ''}`, marginLeft, blockTop + 45, { width: blockWidth });
     if (user.mobile) {
-        doc.text(`Ph: ${user.mobile}`, marginLeft, blockTop + 56);
+        doc.text(`Ph: ${user.mobile}`, marginLeft, blockTop + 57);
     }
 
-    const shipTop = blockTop;
-    const shipLeft = marginLeft + blockWidth + 20;
+    const shipLeft = marginLeft + contentWidth / 2 + 10;
+    doc.fontSize(10).font('Helvetica-Bold').fillColor('#111a45');
+    doc.text('Ship To:', shipLeft, blockTop);
 
-    doc.fontSize(10).fillColor('#555555');
-    doc.text('Ship To:', shipLeft, shipTop);
-    doc.fillColor('#000000');
-    doc.text(`${user.fname || ''} ${user.lname || ''}`.trim(), shipLeft, shipTop + 14);
-    doc.text(`${user.address1 || ''}${user.address2 ? ', ' + user.address2 : ''}`, shipLeft, shipTop + 28, { width: blockWidth });
-    doc.text(`${user.city || ''}, ${user.state || ''} - ${user.pincode || ''}`, shipLeft, shipTop + 42, { width: blockWidth });
+    doc.fontSize(9).font('Helvetica').fillColor('#000000');
+    doc.text(`${user.fname || ''} ${user.lname || ''}`.trim(), shipLeft, blockTop + 15);
+    doc.text(`${user.address1 || ''}${user.address2 ? ', ' + user.address2 : ''}`, shipLeft, blockTop + 27, { width: blockWidth });
+    doc.text(`${user.city || ''}, ${user.state || ''} - ${user.pincode || ''}`, shipLeft, blockTop + 45, { width: blockWidth });
+
 
     // --- Items Table Header ---
-    const tableTop = 220;
-    const rowHeight = 22;
+    const tableTop = 260;
+    const rowHeight = 25;
 
     const colNoX = marginLeft;
     const colDescX = marginLeft + 30;
-    const colHsnX = marginLeft + 320;
-    const colAmountX = marginLeft + 430;
+    const colHsnX = marginLeft + 300;
+    const colQtyX = marginLeft + 360;
+    const colAmountX = marginLeft + 420;
 
     doc.save();
     doc.rect(marginLeft, tableTop, contentWidth, rowHeight).fill('#111a45'); // Navy Theme
     doc.restore();
 
-    doc.fillColor('#ffffff').fontSize(10).font('Helvetica-Bold');
-    doc.text('#', colNoX + 10, tableTop + 6);
-    doc.text('Description', colDescX, tableTop + 6);
-    doc.text('HSN/SAC', colHsnX, tableTop + 6);
-    doc.text('Amount', colAmountX, tableTop + 6, { width: 100, align: 'right' });
+    doc.fillColor('#ffffff').fontSize(9).font('Helvetica-Bold');
+    doc.text('S.No', colNoX + 5, tableTop + 8);
+    doc.text('Item Description', colDescX, tableTop + 8);
+    doc.text('HSN/SAC', colHsnX, tableTop + 8);
+    doc.text('Qty', colQtyX, tableTop + 8);
+    doc.text('Amount (Rs.)', colAmountX, tableTop + 8, { width: 80, align: 'right' });
 
     // --- Single item row ---
     const itemY = tableTop + rowHeight;
-    doc.strokeColor('#dddddd').lineWidth(0.5)
+    doc.strokeColor('#eeeeee').lineWidth(0.5)
         .moveTo(marginLeft, itemY)
         .lineTo(marginLeft + contentWidth, itemY)
         .stroke();
 
-    doc.font('Helvetica').fontSize(10).fillColor('#000000');
+    doc.font('Helvetica').fontSize(9).fillColor('#000000');
 
-    doc.text('1', colNoX + 10, itemY + 6);
+    doc.text('1', colNoX + 5, itemY + 8);
     const descriptionLines = [
         'Video Upload Service',
         video.originalName ? `File: ${video.originalName}` : ''
     ].filter(Boolean);
-    doc.text(descriptionLines.join(' - '), colDescX, itemY + 6, { width: colHsnX - colDescX - 10 });
-    doc.text('998365', colHsnX, itemY + 6);
-    doc.text(`Rs. ${finalTotal}`, colAmountX, itemY + 6, { width: 100, align: 'right' });
+    doc.text(descriptionLines.join(' - '), colDescX, itemY + 8, { width: colHsnX - colDescX - 10 });
+    doc.text('998365', colHsnX, itemY + 8);
+    doc.text('1', colQtyX, itemY + 8);
+    doc.text(`${finalTotal}`, colAmountX, itemY + 8, { width: 80, align: 'right' });
 
-    const afterItemY = itemY + rowHeight + 4;
-    doc.strokeColor('#dddddd').lineWidth(0.5)
+    const afterItemY = itemY + 30;
+    doc.strokeColor('#eeeeee').lineWidth(0.5)
         .moveTo(marginLeft, afterItemY)
         .lineTo(marginLeft + contentWidth, afterItemY)
         .stroke();
 
-    // --- Total Summary (Simplified, no Tax) ---
-    const taxBlockTop = afterItemY + 16;
-    const taxLeft = marginLeft + contentWidth - 220;
+    // --- Bottom Section ---
+    const footerTop = afterItemY + 20;
 
-    doc.font('Helvetica-Bold').fontSize(11).fillColor('#000000');
-    doc.text('Total', taxLeft, taxBlockTop);
-    doc.text(`Rs. ${finalTotal}`, taxLeft + 120, taxBlockTop, { align: 'right', width: 100 });
+    // Left: Payment Details
+    doc.fontSize(9).font('Helvetica-Bold').fillColor('#111a45');
+    doc.text('Payment Details:', marginLeft, footerTop);
+    doc.fontSize(8).font('Helvetica').fillColor('#444444');
+    doc.text(`Transaction ID: ${video.paymentId || 'N/A'}`, marginLeft, footerTop + 14);
+    doc.text('Account Name: BEYOND REACH PREMIERE LEAGUE', marginLeft, footerTop + 24);
+    // doc.text('Bank: YOUR BANK NAME', marginLeft, footerTop + 34);
+    // doc.text('A/C No: 1234567890', marginLeft, footerTop + 44);
 
-    // --- Amount in words ---
-    const amountWordsY = taxBlockTop + 80;
-    doc.font('Helvetica').fontSize(9).fillColor('#555555');
-    doc.text(`Total amount (in words): INR ${totalAmount.toFixed(2)} only.`, marginLeft, amountWordsY, {
-        width: contentWidth,
-    });
+    // Right: Summary
+    const summaryX = marginLeft + contentWidth - 180;
+    const summaryLabelWidth = 100;
+    const summaryValueWidth = 80;
 
-    // --- Company Address (Shifted to Bottom) ---
-    const addressTop = amountWordsY + 50;
-    doc.strokeColor("#aaaaaa").lineWidth(0.5).moveTo(marginLeft, addressTop - 10).lineTo(marginLeft + contentWidth, addressTop - 10).stroke();
+    const drawSummaryRow = (label, value, y, bold = false) => {
+        doc.font(bold ? 'Helvetica-Bold' : 'Helvetica').fillColor('#000000');
+        doc.text(label, summaryX, y, { width: summaryLabelWidth, align: 'right' });
+        doc.text(value, summaryX + summaryLabelWidth, y, { width: summaryValueWidth, align: 'right' });
+    };
 
-    doc.font('Helvetica-Bold').fontSize(9).fillColor('#111a45');
-    doc.text('Beyond Reach Premiere League', marginLeft, addressTop);
-    doc.font('Helvetica').fontSize(9).fillColor('#555555');
-    doc.text('Ground Floor, Suite G-01, Procapitus Business Park, D-247/4A, D Block, Sector 63, Noida, Uttar Pradesh 201309', marginLeft, addressTop + 12, { width: contentWidth });
-    doc.text('Email: noreply@brpl.net | Mobile: 9999999999', marginLeft, addressTop + 24);
+    drawSummaryRow('Total Taxable Value:', `Rs. ${finalTotal}`, footerTop);
+    drawSummaryRow('IGST/CGST/SGST:', 'Rs. 0.00', footerTop + 14);
+    doc.save().strokeColor('#111a45').lineWidth(1).moveTo(summaryX + 20, footerTop + 28).lineTo(marginLeft + contentWidth, footerTop + 28).stroke().restore();
+    drawSummaryRow('Total Amount:', `Rs. ${finalTotal}`, footerTop + 35, true);
 
-    // --- Terms and Conditions ---
-    const termsTop = addressTop + 45;
-    doc.font('Helvetica-Bold').fontSize(10).fillColor('#000000');
-    doc.text('Terms and Conditions:', marginLeft, termsTop);
-    doc.font('Helvetica').fontSize(8).fillColor('#555555');
-    doc.text('1. Goods/services once sold cannot be taken back or exchanged.', marginLeft, termsTop + 14, { width: contentWidth });
-    doc.text('2. Company will stand for warranty as per their terms and conditions.', marginLeft, termsTop + 26, { width: contentWidth });
-    doc.text('3. Interest @24% p.a. will be charged for uncleared bills beyond 15 days.', marginLeft, termsTop + 38, { width: contentWidth });
-    doc.text('4. Subject to local jurisdiction.', marginLeft, termsTop + 50, { width: contentWidth });
+    // Amount in words
+    const wordsY = footerTop + 70;
+    doc.font('Helvetica-Bold').fontSize(8).text('Total Value (in words):', marginLeft, wordsY);
+    doc.font('Helvetica').fontSize(8).text(`${finalTotal} Rupees Only.`, marginLeft + 100, wordsY);
+
+    // Signing Authority
+    const signTop = wordsY + 40;
+    doc.save().strokeColor('#444444').lineWidth(0.5).moveTo(marginLeft + contentWidth - 150, signTop + 40).lineTo(marginLeft + contentWidth, signTop + 40).stroke().restore();
+    doc.fontSize(8).text('Authorized Signatory', 0, signTop + 45, { align: 'right', width: contentWidth + marginLeft });
+
+    // Terms
+    const termsTop = signTop + 80;
+    doc.fontSize(9).font('Helvetica-Bold').fillColor('#111a45').text('Terms & Conditions:', marginLeft, termsTop);
+    doc.fontSize(7).font('Helvetica').fillColor('#444444');
+    doc.text('1. Payment should be made to the mentioned account only.', marginLeft, termsTop + 12);
+    doc.text('2. This is a computer generated invoice.', marginLeft, termsTop + 22);
+    doc.text('3. Subject to local jurisdiction.', marginLeft, termsTop + 32);
 };
 
 // Function Update: returns Buffer Promise

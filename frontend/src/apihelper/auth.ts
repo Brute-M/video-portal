@@ -11,8 +11,8 @@ export const register = async (data: any) => {
     return response.data;
 };
 
-export const sendOtp = async (mobile: string) => {
-    const response = await api.post(ENDPOINTS.AUTH.SEND_OTP, { mobile });
+export const sendOtp = async (mobile: string, checkExisting: boolean = false) => {
+    const response = await api.post(ENDPOINTS.AUTH.SEND_OTP, { mobile, checkExisting });
     return response.data;
 };
 
@@ -33,5 +33,10 @@ export const resetPassword = async (data: any) => {
 
 export const getProfile = async () => {
     const response = await api.get('/auth/profile');
+    return response.data;
+};
+
+export const saveStep1Data = async (data: any) => {
+    const response = await api.post(ENDPOINTS.AUTH.SAVE_STEP1_DATA, data);
     return response.data;
 };

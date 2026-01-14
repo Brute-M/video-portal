@@ -13,6 +13,10 @@ import {
     Eye,
     FileText,
     RefreshCw,
+    Lock as LockIcon,
+    Info,
+    Activity,
+    Download
 } from "lucide-react";
 
 import { useToast } from "@/hooks/use-toast";
@@ -22,21 +26,35 @@ import {
     DialogDescription,
     DialogHeader,
     DialogTitle,
+    DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { uploadVideo, getVideos, deleteVideo, getVideoById } from "@/apihelper/video";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+    SelectGroup,
+    SelectLabel,
+} from "@/components/ui/select";
+import { uploadVideo, getVideos, deleteVideo, getVideoById, saveVideoAnalysis } from "@/apihelper/video";
 import { verifyPayment, downloadInvoiceAPI, createRazorpayOrder, verifyRazorpayPayment } from "@/apihelper/payment";
 import { getProfile } from "@/apihelper/auth";
+import { analyzeVideo } from "@/apihelper/analysis";
 import { v4 as uuidv4 } from "uuid";
 import { useRazorpay } from "react-razorpay";
+import { AnalysisResult } from "@/components/AnalysisResult";
 
 interface VideoFile {
     id: string;
     name: string;
     size: number;
     progress: number;
-    status: "uploading" | "completed" | "pending-payment";
+    status: "uploading" | "completed" | "pending-payment" | "analyzing";
+    analysis?: any;
+    role?: string;
 }
 
 const Videos = () => {
@@ -48,13 +66,26 @@ const Videos = () => {
     const [isProcessingPayment, setIsProcessingPayment] = useState(false);
     const [selectedVideo, setSelectedVideo] = useState<any | null>(null);
     const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+    const [showAnalysisModal, setShowAnalysisModal] = useState(false);
+    const [selectedAnalysis, setSelectedAnalysis] = useState<any>(null);
+    const [role, setRole] = useState<string>("");
+
     const navigate = useNavigate();
     const { Razorpay } = useRazorpay();
 
     const changeVideoInputRef = useRef<HTMLInputElement>(null);
+    const analysisRef = useRef<HTMLDivElement>(null);
     const [videoToChangeId, setVideoToChangeId] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [userProfile, setUserProfile] = useState<any>(null);
+    const [isProfileLoading, setIsProfileLoading] = useState(true);
+
+    // Define Role Categories
+    const ROLE_CATEGORIES = {
+        "Batsman": ["Opener", "Middle-order batter", "Finisher", "All-rounder"],
+        "Bowler": ["Fast bowler", "Swing bowler", "Yorker specialist", "Off spinner", "Leg spinner", "Left-arm spinner", "Chinaman", "Fielding specialist"],
+        "Wicketkeeper": ["Wicketkeeper batsman"]
+    };
 
     useEffect(() => {
         fetchVideos();
@@ -62,11 +93,23 @@ const Videos = () => {
     }, []);
 
     const fetchProfile = async () => {
+        setIsProfileLoading(true);
         try {
             const response = await getProfile();
-            setUserProfile(response.data?.data || response.data);
+            const profile = response.data?.data || response.data;
+            setUserProfile(profile);
+
+            // Set role from profile if available
+            if (profile?.playerRole) {
+                setRole(profile.playerRole);
+            } else {
+                setRole("Opener"); // Default fallback
+            }
         } catch (error) {
             console.error("Failed to fetch profile", error);
+            setRole("Opener"); // Fallback on error
+        } finally {
+            setIsProfileLoading(false);
         }
     };
 
@@ -90,11 +133,13 @@ const Videos = () => {
                 name: v.originalName || v.title || v.name || v.filename || "Untitled Video",
                 size: v.size || 0,
                 progress: 100,
-                status: v.status === 'pending_payment' ? 'pending-payment' : (v.status || "completed")
+                status: v.status === 'pending_payment' ? 'pending-payment' : (v.status || "completed"),
+                analysis: v.analysis,
+                role: v.role
             }));
 
             setVideos(prev => {
-                const uploading = prev.filter(p => p.status === 'uploading');
+                const uploading = prev.filter(p => p.status === 'uploading' || p.status === 'analyzing');
                 const existingIds = new Set(uploading.map(v => v.id));
                 const uniqueMapped = mappedVideos.filter(v => !existingIds.has(v.id));
                 return [...uploading, ...uniqueMapped];
@@ -169,11 +214,65 @@ const Videos = () => {
         }
     };
 
+    const handleViewAnalysis = (video: VideoFile) => {
+        if (!video.analysis) {
+            toast({
+                title: "No Analysis Found",
+                description: "This video has not been analyzed yet.",
+            });
+            return;
+        }
+        // Normalize object structure if needed, matching AnalysisResult expectation
+        const analysisData = {
+            role: video.role,
+            analysis: video.analysis
+        };
+        setSelectedAnalysis(analysisData);
+        // Scroll to analysis section with a slight delay to ensure render
+        setTimeout(() => {
+            analysisRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 100);
+    };
+
+    const handleDownloadReport = (video: VideoFile) => {
+        // Ensure this video's analysis is showing
+        handleViewAnalysis(video);
+
+        // Wait for render/scroll then print
+        setTimeout(() => {
+            window.print();
+        }, 500);
+    };
+
+    // Auto-show analysis for the latest analyzed video
+    useEffect(() => {
+        if (!isLoading && videos.length > 0 && !selectedAnalysis) {
+            // Find first video with analysis (assuming sorted recent first? usually logic is reversed in display but let's check sorting)
+            // Backend returns sort({ createdAt: -1 }), so first item is latest.
+            const latestAnalyzed = videos.find(v => v.analysis);
+            if (latestAnalyzed) {
+                const analysisData = {
+                    role: latestAnalyzed.role,
+                    analysis: latestAnalyzed.analysis
+                };
+                setSelectedAnalysis(analysisData);
+            }
+        }
+    }, [isLoading, videos]);
+
     const handleChangeVideo = (id: string) => {
         setVideoToChangeId(id);
         if (changeVideoInputRef.current) {
             changeVideoInputRef.current.click();
         }
+    };
+
+    const handleRetryAnalysis = (id: string) => {
+        toast({
+            title: "Retry Analysis",
+            description: "Please select the video file again to restart the upload and analysis process.",
+        });
+        handleChangeVideo(id);
     };
 
     const handleFileChangeForUpdate = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -230,6 +329,7 @@ const Videos = () => {
             size: file.size,
             progress: 0,
             status: "uploading",
+            role: role
         };
 
         setVideos((prev) => [...prev, newVideo]);
@@ -238,6 +338,7 @@ const Videos = () => {
         formData.append('video', file);
 
         try {
+            // 1. Upload Video
             const response = await uploadVideo(formData, (progressEvent) => {
                 const percentCompleted = Math.round((progressEvent.loaded * 100) / (progressEvent.total || 1));
                 setVideos((prev) =>
@@ -259,22 +360,83 @@ const Videos = () => {
                 throw new Error("Server did not return a valid video ID");
             }
 
-            const serverStatus = response.status || response.data?.status || (response.data?.isFromLandingPage ? 'completed' : 'pending-payment');
+            const serverStatus = response.status || response.data?.status || 'pending-payment';
             const isLandingPageUser = response.isFromLandingPage || response.data?.isFromLandingPage;
 
             toast({
-                title: isLandingPageUser ? "Upload Successful" : "Upload Successful",
-                description: isLandingPageUser ? "Video uploaded successfully and is now active." : "Video uploaded successfully. Please proceed to payment.",
+                title: "Upload Successful",
+                description: "Video uploaded. Starting analysis...",
             });
 
+            // Update status to analyzing
             setVideos((prev) =>
                 prev.map((v) =>
-                    v.id === newVideo.id ? { ...v, status: serverStatus === 'completed' ? 'completed' : 'pending-payment', id: serverId, progress: 100 } : v
+                    v.id === newVideo.id ? { ...v, status: 'analyzing', id: serverId, progress: 100 } : v
                 )
             );
 
-            if (!isLandingPageUser) {
-                setCurrentVideoId(serverId);
+            // 2. Analyze Video
+            try {
+                // Determine generic category for analysis API
+                let analysisCategory = "batsman";
+                if (ROLE_CATEGORIES["Bowler"].includes(role)) analysisCategory = "bowler";
+                else if (ROLE_CATEGORIES["Wicketkeeper"].includes(role)) analysisCategory = "wicket_keeper";
+                else if (ROLE_CATEGORIES["Batsman"].includes(role)) analysisCategory = "batsman";
+
+                const analysisFormData = new FormData();
+                analysisFormData.append("video", file);
+                analysisFormData.append("role", analysisCategory);
+
+                const analysisRes = await analyzeVideo(analysisFormData);
+
+                if (analysisRes.success && analysisRes.data) {
+                    // 3. Save Analysis
+                    // The analysis structure from API seems to be { success: true, data: { role, analysis: {...} } }
+                    // We only want to save the 'analysis' part often, but let's save what the API returns or just the analysis object
+                    const analysisToSave = analysisRes.data.analysis || analysisRes.data;
+
+                    await saveVideoAnalysis(serverId, {
+                        analysis: analysisToSave,
+                        role: role
+                    });
+
+                    toast({
+                        title: "Analysis Complete",
+                        description: "Video analysis has been completed and saved.",
+                    });
+
+                    setVideos((prev) =>
+                        prev.map((v) =>
+                            v.id === serverId ? {
+                                ...v,
+                                status: serverStatus === 'completed' ? 'completed' : 'pending-payment',
+                                analysis: analysisToSave,
+                                role: role
+                            } : v
+                        )
+                    );
+                } else {
+                    throw new Error("Analysis API returned unsuccessul response");
+                }
+
+            } catch (analysisError) {
+                console.error("Analysis failed", analysisError);
+                toast({
+                    variant: "destructive",
+                    title: "Analysis Failed",
+                    description: "Video uploaded but analysis failed. You can try again later.",
+                });
+
+                // Still mark video as uploaded
+                setVideos((prev) =>
+                    prev.map((v) =>
+                        v.id === serverId ? { ...v, status: serverStatus === 'completed' ? 'completed' : 'pending-payment' } : v
+                    )
+                );
+            }
+
+            setCurrentVideoId(serverId);
+            if (!userProfile?.isPaid) {
                 setShowPaymentModal(true);
             }
 
@@ -309,7 +471,7 @@ const Videos = () => {
         files.forEach((file) => {
             handleUpload(file);
         });
-    }, []);
+    }, [role]); // Dependent on role state
 
     const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = Array.from(e.target.files || []).filter((file) =>
@@ -384,9 +546,9 @@ const Videos = () => {
                     }
                 },
                 prefill: {
-                    name: "Creator Name",
-                    email: "creator@example.com",
-                    contact: "9999999999",
+                    name: userProfile ? [userProfile.fname, userProfile.lname].filter(Boolean).join(' ') || "Creator Name" : "Creator Name",
+                    email: userProfile?.email || "creator@example.com",
+                    contact: userProfile?.mobile || "9999999999",
                 },
                 theme: {
                     color: "#3399cc",
@@ -469,6 +631,17 @@ const Videos = () => {
         }
     };
 
+    const isPaid = userProfile?.isPaid || videos.length > 0;
+
+    if (isProfileLoading) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
+                <Loader2 className="w-10 h-10 animate-spin text-primary" />
+                <p className="text-muted-foreground animate-pulse">Loading your videos...</p>
+            </div>
+        );
+    }
+
     return (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="mb-8">
@@ -478,6 +651,7 @@ const Videos = () => {
                 </p>
             </div>
 
+            {/* Hidden Input for Updating Video */}
             <input
                 type="file"
                 accept="video/*"
@@ -486,46 +660,123 @@ const Videos = () => {
                 onChange={handleFileChangeForUpdate}
             />
 
-            <div
-                onDragOver={handleDragOver}
-                onDragLeave={handleDragLeave}
-                onDrop={handleDrop}
-                className={`glass-card p-12 border-2 border-dashed transition-all duration-300 ${isDragging
-                    ? "border-primary bg-primary/5 scale-[1.02]"
-                    : "border-border hover:border-primary/50"
-                    }`}
-            >
-                <div className="flex flex-col items-center justify-center text-center">
-                    <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4 transition-transform group-hover:scale-110">
-                        <Upload className="w-8 h-8 text-primary" />
+            {isPaid && !videos.some(v => v.status === 'completed' || v.status === 'uploading' || v.status === 'analyzing') && (
+                <div className="space-y-6">
+                    {/* Guidelines Section */}
+                    <div className="bg-blue-50/50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900/50 p-6 rounded-xl animate-in fade-in slide-in-from-top-4 duration-700">
+                        <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+                            <Info className="w-5 h-5 text-blue-500" />
+                            Video Upload Guidelines
+                        </h3>
+                        <div className="grid md:grid-cols-2 gap-6">
+                            <div className="space-y-3">
+                                <h4 className="font-medium text-foreground text-sm flex items-center gap-2">
+                                    <Video className="w-4 h-4 text-primary/70" />
+                                    Recording Best Practices
+                                </h4>
+                                <ul className="space-y-2 text-sm text-muted-foreground list-disc pl-4 marker:text-primary/50">
+                                    <li><strong>Camera Angle:</strong> Record from Side-on or Front-on view for best analysis.</li>
+                                    <li><strong>Steady Footage:</strong> Keep the camera steady (use a tripod if possible).</li>
+                                    <li><strong>Full Visibility:</strong> Ensure the player's full body is clearly visible.</li>
+                                    <li><strong>Lighting:</strong> Ensure good lighting conditions, avoid strong backlighting.</li>
+                                </ul>
+                            </div>
+                            <div className="space-y-3">
+                                <h4 className="font-medium text-foreground text-sm flex items-center gap-2">
+                                    <FileText className="w-4 h-4 text-primary/70" />
+                                    Technical Requirements
+                                </h4>
+                                <ul className="space-y-2 text-sm text-muted-foreground list-disc pl-4 marker:text-primary/50">
+                                    <li><strong>Formats:</strong> MP4, MOV, AVI, WMV supported.</li>
+                                    <li><strong>Max Size:</strong> 1GB per video file.</li>
+                                    <li><strong>Duration:</strong> Recommended 10-30 seconds per clip.</li>
+                                    <li><strong>Clarity:</strong> Avoid blurry or out-of-focus footage.</li>
+                                </ul>
+                            </div>
+                        </div>
                     </div>
-                    <h3 className="text-xl font-display font-semibold text-foreground mb-2">
-                        Drop your videos here
-                    </h3>
-                    <p className="text-muted-foreground mb-6">
-                        or click to browse from your computer
-                    </p>
-                    <input
-                        type="file"
-                        accept="video/*"
-                        multiple
-                        onChange={handleFileSelect}
-                        className="hidden"
-                        id="video-upload"
-                    />
-                    <label htmlFor="video-upload">
-                        <Button variant="hero" size="lg" asChild className="cursor-pointer">
-                            <span>
-                                <Plus className="w-5 h-5 mr-2" />
-                                Select Videos
-                            </span>
-                        </Button>
-                    </label>
-                    <p className="text-xs text-muted-foreground mt-4">
-                        Supports MP4, MOV, AVI, WMV up to 1GB
-                    </p>
+                    <div className="flex justify-end w-full max-w-xs ml-auto mb-4">
+                        <div className="space-y-2 w-full">
+                            <Label htmlFor="role">Role for Analysis</Label>
+                            <Select value={role} onValueChange={setRole}>
+                                <SelectTrigger id="role" className="bg-background/50">
+                                    <SelectValue placeholder="Select role" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {Object.entries(ROLE_CATEGORIES).map(([category, roles]) => (
+                                        <SelectGroup key={category}>
+                                            <SelectLabel>{category}</SelectLabel>
+                                            {roles.map((r) => (
+                                                <SelectItem key={r} value={r}>
+                                                    {r}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectGroup>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </div>
+
+                    <div
+                        onDragOver={handleDragOver}
+                        onDragLeave={handleDragLeave}
+                        onDrop={handleDrop}
+                        className={`glass-card p-12 border-2 border-dashed transition-all duration-300 ${isDragging
+                            ? "border-primary bg-primary/5 scale-[1.02]"
+                            : "border-border hover:border-primary/50"
+                            }`}
+                    >
+                        <div className="flex flex-col items-center justify-center text-center">
+                            <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4 transition-transform group-hover:scale-110">
+                                <Upload className="w-8 h-8 text-primary" />
+                            </div>
+                            <h3 className="text-xl font-display font-semibold text-foreground mb-2">
+                                Drop your videos here
+                            </h3>
+                            <p className="text-muted-foreground mb-6">
+                                or click to browse from your computer
+                            </p>
+                            <input
+                                type="file"
+                                accept="video/*"
+                                multiple
+                                onChange={handleFileSelect}
+                                className="hidden"
+                                id="video-upload"
+                            />
+                            <label htmlFor="video-upload">
+                                <Button variant="hero" size="lg" asChild className="cursor-pointer">
+                                    <span>
+                                        <Plus className="w-5 h-5 mr-2" />
+                                        Select Videos
+                                    </span>
+                                </Button>
+                            </label>
+                            <p className="text-xs text-muted-foreground mt-4">
+                                Supports MP4, MOV, AVI, WMV up to 1GB
+                            </p>
+                        </div>
+                    </div>
                 </div>
-            </div>
+            )}
+
+            {!isPaid && !isLoading && (
+                <div className="glass-card p-12 text-center space-y-6 animate-in zoom-in-95 duration-500">
+                    <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4 border border-primary/20">
+                        <LockIcon className="w-8 h-8 text-primary" />
+                    </div>
+                    <div className="max-w-md mx-auto space-y-2">
+                        <h3 className="text-2xl font-display font-bold">Payment Required</h3>
+                        <p className="text-muted-foreground">
+                            You need to complete your registration payment before you can upload videos.
+                        </p>
+                    </div>
+                    <Button variant="hero" size="lg" onClick={() => navigate("/dashboard")} className="px-8">
+                        Complete Payment on Dashboard
+                    </Button>
+                </div>
+            )}
 
             {isLoading && (
                 <div className="flex justify-center items-center py-8">
@@ -566,28 +817,36 @@ const Videos = () => {
                                         {video.status === "uploading" && (
                                             <span className="text-xs text-primary animate-pulse">Uploading...</span>
                                         )}
-                                        {video.status === "pending-payment" && !userProfile?.isFromLandingPage && (
+                                        {video.status === "analyzing" && (
+                                            <span className="text-xs text-accent animate-pulse flex items-center gap-1">
+                                                <Loader2 className="w-3 h-3 animate-spin" />
+                                                Analyzing Video...
+                                            </span>
+                                        )}
+                                        {video.status === "pending-payment" && !userProfile?.isPaid && (
                                             <span className="text-xs text-accent flex items-center gap-1">
                                                 <CreditCard className="w-3 h-3" />
                                                 Awaiting payment
                                             </span>
                                         )}
-                                        {video.status === "pending-payment" && userProfile?.isFromLandingPage && (
-                                            <span className="text-xs text-green-500 flex items-center gap-1">
-                                                <Check className="w-3 h-3" />
-                                                Processing (Registration included)
-                                            </span>
-                                        )}
-                                        {video.status === "completed" && (
-                                            <span className="text-xs text-green-500 flex items-center gap-1">
-                                                <Check className="w-3 h-3" />
-                                                Upload complete
-                                            </span>
+                                        {(video.status === "completed" || (video.status === "pending-payment" && userProfile?.isPaid)) && (
+                                            <div className="flex gap-4">
+                                                <span className="text-xs text-green-500 flex items-center gap-1">
+                                                    <Check className="w-3 h-3" />
+                                                    Upload complete
+                                                </span>
+                                                {video.analysis && (
+                                                    <span className="text-xs text-blue-500 flex items-center gap-1">
+                                                        <Activity className="w-3 h-3" />
+                                                        Analyzed
+                                                    </span>
+                                                )}
+                                            </div>
                                         )}
                                     </div>
                                 </div>
 
-                                {video.status === "pending-payment" && (
+                                {video.status === "pending-payment" && !userProfile?.isPaid && (
                                     <div className="flex gap-2">
                                         <Button
                                             variant="ghost"
@@ -616,7 +875,7 @@ const Videos = () => {
                                         >
                                             <Trash2 className="w-5 h-5" />
                                         </Button>
-                                        {!userProfile?.isFromLandingPage && (
+                                        {!userProfile?.isPaid && (
                                             <Button
                                                 variant="hero"
                                                 size="sm"
@@ -631,8 +890,30 @@ const Videos = () => {
                                     </div>
                                 )}
 
-                                {video.status === "completed" && (
+                                {((video.status === "completed") || (video.status === "pending-payment" && userProfile?.isPaid)) && (
                                     <div className="flex gap-2">
+                                        {video.analysis && (
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                className="h-9 gap-1"
+                                                onClick={() => handleDownloadReport(video)}
+                                            >
+                                                <Download className="w-4 h-4" />
+                                                Download Report
+                                            </Button>
+                                        )}
+                                        {!video.analysis && (
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                className="h-9 gap-1 text-primary hover:text-primary/80"
+                                                onClick={() => handleRetryAnalysis(video.id)}
+                                            >
+                                                <RefreshCw className="w-4 h-4" />
+                                                Analyze Again
+                                            </Button>
+                                        )}
                                         <Button
                                             variant="ghost"
                                             size="icon"
@@ -687,18 +968,18 @@ const Videos = () => {
                         <div className="glass-card p-4 bg-secondary/30">
                             <div className="flex justify-between items-center">
                                 <span className="text-muted-foreground">Video Upload</span>
-                                <span className="text-foreground font-medium">₹ 1499</span>
+                                <span className="text-foreground font-medium">₹ 1</span>
                             </div>
                             <div className="flex justify-between items-center mt-2 pt-2 border-t border-border">
                                 <span className="text-foreground font-medium">Total</span>
-                                <span className="text-xl font-display font-bold gradient-text">₹ 1499</span>
+                                <span className="text-xl font-display font-bold gradient-text">₹ 1</span>
                             </div>
                         </div>
 
                         <div className="space-y-4">
                             <div className="p-5 border border-primary/50 bg-primary/20 rounded-xl text-center shadow-sm animate-in fade-in slide-in-from-top-2">
                                 <p className="text-base font-medium text-foreground/90">
-                                    You will be redirected to Razorpay secure checkout to complete your payment of <span className="font-bold text-primary">₹ 1499</span>.
+                                    You will be redirected to Razorpay secure checkout to complete your payment of <span className="font-bold text-primary">₹ 1</span>.
                                 </p>
                             </div>
                         </div>
@@ -718,7 +999,7 @@ const Videos = () => {
                             ) : (
                                 <>
                                     <CreditCard className="w-5 h-5 mr-2" />
-                                    Pay ₹ 1499
+                                    Pay ₹ 1
                                 </>
                             )}
                         </Button>
@@ -770,6 +1051,20 @@ const Videos = () => {
                     </div>
                 </DialogContent>
             </Dialog>
+
+            {selectedAnalysis && (
+                <div id="analysis-report-container" ref={analysisRef} className="mt-12 pt-8 border-t border-border animate-in slide-in-from-bottom-10 duration-700">
+                    <div className="flex justify-between items-center mb-6 no-print">
+                        <div>
+                            <h2 className="text-2xl font-display font-bold text-foreground">Analysis Report</h2>
+                            <p className="text-muted-foreground">Detailed performance analysis for {selectedAnalysis.role}</p>
+                        </div>
+                    </div>
+                    <div className="bg-background/40 backdrop-blur-sm rounded-xl border border-border/50 p-1 shadow-lg">
+                        <AnalysisResult data={selectedAnalysis} />
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

@@ -8,7 +8,8 @@ import {
     Video,
     Settings,
     Menu,
-    X
+    X,
+    Activity
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { ModeToggle } from "@/components/mode-toggle";

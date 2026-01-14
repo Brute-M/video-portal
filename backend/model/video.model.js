@@ -22,6 +22,14 @@ const videoSchema = new mongoose.Schema({
         type: Number,
         required: true
     },
+    analysis: {
+        type: Object,
+        default: null
+    },
+    role: {
+        type: String,
+        default: null
+    },
     status: {
         type: String,
         enum: ['pending_payment', 'completed'],

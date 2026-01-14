@@ -1,3 +1,4 @@
+
 import api from './api';
 import { ENDPOINTS } from './endpoints';
 
@@ -10,6 +11,12 @@ export interface AdminRecord {
     mobile?: string;
     createdAt: string;
     isFromLandingPage?: boolean;
+    isPaid?: boolean;
+    paymentId?: string;
+    lastPaymentId?: string;
+    notificationSent?: boolean;
+    trail_video?: string;
+    videos?: any[];
     // Add other fields as needed
 }
 
@@ -37,5 +44,44 @@ export const getAdminRecords = async (page: number = 1, limit: number = 10, sear
     if (endDate) params.append('endDate', endDate.toISOString());
 
     const response = await api.get<PaginatedResponse<AdminRecord>>(`${ENDPOINTS.ADMIN.RECORDS}?${params.toString()}`);
+    return response.data;
+};
+
+export const getDashboardStats = async () => {
+    const response = await api.get(`${ENDPOINTS.ADMIN.STATS}`);
+    return response.data;
+};
+
+export const getDashboardCharts = async () => {
+    const response = await api.get(`${ENDPOINTS.ADMIN.CHARTS}`);
+    return response.data;
+};
+
+export const downloadUserInvoice = async (userId: string) => {
+    const response = await api.get(ENDPOINTS.ADMIN.INVOICE(userId), {
+        responseType: 'blob', // Important for file download
+    });
+    return response.data; // This returns the Blob
+};
+
+export const exportUsersExcel = async (search: string = '', type: string = '', startDate?: Date, endDate?: Date) => {
+    const params = new URLSearchParams();
+    if (search) params.append('search', search);
+    if (type) params.append('type', type);
+    if (startDate) params.append('startDate', startDate.toISOString());
+    if (endDate) params.append('endDate', endDate.toISOString());
+
+    const response = await api.get(`${ENDPOINTS.USERS.LIST}/export?${params.toString()}`, {
+        responseType: 'blob'
+    });
+    return response.data;
+};
+
+export const updateUserPayment = async (userId: string, paymentId: string, paymentAmount: number) => {
+    const response = await api.patch(ENDPOINTS.ADMIN.MANUAL_PAYMENT(userId), {
+        paymentId,
+        paymentAmount,
+        isFromLandingPage: true // Assuming they are from landing page if admin is marking them paid manually for registration
+    });
     return response.data;
 };

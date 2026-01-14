@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BRPL AI VIDEO ANALYZER</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🏏BRPL AI VIDEO ANALYZER</h1>
+            <p class="subtitle">Extensive Cricket Analysis by BRPL</p>
+        </header>
+
+        <main>
+            <div class="config-section">
+                <h3>Analysis Configuration</h3>
+                
+                <div class="role-selection">
+                    <label>Player Role:</label>
+                    <div class="role-chips">
+                        <button class="role-chip" data-role="batsman">Batsman</button>
+                        <button class="role-chip" data-role="bowler">Bowler</button>
+                        <button class="role-chip" data-role="wicket-keeper">Wicket-Keeper</button>
+                    </div>
+                </div>
+
+                <div class="prompt-section">
+                    <label for="systemPrompt">Custom System Prompt (Optional):</label>
+                    <textarea 
+                        id="systemPrompt" 
+                        class="prompt-input" 
+                        placeholder="Enter custom analysis instructions or leave empty to use default prompts based on selected role..."
+                        rows="4"
+                    ></textarea>
+                    <small class="prompt-hint">Leave empty to use role-specific default prompts</small>
+                </div>
+            </div>
+
+            <div class="upload-section">
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-content">
+                        <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="17 8 12 3 7 8"></polyline>
+                            <line x1="12" y1="3" x2="12" y2="15"></line>
+                        </svg>
+                        <h2>Upload Cricket Trial Video</h2>
+                        <p>Drag and drop your video here, or click to browse</p>
+                        <p class="file-info">Supported formats: MP4, MOV, AVI, MKV, WEBM (Max 100MB)</p>
+                        <input type="file" id="videoInput" accept="video/*" hidden>
+                    </div>
+                </div>
+
+                <div class="video-preview" id="videoPreview" style="display: none;">
+                    <video id="previewVideo" controls></video>
+                    <div class="video-info">
+                        <span id="fileName"></span>
+                        <button class="btn-remove" id="removeVideo">Remove</button>
+                    </div>
+                </div>
+
+                <button class="btn-analyze" id="analyzeBtn" disabled>
+                    <span class="btn-text">Analyze Video</span>
+                    <span class="btn-loader" style="display: none;"></span>
+                </button>
+            </div>
+
+            <div class="results-section" id="resultsSection" style="display: none;">
+                <h2>Analysis Results</h2>
+                <div class="results-content" id="resultsContent"></div>
+                <button class="btn-new-analysis" id="newAnalysisBtn">Analyze Another Video</button>
+            </div>
+
+            <div class="error-message" id="errorMessage" style="display: none;"></div>
+        </main>
+
+        <footer>
+            <p>By BRPL</p>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
+

@@ -1,7 +1,11 @@
 const express = require("express");
 require("dotenv").config();
 const cors = require("cors");
+const morgan = require("morgan");
 const mongoose = require("mongoose");
+// const winston = require('winston');
+// const expressWinston = require('express-winston');
+
 const userRoutes = require("./routes/userRoute");
 const authRoutes = require("./routes/authRoute");
 const videoRoutes = require("./routes/videoRoute");
@@ -20,6 +24,26 @@ const dbURI = "mongodb+srv://ektadev531_db_user:PLKibNBAsz34iqrU@mycluster.rrydw
 app.use(cors());
 app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// app.use(expressWinston.logger({
+//   transports: [
+//     new winston.transports.Console()
+//   ],
+//   format: winston.format.combine(
+//     winston.format.timestamp(),
+//     winston.format.colorize(),
+//     winston.format.printf(({ level, message, meta, timestamp }) => {
+//       return `${timestamp} ${level}: ${message} ${JSON.stringify(meta)}`;
+//     })
+//   ),
+//   meta: true,
+//   msg: "HTTP {{req.method}} {{req.url}}",
+//   expressFormat: true,
+//   colorize: true,
+//   ignoreRoute: function (req, res) { return false; },
+//   requestWhitelist: ['url', 'headers', 'method', 'httpVersion', 'originalUrl', 'query', 'body'],
+//   responseWhitelist: ['statusCode', 'body']
+// }));
 
 async function connectDB() {
   try {

@@ -3,6 +3,7 @@ const Coach = require('../model/coach.model');
 const Influencer = require('../model/influencer.model');
 const Otp = require('../model/otp.model');
 const Visit = require('../model/visit.model');
+const Step1Lead = require('../model/step1_lead.model');
 const Coupon = require('../model/coupon.model');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
@@ -94,9 +95,16 @@ const register = async (req, res) => {
       return res.status(400).json({ statusCode: 400, data: { message: 'Required fields are missing' } });
     }
 
-    const userExists = await User.findOne({ email });
+    const userExists = await User.findOne({
+      $or: [{ email }, { mobile }]
+    });
     if (userExists) {
-      return res.status(400).json({ statusCode: 400, data: { message: 'Email is already taken' } });
+      if (userExists.email === email) {
+        return res.status(400).json({ statusCode: 400, data: { message: 'Email is already registered' } });
+      }
+      if (userExists.mobile === mobile) {
+        return res.status(400).json({ statusCode: 400, data: { message: 'Mobile number is already registered' } });
+      }
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -222,6 +230,16 @@ const register = async (req, res) => {
       await matchedVisit.save();
     }
 
+    // Send Registration Success Email if from landing page
+    if (String(isFromLandingPage).toLowerCase() === 'true') {
+      try {
+        const { sendUserRegistrationSuccessEmail } = require('../utils/emailService');
+        await sendUserRegistrationSuccessEmail(newUser.email, `${newUser.fname} ${newUser.lname || ''}`, password);
+      } catch (emailError) {
+        console.error('Registration success email failed (registration will continue):', emailError);
+      }
+    }
+
     res.status(201).json({
       statusCode: 201,
       data: {
@@ -243,9 +261,16 @@ const register = async (req, res) => {
 
 const sendOtp = async (req, res) => {
   try {
-    const { mobile } = req.body;
+    const { mobile, checkExisting } = req.body;
     if (!mobile) {
       return res.status(400).json({ message: "Mobile number is required" });
+    }
+
+    if (String(checkExisting).toLowerCase() === 'true') {
+      const existingUser = await User.findOne({ mobile });
+      if (existingUser) {
+        return res.status(400).json({ message: "Mobile number already exists. Please login." });
+      }
     }
 
     // Generate 4 digit random OTP
@@ -658,7 +683,7 @@ const loginCoach = async (req, res) => {
 
 const trackVisit = async (req, res) => {
   try {
-    const { trackingId, ipAddress, userAgent, fbclid, referralCode } = req.body;
+    const { trackingId, ipAddress, userAgent, fbclid, referralCode, trackend } = req.body;
 
     // Fallback IP/UA if not sent in body
     const finalIp = ipAddress || req.headers['x-forwarded-for'] || req.socket.remoteAddress || req.ip;
@@ -670,6 +695,7 @@ const trackVisit = async (req, res) => {
       userAgent: finalUa,
       fbclid,
       referralCode,
+      trackend,
       converted: false
     });
 
@@ -714,7 +740,146 @@ const getVisits = async (req, res) => {
   }
 };
 
+
+
+const saveStep1Data = async (req, res) => {
+  try {
+    const { name, mobile, role, state, city, trackingId } = req.body;
+
+    if (!mobile) {
+      return res.status(400).json({ success: false, message: 'Mobile number is required' });
+    }
+
+    // Upsert the lead data
+    await Step1Lead.findOneAndUpdate(
+      { mobile },
+      {
+        name,
+        role,
+        state,
+        city,
+        trackingId,
+        $setOnInsert: { createdAt: new Date() }
+      },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    );
+
+    res.status(200).json({ success: true, message: 'Step 1 data saved' });
+  } catch (error) {
+    console.error('Save Step 1 Data Error:', error);
+    res.status(500).json({ success: false, message: 'Failed to save step 1 data' });
+  }
+};
+
+const getStep1Leads = async (req, res) => {
+  try {
+    const page = Math.max(1, parseInt(req.query.page) || 1);
+    const limit = Math.max(1, parseInt(req.query.limit) || 10);
+    const search = (req.query.search || '').trim();
+    const skip = (page - 1) * limit;
+
+    const filter = {};
+    if (search) {
+      filter.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { mobile: { $regex: search, $options: 'i' } }
+      ];
+    }
+
+    const leads = await Step1Lead.find(filter)
+      .sort({ updatedAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    const total = await Step1Lead.countDocuments(filter);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        items: leads,
+        pagination: {
+          page,
+          limit,
+          total,
+          pages: Math.ceil(total / limit)
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Get Step 1 Leads Error:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch leads' });
+  }
+};
+
+const exportStep1Leads = async (req, res) => {
+  try {
+    const { search } = req.query;
+    const filter = {};
+    if (search) {
+      filter.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { mobile: { $regex: search, $options: 'i' } }
+      ];
+    }
+
+    const leads = await Step1Lead.find(filter).sort({ updatedAt: -1 });
+
+    const ExcelJS = require('exceljs');
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Step 1 Leads');
+
+    worksheet.columns = [
+      { header: 'Mobile', key: 'mobile', width: 15 },
+      { header: 'Name', key: 'name', width: 25 },
+      { header: 'Role', key: 'role', width: 15 },
+      { header: 'State', key: 'state', width: 20 },
+      { header: 'City', key: 'city', width: 20 },
+      { header: 'Tracking ID', key: 'trackingId', width: 20 },
+      { header: 'Date', key: 'updatedAt', width: 25 }
+    ];
+
+    leads.forEach(lead => {
+      worksheet.addRow({
+        mobile: lead.mobile,
+        name: lead.name || '-',
+        role: lead.role || '-',
+        state: lead.state || '-',
+        city: lead.city || '-',
+        trackingId: lead.trackingId || '-',
+        updatedAt: lead.updatedAt ? new Date(lead.updatedAt).toLocaleString() : ''
+      });
+    });
+
+    worksheet.getRow(1).font = { bold: true };
+
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', 'attachment; filename=step1-leads.xlsx');
+
+    await workbook.xlsx.write(res);
+    res.end();
+  } catch (error) {
+    console.error('Export Step 1 Leads Error:', error);
+    res.status(500).json({ message: 'Server error during export' });
+  }
+};
+
 module.exports = {
+  login,
+  register,
+  sendOtp,
+  verifyOtp,
+  forgotPassword,
+  resetPassword,
+  registerCoach,
+  loginCoach,
+  trackVisit,
+  getVisits,
+  getCoachMyPlayers,
+  getPartnerProfile,
+  resendWelcomeEmail,
+  saveStep1Data,
+  getStep1Leads,
+  exportStep1Leads,
   login,
   register,
   upload,
@@ -728,5 +893,7 @@ module.exports = {
   getPartnerProfile,
   getCoachMyPlayers,
   trackVisit,
-  getVisits
+  getVisits,
+  saveStep1Data,
+  getStep1Leads
 };

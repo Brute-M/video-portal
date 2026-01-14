@@ -25,3 +25,15 @@ export const getVideoById = async (id: string) => {
     const response = await api.get(ENDPOINTS.VIDEOS.BY_ID(id));
     return response.data;
 };
+
+export const getLatestVideo = async () => {
+    const response = await api.get(`${ENDPOINTS.VIDEOS.LIST}/latest`); // Assuming LIST is /videos
+    return response.data;
+};
+
+export const saveVideoAnalysis = async (id: string, analysisData: any) => {
+    const response = await api.post(`${ENDPOINTS.VIDEOS.LIST}/${id}/analysis`, analysisData);
+    return response.data;
+};
+
+
