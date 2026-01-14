@@ -15,8 +15,8 @@ import {
 import { ChevronLeft, ChevronRight, Eye, Video, Download, FileSpreadsheet } from "lucide-react";
 import { downloadUserInvoice, exportUsersExcel } from "@/apihelper/admin";
 
+import { useNavigate } from "react-router-dom";
 import { FilterBar } from "@/components/FilterBar";
-import { UserDetailsDialog } from "@/components/UserDetailsDialog";
 
 const RegisteredUsers = () => {
     const { toast } = useToast();
@@ -26,7 +26,6 @@ const RegisteredUsers = () => {
     const [totalPages, setTotalPages] = useState(1);
     const [totalRecords, setTotalRecords] = useState(0);
     const [filters, setFilters] = useState<{ search: string, startDate?: Date, endDate?: Date }>({ search: '' });
-    const [selectedUser, setSelectedUser] = useState<AdminRecord | null>(null);
     const limit = 10;
 
     useEffect(() => {
@@ -107,8 +106,10 @@ const RegisteredUsers = () => {
         }
     };
 
+    const navigate = useNavigate();
+
     const handleViewUser = (user: AdminRecord) => {
-        setSelectedUser(user);
+        navigate(`/admin/users/${user._id}`);
     };
 
     const handlePrevPage = () => {
@@ -211,6 +212,7 @@ const RegisteredUsers = () => {
                                                         <Eye className="w-4 h-4 mr-1" />
                                                         View
                                                     </Button>
+
                                                 </TableCell>
                                             </TableRow>
                                         ))
@@ -247,11 +249,7 @@ const RegisteredUsers = () => {
                 </CardContent>
             </Card>
 
-            <UserDetailsDialog
-                user={selectedUser}
-                open={!!selectedUser}
-                onOpenChange={(open) => !open && setSelectedUser(null)}
-            />
+
         </div>
     );
 };

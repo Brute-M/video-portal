@@ -27,6 +27,7 @@ import PaymentSuccessful from "./pages/PaymentSuccessful";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsAndConditions from "./pages/TermsAndConditions";
 import RegisteredUsers from "./pages/RegisteredUsers";
+import UserDetails from "./pages/UserDetails";
 import Payments from "./pages/Payments";
 
 import AOS from "aos";
@@ -75,6 +76,7 @@ const App = () => {
                 <Route path="/admin/unpaid-users" element={<UnpaidUsers />} />
                 <Route path="/admin/coupon-usage" element={<CouponUsage />} />
                 <Route path="/admin/registered-users" element={<RegisteredUsers />} />
+                <Route path="/admin/users/:userId" element={<UserDetails />} />
                 {/* <Route path="/admin/step1-leads" element={<Step1Leads />} /> */}
                 <Route path="/admin/payments" element={<Payments />} />
               </Route>

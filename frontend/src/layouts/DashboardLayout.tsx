@@ -14,27 +14,32 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { ModeToggle } from "@/components/mode-toggle";
 
+import { useTranslation } from "react-i18next";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+
 const DashboardLayout = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const { toast } = useToast();
+    const { t } = useTranslation();
+
     // Initialize closed on mobile (less than 768px), open on desktop
     const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth >= 768);
     const userEmail = localStorage.getItem("userEmail");
 
     const handleLogout = () => {
         toast({
-            title: "Signed Out",
-            description: "You've been successfully logged out.",
+            title: t("signed_out"),
+            description: t("signed_out_desc"),
         });
         localStorage.removeItem("token");
         navigate("/auth");
     };
 
     const navItems = [
-        { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
-        { icon: Video, label: "My Videos", path: "/dashboard/videos" },
-        { icon: Settings, label: "Settings", path: "/dashboard/settings" },
+        { icon: LayoutDashboard, label: t("dashboard"), path: "/dashboard" },
+        { icon: Video, label: t("my_videos"), path: "/dashboard/videos" },
+        { icon: Settings, label: t("settings"), path: "/dashboard/settings" },
     ];
 
     return (
@@ -98,11 +103,19 @@ const DashboardLayout = () => {
             <div className={`flex-1 flex flex-col transition-all duration-300 w-full ${isSidebarOpen ? "md:ml-64" : "md:ml-20"}`}>
                 {/* Header */}
                 <header className="h-16 glass-card border-b border-border flex items-center justify-between px-4 md:px-6 sticky top-0 z-10 bg-background/80 backdrop-blur-md">
-                    <Button variant="ghost" size="icon" onClick={() => setIsSidebarOpen(!isSidebarOpen)}>
-                        <Menu className="w-5 h-5" />
-                    </Button>
+                    <div className="flex items-center gap-4">
+                        <Button variant="ghost" size="icon" onClick={() => setIsSidebarOpen(!isSidebarOpen)}>
+                            <Menu className="w-5 h-5" />
+                        </Button>
+                        <div className="hidden md:block">
+                            <LanguageSwitcher />
+                        </div>
+                    </div>
 
                     <div className="flex items-center gap-4">
+                        <div className="md:hidden">
+                            <LanguageSwitcher />
+                        </div>
                         <ModeToggle />
                         <div className="flex items-center gap-2">
                             <span className="text-sm text-foreground/80 hidden sm:block">
@@ -112,7 +125,7 @@ const DashboardLayout = () => {
                                 {(userEmail ? userEmail[0].toUpperCase() : "U")}
                             </div>
                         </div>
-                        <Button variant="ghost" size="icon" onClick={handleLogout} title="Sign Out">
+                        <Button variant="ghost" size="icon" onClick={handleLogout} title={t("sign_out")}>
                             <LogOut className="w-5 h-5" />
                         </Button>
                     </div>

@@ -13,12 +13,14 @@ import {
     AlertCircle
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useTranslation } from "react-i18next";
 
 interface AnalysisResultProps {
     data: any;
 }
 
 export const AnalysisResult = ({ data }: AnalysisResultProps) => {
+    const { t } = useTranslation();
 
     // Icon mapping helper
     const getIconForKey = (key: string) => {
@@ -38,6 +40,10 @@ export const AnalysisResult = ({ data }: AnalysisResultProps) => {
     };
 
     const formatKey = (key: string) => {
+        // Try to translate the key, fallback to original formatting if no translation found
+        const exists = t(key, { defaultValue: '__NOT_FOUND__' }) !== '__NOT_FOUND__';
+        if (exists) return t(key);
+
         return key.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
     };
 
@@ -58,6 +64,7 @@ export const AnalysisResult = ({ data }: AnalysisResultProps) => {
             return (
                 <div className="space-y-4">
                     {Object.entries(value).map(([subKey, subValue]) => {
+                        if (subKey.trim().toLowerCase() === 'suitability') return null;
                         const SubIcon = getIconForKey(subKey);
                         return (
                             <div key={subKey} className="bg-secondary/20 p-3 rounded-lg">
@@ -84,7 +91,7 @@ export const AnalysisResult = ({ data }: AnalysisResultProps) => {
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-display font-semibold">Analysis Report</h2>
+                <h2 className="text-2xl font-display font-semibold">{t('analysis_report')}</h2>
                 {role && (
                     <span className="bg-primary/10 text-primary px-4 py-1.5 rounded-full font-medium capitalize border border-primary/20">
                         Role: {role}
@@ -95,7 +102,7 @@ export const AnalysisResult = ({ data }: AnalysisResultProps) => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {Object.entries(analysisData).map(([key, value]) => {
                     // Skip role if it's in the analysis data
-                    if (key === 'role') return null;
+                    if (key === 'role' || key.trim().toLowerCase() === 'suitability') return null;
 
                     const Icon = getIconForKey(key);
                     return (

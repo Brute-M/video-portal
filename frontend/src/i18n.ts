@@ -1,0 +1,306 @@
+import i18n from "i18next";
+import { initReactI18next } from "react-i18next";
+import LanguageDetector from "i18next-browser-languagedetector";
+
+// Translation resources
+const resources = {
+    en: {
+        translation: {
+            "welcome": "Welcome to the",
+            "subtext": "Manage your cricket highlights, track your performance, and engage with fans.",
+            "upload_video": "Upload your video",
+            "video_uploaded": "Video Successfully Uploaded",
+            "access_restricted": "Access Restricted",
+            "unlock_dashboard": "To unlock your dashboard and start uploading videos, please complete your registration payment and verification.",
+            "complete_payment": "Complete Payment (₹ 1)",
+            "initiating": "Initiating...",
+            "secure_payment": "Secure payment via Razorpay. Access will be granted immediately upon verification.",
+            "payment_pending": "Payment Pending",
+            "payment_pending_desc": "Your latest video \"{{videoName}}\" is waiting for payment to be activated.",
+            "pay_now": "Pay Now",
+            "total_videos": "Total Videos",
+            "storage_used": "Storage Used",
+            "from_last_month": "+20% from last month",
+            "available": "15GB available",
+            "recent_uploads": "Recent Uploads",
+            "view_all": "View all",
+            "no_videos": "No videos uploaded yet.",
+            "system_status": "System Status",
+            "upload_service": "Upload Service",
+            "payment_gateway": "Payment Gateway",
+            "operational": "Operational",
+            "processing": "Processing",
+            "dashboard": "Dashboard",
+            "my_videos": "My Videos",
+            "settings": "Settings",
+            "sign_out": "Sign Out",
+            "signed_out": "Signed Out",
+            "signed_out_desc": "You've been successfully logged out.",
+            "analysis_report": "AI Analysis Report",
+            "stance_and_setup": "Stance and Setup",
+            "footwork_and_movement": "Footwork and Movement",
+            "shot_selection_and_execution": "Shot Selection and Execution",
+            "technical_aspects": "Technical Aspects",
+            "run_up": "Run Up",
+            "bowling_action": "Bowling Action",
+            "line_and_length": "Line and Length",
+            "pace_and_variation": "Pace and Variation",
+            "overall_assessment": "Overall Assessment",
+            "strength": "Strengths",
+            "areas_for_improvement": "Areas for Improvement",
+            "my_videos_title": "My Videos",
+            "my_videos_desc": "Upload and manage your video content",
+            "video_upload_guidelines": "Video Upload Guidelines",
+            "recording_best_practices": "Recording Best Practices",
+            "camera_angle": "Camera Angle",
+            "camera_angle_desc": "Record from Side-on or Front-on view for best analysis.",
+            "steady_footage": "Steady Footage",
+            "steady_footage_desc": "Keep the camera steady (use a tripod if possible).",
+            "full_visibility": "Full Visibility",
+            "full_visibility_desc": "Ensure the player's full body is clearly visible.",
+            "lighting": "Lighting",
+            "lighting_desc": "Ensure good lighting conditions, avoid strong backlighting.",
+            "technical_requirements": "Technical Requirements",
+            "formats": "Formats",
+            "formats_desc": "MP4, MOV, AVI, WMV supported.",
+            "max_size": "Max Size",
+            "max_size_desc": "1GB per video file.",
+            "duration": "Duration",
+            "duration_desc": "Recommended 10-30 seconds per clip.",
+            "clarity": "Clarity",
+            "clarity_desc": "Avoid blurry or out-of-focus footage.",
+            "role_for_analysis": "Role for Analysis",
+            "select_role": "Select role",
+            "drop_videos_here": "Drop your videos here",
+            "brows_files": "or click to browse from your computer",
+            "select_videos": "Select Videos",
+            "supports_format": "Supports MP4, MOV, AVI, WMV up to 1GB",
+            "payment_required": "Payment Required",
+            "payment_required_desc": "You need to complete your registration payment before you can upload videos.",
+            "complete_payment_dashboard": "Complete Payment on Dashboard",
+            "your_videos": "Your Videos",
+            "loading_videos": "Loading your videos...",
+            "uploading": "Uploading...",
+            "analyzing_video": "Analyzing Video...",
+            "awaiting_payment": "Awaiting payment",
+            "upload_complete": "Upload complete",
+            "analyzed": "Analyzed",
+            "preview_video": "Preview Video",
+            "change_video": "Change Video",
+            "delete_video": "Delete Video",
+            "download_report": "Download Report",
+            "analyze_again": "Analyze Again",
+            "download_invoice": "Download Invoice",
+            "no_videos_uploaded": "No videos uploaded yet. Start by uploading your first video!",
+            "complete_your_upload": "Complete Your Upload",
+            "pay_to_finalize": "Pay to finalize your video upload and make it live.",
+            "video_upload": "Video Upload",
+            "total": "Total",
+            "redirect_razorpay": "You will be redirected to Razorpay secure checkout to complete your payment of"
+        }
+    },
+    hi: {
+        translation: {
+            "welcome": "बीआरपीएल में आपका स्वागत है",
+            "subtext": "अपनी क्रिकेट हाइलाइट्स का प्रबंधन करें, अपने प्रदर्शन को ट्रैक करें और प्रशंसकों के साथ जुड़ें।",
+            "upload_video": "अपना वीडियो अपलोड करें",
+            "video_uploaded": "वीडियो सफलतापूर्वक अपलोड किया गया",
+            "access_restricted": "एक्सेस प्रतिबंधित",
+            "unlock_dashboard": "अपना डैशबोर्ड अनलॉक करने और वीडियो अपलोड करना शुरू करने के लिए, कृपया अपना पंजीकरण भुगतान और सत्यापन पूरा करें।",
+            "complete_payment": "भुगतान पूरा करें (₹ 1)",
+            "initiating": "शुरू हो रहा है...",
+            "secure_payment": "रेज़रपे के माध्यम से सुरक्षित भुगतान। सत्यापन पर तुरंत एक्सेस प्रदान किया जाएगा।",
+            "payment_pending": "भुगतान लंबित",
+            "payment_pending_desc": "आपका नवीनतम वीडियो \"{{videoName}}\" सक्रिय होने के लिए भुगतान की प्रतीक्षा कर रहा है।",
+            "pay_now": "अभी भुगतान करें",
+            "total_videos": "कुल वीडियो",
+            "storage_used": "उपयोग की गई स्टोरेज",
+            "from_last_month": "पिछले महीने से +20%",
+            "available": "15GB उपलब्ध",
+            "recent_uploads": "हालिया अपलोड",
+            "view_all": "सभी देखें",
+            "no_videos": "अभी तक कोई वीडियो अपलोड नहीं किया गया।",
+            "system_status": "सिस्टम स्थिति",
+            "upload_service": "अपलोड सेवा",
+            "payment_gateway": "भुगतान गेटवे",
+            "operational": "संचालित",
+            "processing": "प्रक्रिया चल रही है...",
+            "dashboard": "डैशबोर्ड",
+            "my_videos": "मेरे वीडियो",
+            "settings": "सेटिंग्स",
+            "sign_out": "साइन आउट",
+            "signed_out": "साइन आउट किया गया",
+            "signed_out_desc": "आप सफलतापूर्वक लॉग आउट हो गए हैं।",
+            "analysis_report": "एआई विश्लेषण रिपोर्ट",
+            "stance_and_setup": "स्टान्स और सेटअप",
+            "footwork_and_movement": "फुटवर्क और मूवमेंट",
+            "shot_selection_and_execution": "शॉट चयन और निष्पादन",
+            "technical_aspects": "तकनीकी पहलू",
+            "run_up": "रन अप",
+            "bowling_action": "गेंदबाजी एक्शन",
+            "line_and_length": "लाइन और लेंथ",
+            "pace_and_variation": "गति और विविधता",
+            "overall_assessment": "समग्र मूल्यांकन",
+            "strength": "ताकत",
+            "areas_for_improvement": "सुधार के क्षेत्र",
+            "my_videos_title": "मेरे वीडियो",
+            "my_videos_desc": "अपनी वीडियो सामग्री अपलोड और प्रबंधित करें",
+            "video_upload_guidelines": "वीडियो अपलोड दिशानिर्देश",
+            "recording_best_practices": "रिकॉर्डिंग के सर्वोत्तम अभ्यास",
+            "camera_angle": "कैमरा कोण",
+            "camera_angle_desc": "सर्वोत्तम विश्लेषण के लिए साइड-ऑन या फ्रंट-ऑन दृश्य से रिकॉर्ड करें।",
+            "steady_footage": "स्थिर फुटेज",
+            "steady_footage_desc": "कैमरा स्थिर रखें (यदि संभव हो तो ट्राइपॉड का उपयोग करें)।",
+            "full_visibility": "पूर्ण दृश्यता",
+            "full_visibility_desc": "सुनिश्चित करें कि खिलाड़ी का पूरा शरीर स्पष्ट रूप से दिखाई दे रहा है।",
+            "lighting": "रोशनी",
+            "lighting_desc": "अच्छी रोशनी की स्थिति सुनिश्चित करें, मजबूत बैकलाइटिंग से बचें।",
+            "technical_requirements": "तकनीकी आवश्यकताएँ",
+            "formats": "प्रारूप",
+            "formats_desc": "MP4, MOV, AVI, WMV समर्थित।",
+            "max_size": "अधिकतम आकार",
+            "max_size_desc": "1GB प्रति वीडियो फ़ाइल।",
+            "duration": "अवधि",
+            "duration_desc": "प्रति क्लिप अनुशंसित 10-30 सेकंड।",
+            "clarity": "स्पष्टता",
+            "clarity_desc": "धुंधली या आउट-ऑफ-फोकस फुटेज से बचें।",
+            "role_for_analysis": "विश्लेषण के लिए भूमिका",
+            "select_role": "भूमिका चुनें",
+            "drop_videos_here": "अपने वीडियो यहाँ छोड़ें",
+            "brows_files": "या अपने कंप्यूटर से ब्राउज़ करने के लिए क्लिक करें",
+            "select_videos": "वीडियो चुनें",
+            "supports_format": "MP4, MOV, AVI, WMV 1GB तक का समर्थन करता है",
+            "payment_required": "भुगतान आवश्यक",
+            "payment_required_desc": "वीडियो अपलोड करने से पहले आपको अपना पंजीकरण भुगतान पूरा करना होगा।",
+            "complete_payment_dashboard": "डैशबोर्ड पर भुगतान पूरा करें",
+            "your_videos": "आपके वीडियो",
+            "loading_videos": "आपके वीडियो लोड हो रहे हैं...",
+            "uploading": "अपलोड हो रहा है...",
+            "analyzing_video": "वीडियो का विश्लेषण कर रहा है...",
+            "awaiting_payment": "भुगतान की प्रतीक्षा है",
+            "upload_complete": "अपलोड पूरा हुआ",
+            "analyzed": "विश्लेषण किया गया",
+            "preview_video": "वीडियो पूर्वावलोकन",
+            "change_video": "वीडियो बदलें",
+            "delete_video": "वीडियो हटाएं",
+            "download_report": "रिपोर्ट डाउनलोड करें",
+            "analyze_again": "फिर से विश्लेषण करें",
+            "download_invoice": "चालान डाउनलोड करें",
+            "no_videos_uploaded": "अभी तक कोई वीडियो अपलोड नहीं किया गया है। अपना पहला वीडियो अपलोड करके शुरुआत करें!",
+            "complete_your_upload": "अपना अपलोड पूरा करें",
+            "pay_to_finalize": "अपना वीडियो अपलोड अंतिम रूप देने और इसे लाइव करने के लिए भुगतान करें।",
+            "video_upload": "वीडियो अपलोड",
+            "total": "कुल",
+            "redirect_razorpay": "आपको भुगतान पूरा करने के लिए रेज़रपे सुरक्षित चेकआउट पर पुनर्निर्देशित किया जाएगा"
+        }
+    },
+    mr: {
+        translation: {
+            "welcome": "बीआरपीएल मध्ये आपले स्वागत आहे",
+            "subtext": "आपले क्रिकेट हायलाइट्स व्यवस्थापित करा, आपल्या कामगिरीचा मागोवा घ्या आणि चाहत्यांशी संवाद साधा.",
+            "upload_video": "व्हिडिओ अपलोड करा",
+            "video_uploaded": "व्हिडिओ यशस्वीरित्या अपलोड झाला",
+            "access_restricted": "प्रवेश प्रतिबंधित",
+            "unlock_dashboard": "डॅशबोर्ड अनलॉक करण्यासाठी, कृपया नोंदणी शुल्क भरा.",
+            "complete_payment": "पेमेंट पूर्ण करा (₹ 1)",
+            "dashboard": "डॅशबोर्ड",
+            "my_videos": "माझे व्हिडिओ",
+            "settings": "सेटिंग्ज",
+            "sign_out": "बाहेर पडा"
+        }
+    },
+    gu: {
+        translation: {
+            "welcome": "બીઆરપીએલમાં આપનું સ્વાગત છે",
+            "subtext": "તમારી ક્રિકેટ હાઇલાઇટ્સનું સંચાલન કરો, તમારા પ્રદર્શનને ટ્રેક કરો.",
+            "upload_video": "તમારો વિડિઓ અપલોડ કરો",
+            "dashboard": "ડેશબોર્ડ",
+            "my_videos": "મારા વિડિઓઝ",
+            "settings": "સેટિંગ્સ",
+            "sign_out": "સાઇન આઉટ"
+        }
+    },
+    ta: {
+        translation: {
+            "welcome": "பிஆர்பிஎல்-க்கு வரவேற்கிறோம்",
+            "subtext": "உங்கள் கிரிக்கெட் சிறப்பம்சங்களை நிர்வகிக்கவும்.",
+            "upload_video": "வீடியோவை பதிவேற்றவும்",
+            "dashboard": "டாஷ்போர்டு",
+            "my_videos": "என் வீடியோக்கள்",
+            "settings": "அமைப்புகள்",
+            "sign_out": "வெளியேறு"
+        }
+    },
+    te: {
+        translation: {
+            "welcome": "బీఆర్‌పీఎల్ కు స్వాగతం",
+            "subtext": "మీ క్రికెట్ హైలైట్‌లను నిర్వహించండి.",
+            "upload_video": "వీడియో అప్‌లోడ్ చేయండి",
+            "dashboard": "డాష్‌బోర్డ్",
+            "my_videos": "నా వీడియోలు",
+            "settings": "సెట్టింగ్‌లు",
+            "sign_out": "సైన్ అవుట్"
+        }
+    },
+    kn: {
+        translation: {
+            "welcome": "ಬಿಆರ್‌ಪಿಎಲ್‌ ಗೆ ಸ್ವಾಗತ",
+            "subtext": "ನಿಮ್ಮ ಕ್ರಿಕೆಟ್ ಮುಖ್ಯಾಂಶಗಳನ್ನು ನಿರ್ವಹಿಸಿ.",
+            "upload_video": "ವೀಡಿಯೊ ಅಪ್‌ಲೋಡ್ ಮಾಡಿ",
+            "dashboard": "ಡ್ಯಾಶ್‌ಬೋರ್ಡ್",
+            "my_videos": "ನನ್ನ ವೀಡಿಯೊಗಳು",
+            "settings": "ಸೆಟ್ಟಿಂಗ್‌ಗಳು",
+            "sign_out": "ಸೈನ್ ಔಟ್"
+        }
+    },
+    bn: {
+        translation: {
+            "welcome": "বিআরপিএল-এ স্বাগতম",
+            "subtext": "আপনার ক্রিকেট হাইলাইট পরিচালনা করুন।",
+            "upload_video": "ভিডিও আপলোড করুন",
+            "dashboard": "ড্যাশবোর্ড",
+            "my_videos": "আমার ভিডিও",
+            "settings": "সেটিংস",
+            "sign_out": "সাইন আউট"
+        }
+    },
+    ml: {
+        translation: {
+            "welcome": "ബിആർപിഎൽ-ലേക്ക് സ്വാഗതം",
+            "subtext": "നിങ്ങളുടെ ക്രിക്കറ്റ് ഹൈലൈറ്റുകൾ നിയന്ത്രിക്കുക.",
+            "upload_video": "വീഡിയോ അപ്‌ലോഡ് ചെയ്യുക",
+            "dashboard": "ഡാഷ്‌ബോർഡ്",
+            "my_videos": "എന്റെ വീഡിയോകൾ",
+            "settings": "ക്രമീകരണങ്ങൾ",
+            "sign_out": "സൈൻ ഔട്ട്"
+        }
+    },
+    pa: {
+        translation: {
+            "welcome": "ਬੀਆਰਪੀਐਲ ਵਿੱਚ ਜੀ ਆਇਆਂ ਨੂੰ",
+            "subtext": "ਆਪਣੇ ਕ੍ਰਿਕਟ ਹਾਈਲਾਈਟਸ ਦਾ ਪ੍ਰਬੰਧਨ ਕਰੋ।",
+            "upload_video": "ਵੀਡੀਓ ਅਪਲੋਡ ਕਰੋ",
+            "dashboard": "ਡੈਸ਼ਬੋਰਡ",
+            "my_videos": "ਮੇਰੇ ਵੀਡੀਓ",
+            "settings": "ਸੈਟਿੰਗਾਂ",
+            "sign_out": "ਸਾਈਨ ਆਉਟ"
+        }
+    }
+};
+
+i18n
+    .use(LanguageDetector)
+    .use(initReactI18next)
+    .init({
+        resources,
+        fallbackLng: "en",
+        interpolation: {
+            escapeValue: false, // react already safes from xss
+        },
+        detection: {
+            order: ['queryString', 'cookie', 'localStorage', 'navigator', 'htmlTag', 'path', 'subdomain'],
+            caches: ['localStorage', 'cookie'],
+        }
+    });
+
+export default i18n;

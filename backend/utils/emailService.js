@@ -1,17 +1,18 @@
 const nodemailer = require('nodemailer');
 const path = require('path');
 
-// Configure your SMTP transporter
-// ideally this should be from process.env
+
 const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST || 'smtp.gmail.com',
-    port: process.env.SMTP_PORT ? Number(process.env.SMTP_PORT) : 465,
-    secure: process.env.SMTP_SECURE ? process.env.SMTP_SECURE === 'true' : true,
+    host: process.env.SMTP_HOST || "smtp.gmail.com",
+    port: process.env.SMTP_PORT || 465,
+    secure: process.env.SMTP_SECURE === 'true',
     auth: {
-        user: process.env.SMTP_USER || 'ektadev531@gmail.com',
-        pass: process.env.SMTP_PASS || 'cwxg fuib owkp mkep'
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS
     }
 });
+
+
 
 const sendInvoiceEmail = async (user, video, downloadLink, previewLink, pdfBuffer) => {
     try {
@@ -34,7 +35,7 @@ const sendInvoiceEmail = async (user, video, downloadLink, previewLink, pdfBuffe
         }
 
         const mailOptions = {
-            from: '"Beyond Reach Premiere League" <ektadev531@gmail.com>',
+            from: `"Beyond Reach Premiere League" <${process.env.SMTP_USER}>`,
             to: user.email,
             subject: `Invoice for Transaction ${video.paymentId}`,
             html: `
@@ -82,7 +83,7 @@ const sendPasswordResetEmail = async (email, otp, name) => {
         const logoPath = path.join(__dirname, '../../frontend/public/logo.png');
 
         const mailOptions = {
-            from: '"Beyond Reach Premiere League" <ektadev531@gmail.com>',
+            from: `"Beyond Reach Premiere League" <${process.env.SMTP_USER}>`,
             to: email,
             subject: 'Password Reset OTP - BRPL',
             html: `
@@ -129,7 +130,7 @@ const sendRegistrationOtpEmail = async (email, otp) => {
         const logoPath = path.join(__dirname, '../../frontend/public/logo.png');
 
         const mailOptions = {
-            from: '"Beyond Reach Premiere League" <ektadev531@gmail.com>',
+            from: `"Beyond Reach Premiere League" <${process.env.SMTP_USER}>`,
             to: email,
             subject: 'Registration OTP - BRPL',
             html: `
@@ -176,7 +177,7 @@ const sendContactEmail = async (contactDetails) => {
         const { firstName, lastName, email, mobileNumber, message } = contactDetails;
 
         const mailOptions = {
-            from: 'ektadev531@gmail.com',
+            from: process.env.SMTP_USER,
             to: process.env.COMPANY_EMAIL || 'info@brpl.net', // Receiver address (Company)
             subject: `New Contact Inquiry from ${firstName} ${lastName}`,
             html: `
@@ -206,7 +207,7 @@ const sendWelcomeEmail = async (email, name, referralCode, role) => {
         const logoPath = path.join(__dirname, '../../frontend/public/logo.png');
 
         const mailOptions = {
-            from: '"Beyond Reach Premiere League" <ektadev531@gmail.com>',
+            from: `"Beyond Reach Premiere League" <${process.env.SMTP_USER}>`,
             to: email,
             subject: `Welcome to BRPL - Your ${role === 'coach' ? 'Coach' : 'Influencer'} Account is Ready!`,
             html: `
@@ -257,7 +258,7 @@ const sendUserRegistrationSuccessEmail = async (email, name, password) => {
         const logoPath = path.join(__dirname, '../../frontend/public/logo.png');
 
         const mailOptions = {
-            from: '"Beyond Reach Premiere League" <ektadev531@gmail.com>',
+            from: `"Beyond Reach Premiere League" <${process.env.SMTP_USER}>`,
             to: email,
             subject: 'Welcome to BRPL - Registration Successful!',
             html: `

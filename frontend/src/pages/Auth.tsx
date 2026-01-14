@@ -777,14 +777,14 @@ const Auth = ({ forceRegister }: AuthProps) => {
                   // Login Form (Unchanged)
                   <>
                     <div className="space-y-2">
-                      <Label htmlFor="email" className="text-foreground">Email</Label>
+                      <Label htmlFor="email" className="text-white font-semibold drop-shadow-sm">Email</Label>
                       <div className="relative">
-                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
                         <Input
                           id="email"
                           type="email"
                           placeholder="you@example.com"
-                          className="pl-12"
+                          className="pl-12 bg-white text-black placeholder:text-gray-500 border-white/20 focus-visible:ring-primary/50"
                           value={formData.email}
                           onChange={handleChange}
                           required
@@ -794,14 +794,14 @@ const Auth = ({ forceRegister }: AuthProps) => {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="password" className="text-foreground">Password</Label>
+                      <Label htmlFor="password" className="text-white font-semibold drop-shadow-sm">Password</Label>
                       <div className="relative">
-                        <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                        <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
                         <Input
                           id="password"
                           type={showLoginPassword ? "text" : "password"}
                           placeholder="••••••••"
-                          className="pl-12 pr-10"
+                          className="pl-12 pr-10 bg-white text-black placeholder:text-gray-500 border-white/20 focus-visible:ring-primary/50"
                           value={formData.password}
                           onChange={handleChange}
                           required
@@ -810,7 +810,7 @@ const Auth = ({ forceRegister }: AuthProps) => {
                         <button
                           type="button"
                           onClick={() => setShowLoginPassword(!showLoginPassword)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-black"
                         >
                           {showLoginPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                         </button>
@@ -821,7 +821,7 @@ const Auth = ({ forceRegister }: AuthProps) => {
                       <button
                         type="button"
                         onClick={() => setShowForgotModal(true)}
-                        className="text-sm text-primary hover:underline font-medium"
+                        className="text-sm text-[#FFC928] hover:underline font-medium drop-shadow-sm"
                       >
                         Forgot Password?
                       </button>
@@ -930,7 +930,7 @@ const Auth = ({ forceRegister }: AuthProps) => {
               </form>
 
               <div className="mt-6 text-center">
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-white drop-shadow-sm">
                   {isRegister ? "Already have an account?" : "Don't have an account?"}{" "}
                   <button
                     type="button"
@@ -947,7 +947,7 @@ const Auth = ({ forceRegister }: AuthProps) => {
                         }
                       }
                     }}
-                    className="text-primary hover:underline font-medium"
+                    className="text-[#FFC928] hover:underline font-bold ml-1"
                   >
                     {isRegister ? "Sign in" : "Register"}
                   </button>

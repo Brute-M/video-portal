@@ -46,6 +46,7 @@ import { analyzeVideo } from "@/apihelper/analysis";
 import { v4 as uuidv4 } from "uuid";
 import { useRazorpay } from "react-razorpay";
 import { AnalysisResult } from "@/components/AnalysisResult";
+import { useTranslation } from "react-i18next";
 
 interface VideoFile {
     id: string;
@@ -58,6 +59,7 @@ interface VideoFile {
 }
 
 const Videos = () => {
+    const { t } = useTranslation();
     const { toast } = useToast();
     const [videos, setVideos] = useState<VideoFile[]>([]);
     const [isDragging, setIsDragging] = useState(false);
@@ -637,7 +639,7 @@ const Videos = () => {
         return (
             <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
                 <Loader2 className="w-10 h-10 animate-spin text-primary" />
-                <p className="text-muted-foreground animate-pulse">Loading your videos...</p>
+                <p className="text-muted-foreground animate-pulse">{t('loading_videos')}</p>
             </div>
         );
     }
@@ -645,9 +647,9 @@ const Videos = () => {
     return (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="mb-8">
-                <h1 className="text-3xl font-display font-bold text-foreground">My Videos</h1>
+                <h1 className="text-3xl font-display font-bold text-foreground">{t('my_videos_title')}</h1>
                 <p className="text-muted-foreground mt-1">
-                    Upload and manage your video content
+                    {t('my_videos_desc')}
                 </p>
             </div>
 
@@ -666,41 +668,41 @@ const Videos = () => {
                     <div className="bg-blue-50/50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900/50 p-6 rounded-xl animate-in fade-in slide-in-from-top-4 duration-700">
                         <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
                             <Info className="w-5 h-5 text-blue-500" />
-                            Video Upload Guidelines
+                            {t('video_upload_guidelines')}
                         </h3>
                         <div className="grid md:grid-cols-2 gap-6">
                             <div className="space-y-3">
                                 <h4 className="font-medium text-foreground text-sm flex items-center gap-2">
                                     <Video className="w-4 h-4 text-primary/70" />
-                                    Recording Best Practices
+                                    {t('recording_best_practices')}
                                 </h4>
                                 <ul className="space-y-2 text-sm text-muted-foreground list-disc pl-4 marker:text-primary/50">
-                                    <li><strong>Camera Angle:</strong> Record from Side-on or Front-on view for best analysis.</li>
-                                    <li><strong>Steady Footage:</strong> Keep the camera steady (use a tripod if possible).</li>
-                                    <li><strong>Full Visibility:</strong> Ensure the player's full body is clearly visible.</li>
-                                    <li><strong>Lighting:</strong> Ensure good lighting conditions, avoid strong backlighting.</li>
+                                    <li><strong>{t('camera_angle')}:</strong> {t('camera_angle_desc')}</li>
+                                    <li><strong>{t('steady_footage')}:</strong> {t('steady_footage_desc')}</li>
+                                    <li><strong>{t('full_visibility')}:</strong> {t('full_visibility_desc')}</li>
+                                    <li><strong>{t('lighting')}:</strong> {t('lighting_desc')}</li>
                                 </ul>
                             </div>
                             <div className="space-y-3">
                                 <h4 className="font-medium text-foreground text-sm flex items-center gap-2">
                                     <FileText className="w-4 h-4 text-primary/70" />
-                                    Technical Requirements
+                                    {t('technical_requirements')}
                                 </h4>
                                 <ul className="space-y-2 text-sm text-muted-foreground list-disc pl-4 marker:text-primary/50">
-                                    <li><strong>Formats:</strong> MP4, MOV, AVI, WMV supported.</li>
-                                    <li><strong>Max Size:</strong> 1GB per video file.</li>
-                                    <li><strong>Duration:</strong> Recommended 10-30 seconds per clip.</li>
-                                    <li><strong>Clarity:</strong> Avoid blurry or out-of-focus footage.</li>
+                                    <li><strong>{t('formats')}:</strong> {t('formats_desc')}</li>
+                                    <li><strong>{t('max_size')}:</strong> {t('max_size_desc')}</li>
+                                    <li><strong>{t('duration')}:</strong> {t('duration_desc')}</li>
+                                    <li><strong>{t('clarity')}:</strong> {t('clarity_desc')}</li>
                                 </ul>
                             </div>
                         </div>
                     </div>
                     <div className="flex justify-end w-full max-w-xs ml-auto mb-4">
                         <div className="space-y-2 w-full">
-                            <Label htmlFor="role">Role for Analysis</Label>
+                            <Label htmlFor="role">{t('role_for_analysis')}</Label>
                             <Select value={role} onValueChange={setRole}>
                                 <SelectTrigger id="role" className="bg-background/50">
-                                    <SelectValue placeholder="Select role" />
+                                    <SelectValue placeholder={t('select_role')} />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {Object.entries(ROLE_CATEGORIES).map(([category, roles]) => (
@@ -732,10 +734,10 @@ const Videos = () => {
                                 <Upload className="w-8 h-8 text-primary" />
                             </div>
                             <h3 className="text-xl font-display font-semibold text-foreground mb-2">
-                                Drop your videos here
+                                {t('drop_videos_here')}
                             </h3>
                             <p className="text-muted-foreground mb-6">
-                                or click to browse from your computer
+                                {t('brows_files')}
                             </p>
                             <input
                                 type="file"
@@ -749,12 +751,12 @@ const Videos = () => {
                                 <Button variant="hero" size="lg" asChild className="cursor-pointer">
                                     <span>
                                         <Plus className="w-5 h-5 mr-2" />
-                                        Select Videos
+                                        {t('select_videos')}
                                     </span>
                                 </Button>
                             </label>
                             <p className="text-xs text-muted-foreground mt-4">
-                                Supports MP4, MOV, AVI, WMV up to 1GB
+                                {t('supports_format')}
                             </p>
                         </div>
                     </div>
@@ -767,13 +769,13 @@ const Videos = () => {
                         <LockIcon className="w-8 h-8 text-primary" />
                     </div>
                     <div className="max-w-md mx-auto space-y-2">
-                        <h3 className="text-2xl font-display font-bold">Payment Required</h3>
+                        <h3 className="text-2xl font-display font-bold">{t('payment_required')}</h3>
                         <p className="text-muted-foreground">
-                            You need to complete your registration payment before you can upload videos.
+                            {t('payment_required_desc')}
                         </p>
                     </div>
                     <Button variant="hero" size="lg" onClick={() => navigate("/dashboard")} className="px-8">
-                        Complete Payment on Dashboard
+                        {t('complete_payment_dashboard')}
                     </Button>
                 </div>
             )}
@@ -787,7 +789,7 @@ const Videos = () => {
             {!isLoading && videos.length > 0 && (
                 <div className="mt-8">
                     <h2 className="text-xl font-display font-semibold text-foreground mb-4">
-                        Your Videos
+                        {t('your_videos')}
                     </h2>
                     <div className="grid gap-4">
                         {videos.map((video) => (
@@ -815,30 +817,30 @@ const Videos = () => {
                                     </div>
                                     <div className="mt-2">
                                         {video.status === "uploading" && (
-                                            <span className="text-xs text-primary animate-pulse">Uploading...</span>
+                                            <span className="text-xs text-primary animate-pulse">{t('uploading')}</span>
                                         )}
                                         {video.status === "analyzing" && (
                                             <span className="text-xs text-accent animate-pulse flex items-center gap-1">
                                                 <Loader2 className="w-3 h-3 animate-spin" />
-                                                Analyzing Video...
+                                                {t('analyzing_video')}
                                             </span>
                                         )}
                                         {video.status === "pending-payment" && !userProfile?.isPaid && (
                                             <span className="text-xs text-accent flex items-center gap-1">
                                                 <CreditCard className="w-3 h-3" />
-                                                Awaiting payment
+                                                {t('awaiting_payment')}
                                             </span>
                                         )}
                                         {(video.status === "completed" || (video.status === "pending-payment" && userProfile?.isPaid)) && (
                                             <div className="flex gap-4">
                                                 <span className="text-xs text-green-500 flex items-center gap-1">
                                                     <Check className="w-3 h-3" />
-                                                    Upload complete
+                                                    {t('upload_complete')}
                                                 </span>
                                                 {video.analysis && (
                                                     <span className="text-xs text-blue-500 flex items-center gap-1">
                                                         <Activity className="w-3 h-3" />
-                                                        Analyzed
+                                                        {t('analyzed')}
                                                     </span>
                                                 )}
                                             </div>
@@ -853,7 +855,7 @@ const Videos = () => {
                                             size="icon"
                                             className="text-primary hover:text-primary/80 hover:bg-primary/10"
                                             onClick={() => handleViewVideo(video.id)}
-                                            title="Preview Video"
+                                            title={t('preview_video')}
                                         >
                                             <Eye className="w-5 h-5" />
                                         </Button>
@@ -862,7 +864,7 @@ const Videos = () => {
                                             size="icon"
                                             className="text-primary hover:text-primary/80 hover:bg-primary/10"
                                             onClick={() => handleChangeVideo(video.id)}
-                                            title="Change Video"
+                                            title={t('change_video')}
                                         >
                                             <RefreshCw className="w-5 h-5" />
                                         </Button>
@@ -871,7 +873,7 @@ const Videos = () => {
                                             size="icon"
                                             className="text-destructive hover:text-destructive/80 hover:bg-destructive/10"
                                             onClick={() => handleDeleteVideo(video.id)}
-                                            title="Delete Video"
+                                            title={t('delete_video')}
                                         >
                                             <Trash2 className="w-5 h-5" />
                                         </Button>
@@ -900,7 +902,7 @@ const Videos = () => {
                                                 onClick={() => handleDownloadReport(video)}
                                             >
                                                 <Download className="w-4 h-4" />
-                                                Download Report
+                                                {t('download_report')}
                                             </Button>
                                         )}
                                         {!video.analysis && (
@@ -911,7 +913,7 @@ const Videos = () => {
                                                 onClick={() => handleRetryAnalysis(video.id)}
                                             >
                                                 <RefreshCw className="w-4 h-4" />
-                                                Analyze Again
+                                                {t('analyze_again')}
                                             </Button>
                                         )}
                                         <Button
@@ -919,7 +921,7 @@ const Videos = () => {
                                             size="icon"
                                             className="text-primary hover:text-primary/80 hover:bg-primary/10"
                                             onClick={() => handleDownloadInvoice(video.id)}
-                                            title="Download Invoice"
+                                            title={t('download_invoice')}
                                         >
                                             <FileText className="w-5 h-5" />
                                         </Button>
@@ -949,7 +951,7 @@ const Videos = () => {
 
             {!isLoading && videos.length === 0 && (
                 <div className="text-center py-12 text-muted-foreground">
-                    No videos uploaded yet. Start by uploading your first video!
+                    {t('no_videos_uploaded')}
                 </div>
             )}
 
@@ -957,21 +959,21 @@ const Videos = () => {
                 <DialogContent className="glass-card border-border sm:max-w-md">
                     <DialogHeader>
                         <DialogTitle className="text-xl font-display text-foreground">
-                            Complete Your Upload
+                            {t('complete_your_upload')}
                         </DialogTitle>
                         <DialogDescription className="text-muted-foreground">
-                            Pay to finalize your video upload and make it live.
+                            {t('pay_to_finalize')}
                         </DialogDescription>
                     </DialogHeader>
 
                     <div className="space-y-6 py-4">
                         <div className="glass-card p-4 bg-secondary/30">
                             <div className="flex justify-between items-center">
-                                <span className="text-muted-foreground">Video Upload</span>
+                                <span className="text-muted-foreground">{t('video_upload')}</span>
                                 <span className="text-foreground font-medium">₹ 1</span>
                             </div>
                             <div className="flex justify-between items-center mt-2 pt-2 border-t border-border">
-                                <span className="text-foreground font-medium">Total</span>
+                                <span className="text-foreground font-medium">{t('total')}</span>
                                 <span className="text-xl font-display font-bold gradient-text">₹ 1</span>
                             </div>
                         </div>
@@ -979,7 +981,7 @@ const Videos = () => {
                         <div className="space-y-4">
                             <div className="p-5 border border-primary/50 bg-primary/20 rounded-xl text-center shadow-sm animate-in fade-in slide-in-from-top-2">
                                 <p className="text-base font-medium text-foreground/90">
-                                    You will be redirected to Razorpay secure checkout to complete your payment of <span className="font-bold text-primary">₹ 1</span>.
+                                    {t('redirect_razorpay')} <span className="font-bold text-primary">₹ 1</span>.
                                 </p>
                             </div>
                         </div>
@@ -994,12 +996,12 @@ const Videos = () => {
                             {isProcessingPayment ? (
                                 <>
                                     <Loader2 className="w-5 h-5 animate-spin mr-2" />
-                                    Processing...
+                                    {t('processing')}
                                 </>
                             ) : (
                                 <>
                                     <CreditCard className="w-5 h-5 mr-2" />
-                                    Pay ₹ 1
+                                    {t('pay_now')} ₹ 1
                                 </>
                             )}
                         </Button>
@@ -1056,7 +1058,7 @@ const Videos = () => {
                 <div id="analysis-report-container" ref={analysisRef} className="mt-12 pt-8 border-t border-border animate-in slide-in-from-bottom-10 duration-700">
                     <div className="flex justify-between items-center mb-6 no-print">
                         <div>
-                            <h2 className="text-2xl font-display font-bold text-foreground">Analysis Report</h2>
+                            <h2 className="text-2xl font-display font-bold text-foreground">{t('analysis_report')}</h2>
                             <p className="text-muted-foreground">Detailed performance analysis for {selectedAnalysis.role}</p>
                         </div>
                     </div>

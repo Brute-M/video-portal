@@ -2,16 +2,17 @@ require('dotenv').config();
 const nodemailer = require('nodemailer');
 
 console.log('Testing SMTP Connection...');
-console.log('User:', process.env.EMAIL_USER);
-console.log('Pass Length:', process.env.EMAIL_PASS ? process.env.EMAIL_PASS.length : '0');
+console.log('Host:', process.env.SMTP_HOST);
+console.log('User:', process.env.SMTP_USER);
+console.log('Pass Length:', process.env.SMTP_PASS ? process.env.SMTP_PASS.length : '0');
 
 const transporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com',
-    port: 465,
-    secure: true, // true for 465, false for other ports
+    host: process.env.SMTP_HOST,
+    port: Number(process.env.SMTP_PORT),
+    secure: process.env.SMTP_SECURE === 'true',
     auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS
     }
 });
 

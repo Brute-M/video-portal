@@ -8,7 +8,13 @@ import {
 import { format } from "date-fns";
 import { getUserById } from "@/apihelper/user";
 
-import { Loader2, ExternalLink } from "lucide-react";
+import {
+    Loader2,
+    ExternalLink,
+    Activity
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { AnalysisResult } from "@/components/AnalysisResult";
 
 interface UserDetailsDialogProps {
     user: any;
@@ -20,6 +26,7 @@ export const UserDetailsDialog = ({ user, open, onOpenChange }: UserDetailsDialo
     const baseURL = import.meta.env.VITE_API_URL || 'https://brpl.net/api'
     const [userDetails, setUserDetails] = useState<any>(null);
     const [loading, setLoading] = useState(false);
+    const [selectedAnalysisId, setSelectedAnalysisId] = useState<string | null>(null);
 
     useEffect(() => {
         if (open && user?._id) {
@@ -183,6 +190,29 @@ export const UserDetailsDialog = ({ user, open, onOpenChange }: UserDetailsDialo
                                                                     Your browser does not support the video tag.
                                                                 </video>
                                                             </div>
+
+                                                            {
+                                                                video.analysis && (
+                                                                    <div className="mt-2 text-right">
+                                                                        <Button
+                                                                            variant={selectedAnalysisId === (video._id || idx) ? "default" : "outline"}
+                                                                            size="sm"
+                                                                            className="gap-2 h-8 text-xs"
+                                                                            onClick={() => setSelectedAnalysisId(selectedAnalysisId === (video._id || idx) ? null : (video._id || idx))}
+                                                                        >
+                                                                            <Activity className="w-3 h-3" />
+                                                                            {selectedAnalysisId === (video._id || idx) ? "Hide Analysis" : "View Analysis"}
+                                                                        </Button>
+                                                                    </div>
+                                                                )
+                                                            }
+                                                            {
+                                                                selectedAnalysisId === (video._id || idx) && video.analysis && (
+                                                                    <div className="mt-4 pt-4 border-t border-border animate-in fade-in zoom-in-95 duration-300">
+                                                                        <AnalysisResult data={video} />
+                                                                    </div>
+                                                                )
+                                                            }
                                                         </div>
                                                     )
                                                 })}
@@ -195,6 +225,6 @@ export const UserDetailsDialog = ({ user, open, onOpenChange }: UserDetailsDialo
                     </>
                 )}
             </DialogContent>
-        </Dialog>
+        </Dialog >
     );
 };

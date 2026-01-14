@@ -9,9 +9,9 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Eye, ChevronLeft, ChevronRight, Video, Download, CreditCard, Loader2 } from "lucide-react";
-import { UserDetailsDialog } from "./UserDetailsDialog";
+import { Eye, ChevronLeft, ChevronRight, Video, Download, CreditCard, Loader2, Activity } from "lucide-react";
 import { downloadUserInvoice, updateUserPayment } from "@/apihelper/admin";
+import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import {
     Dialog,
@@ -52,7 +52,6 @@ interface UserTableProps {
 
 export const UserTable = ({ users, isLoading, type, page, totalPages, onPageChange, onRefresh }: UserTableProps) => {
     const { toast } = useToast();
-    const [selectedUser, setSelectedUser] = useState<User | null>(null);
     const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
     const [paymentUser, setPaymentUser] = useState<User | null>(null);
     const [transactionId, setTransactionId] = useState("");
@@ -77,8 +76,10 @@ export const UserTable = ({ users, isLoading, type, page, totalPages, onPageChan
         }
     };
 
+    const navigate = useNavigate();
+
     const handleViewUser = (user: User) => {
-        setSelectedUser(user);
+        navigate(`/admin/users/${user._id}`);
     };
 
     const handleOpenPaymentModal = (user: User) => {
@@ -206,6 +207,18 @@ export const UserTable = ({ users, isLoading, type, page, totalPages, onPageChan
                                             <Eye className="w-4 h-4 mr-1" />
                                             View
                                         </Button>
+                                        {/* {(user.videos && user.videos.length > 0) && (
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                className="text-primary hover:text-primary/80 hover:bg-primary/10"
+                                                onClick={() => handleViewUser(user)}
+                                                title="View Analysis"
+                                            >
+                                                <Activity className="w-4 h-4 mr-1" />
+                                                Report
+                                            </Button>
+                                        )} */}
                                     </div>
                                 </TableCell>
                             </TableRow>
@@ -287,11 +300,7 @@ export const UserTable = ({ users, isLoading, type, page, totalPages, onPageChan
                 </DialogContent>
             </Dialog>
 
-            <UserDetailsDialog
-                user={selectedUser}
-                open={!!selectedUser}
-                onOpenChange={(open) => !open && setSelectedUser(null)}
-            />
+
         </div>
     );
 };

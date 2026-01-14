@@ -18,8 +18,10 @@ import { getProfile } from "@/apihelper/auth";
 import { AlertCircle, CreditCard, Lock as LockIcon, CheckCircle2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { createLandingOrder, verifyLandingPayment } from "@/apihelper/payment";
+import { useTranslation } from "react-i18next";
 
 const Dashboard = () => {
+  const { t } = useTranslation();
   const [stats, setStats] = useState({
     totalVideos: 0,
     storageUsed: "0 MB",
@@ -174,24 +176,24 @@ const Dashboard = () => {
         <div className="relative z-10 flex flex-col md:flex-row justify-between md:items-center gap-6">
           <div className="space-y-2 max-w-lg">
             <h1 className="text-4xl md:text-5xl font-display font-bold text-foreground tracking-tight slide-in-from-left-5">
-              Welcome to the <span className="text-primary glow-text">BRPL</span>
+              {t("welcome")} <span className="text-primary glow-text">BRPL</span>
             </h1>
             <p className="text-muted-foreground text-lg">
-              Manage your cricket highlights, track your performance, and engage with fans.
+              {t("subtext")}
             </p>
             <div className="pt-4 flex gap-4">
               {isPaid && stats.totalVideos === 0 && (
                 <Button variant="hero" size="lg" asChild className="shadow-lg shadow-primary/20 hover:scale-105 transition-transform">
                   <Link to="/dashboard/videos">
                     <Upload className="w-5 h-5 mr-2" />
-                    Upload your video
+                    {t("upload_video")}
                   </Link>
                 </Button>
               )}
               {isPaid && stats.totalVideos > 0 && (
                 <div className="flex items-center gap-2 text-green-500 font-medium bg-green-500/10 px-4 py-2 rounded-lg border border-green-500/20">
                   <CheckCircle2 className="w-5 h-5" />
-                  Video Successfully Uploaded
+                  {t("video_uploaded")}
                 </div>
               )}
             </div>
@@ -215,9 +217,9 @@ const Dashboard = () => {
             <LockIcon className="w-10 h-10 text-primary" />
           </div>
           <div className="max-w-md mx-auto space-y-2">
-            <h2 className="text-3xl font-display font-bold">Access Restricted</h2>
+            <h2 className="text-3xl font-display font-bold">{t("access_restricted")}</h2>
             <p className="text-muted-foreground">
-              To unlock your dashboard and start uploading videos, please complete your registration payment and verification.
+              {t("unlock_dashboard")}
             </p>
           </div>
           <Button
@@ -227,16 +229,16 @@ const Dashboard = () => {
             onClick={handleRegistrationPayment}
             disabled={isProcessingPayment}
           >
-            {isProcessingPayment ? "Initiating..." : (
+            {isProcessingPayment ? t("initiating") : (
               <>
                 <CreditCard className="w-5 h-5 mr-2" />
-                Complete Payment (₹ 1)
+                {t("complete_payment")}
               </>
             )}
             <div className="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 skew-x-[-20deg]" />
           </Button>
           <p className="text-xs text-muted-foreground italic">
-            Secure payment via Razorpay. Access will be granted immediately upon verification.
+            {t("secure_payment")}
           </p>
         </div>
       ) : (
@@ -249,14 +251,14 @@ const Dashboard = () => {
                   <AlertCircle className="w-6 h-6" />
                 </div>
                 <div>
-                  <p className="font-semibold text-foreground">Payment Pending</p>
-                  <p className="text-sm text-muted-foreground">Your latest video <span className="text-foreground font-medium">"{latestVideo.originalName}"</span> is waiting for payment to be activated.</p>
+                  <p className="font-semibold text-foreground">{t("payment_pending")}</p>
+                  <p className="text-sm text-muted-foreground">{t("payment_pending_desc", { videoName: latestVideo.originalName })}</p>
                 </div>
               </div>
               <Button variant="default" size="sm" asChild className="shrink-0">
                 <Link to="/dashboard/videos">
                   <CreditCard className="w-4 h-4 mr-2" />
-                  Pay Now
+                  {t("pay_now")}
                 </Link>
               </Button>
             </div>
@@ -267,14 +269,14 @@ const Dashboard = () => {
             <Card className="glass-card hover:border-primary/50 transition-colors group">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground group-hover:text-primary transition-colors">
-                  Total Videos
+                  {t("total_videos")}
                 </CardTitle>
                 <Video className="h-4 w-4 text-primary group-hover:scale-110 transition-transform" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold font-display">{stats.totalVideos}</div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  +20% from last month
+                  {t("from_last_month")}
                 </p>
               </CardContent>
             </Card>
@@ -282,14 +284,14 @@ const Dashboard = () => {
             <Card className="glass-card hover:border-primary/50 transition-colors group">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground group-hover:text-accent transition-colors">
-                  Storage Used
+                  {t("storage_used")}
                 </CardTitle>
                 <HardDrive className="h-4 w-4 text-accent group-hover:scale-110 transition-transform" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold font-display">{stats.storageUsed}</div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  15GB available
+                  {t("available")}
                 </p>
               </CardContent>
             </Card>
@@ -299,16 +301,16 @@ const Dashboard = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <h2 className="text-xl font-display font-semibold">Recent Uploads</h2>
+                <h2 className="text-xl font-display font-semibold">{t("recent_uploads")}</h2>
                 <Link to="/dashboard/videos" className="text-sm text-primary hover:underline flex items-center">
-                  View all <ArrowRight className="w-4 h-4 ml-1" />
+                  {t("view_all")} <ArrowRight className="w-4 h-4 ml-1" />
                 </Link>
               </div>
 
               <div className="space-y-3">
                 {stats.recentVideos.length === 0 ? (
                   <div className="text-center py-8 glass-card rounded-lg text-muted-foreground">
-                    No videos uploaded yet.
+                    {t("no_videos")}
                   </div>
                 ) : (
                   stats.recentVideos.map(video => (
@@ -324,7 +326,7 @@ const Dashboard = () => {
                       </div>
                       <div className={`px-2 py-1 rounded-full text-xs font-medium ${video.status === 'completed' ? 'bg-green-500/10 text-green-500' : 'bg-yellow-500/10 text-yellow-500'
                         }`}>
-                        {video.status || 'Processing'}
+                        {video.status === 'completed' ? 'Completed' : video.status || t("processing")}
                       </div>
                     </div>
                   ))
@@ -335,15 +337,15 @@ const Dashboard = () => {
             <div className="space-y-4">
               <Card className="glass-card border-border">
                 <CardContent className="pt-6">
-                  <h3 className="font-semibold mb-2">System Status</h3>
+                  <h3 className="font-semibold mb-2">{t("system_status")}</h3>
                   <div className="space-y-2">
                     <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">Upload Service</span>
-                      <span className="flex items-center text-green-500 gap-1"><span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> Operational</span>
+                      <span className="text-muted-foreground">{t("upload_service")}</span>
+                      <span className="flex items-center text-green-500 gap-1"><span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> {t("operational")}</span>
                     </div>
                     <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">Payment Gateway</span>
-                      <span className="flex items-center text-green-500 gap-1"><span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> Operational</span>
+                      <span className="text-muted-foreground">{t("payment_gateway")}</span>
+                      <span className="flex items-center text-green-500 gap-1"><span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> {t("operational")}</span>
                     </div>
                   </div>
                 </CardContent>
@@ -354,7 +356,7 @@ const Dashboard = () => {
       )}
     </div>
   );
-};
+}
 
 export default Dashboard;
 
