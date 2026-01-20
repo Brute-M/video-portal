@@ -36,7 +36,7 @@ const RegistrationFAQ = () => {
     ];
 
     return (
-        <div className="w-full max-w-4xl mx-auto mt-16 px-4 mb-20">
+        <div className="w-full max-w-4xl mx-auto px-4 py-16">
             <div className="text-center mb-10">
                 <h2 className="text-3xl md:text-4xl font-bold text-[#1a237e] uppercase tracking-wide">
                     FREQUENTLY ASKED <span className="text-[#FFC928]">QUESTIONS</span>

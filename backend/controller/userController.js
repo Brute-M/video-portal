@@ -422,6 +422,13 @@ const exportUsers = async (req, res) => {
           isUserPaid: 1,
           isFromLandingPage: 1,
           createdAt: 1,
+          // Address fields
+          address1: 1,
+          address2: 1,
+          city: 1,
+          state: 1,
+          pincode: 1,
+
           paymentAmount: {
             $add: [
               { $ifNull: ['$paymentAmount', 0] },
@@ -476,11 +483,16 @@ const exportUsers = async (req, res) => {
       { header: 'Full Name', key: 'name', width: 25 },
       { header: 'Email', key: 'email', width: 30 },
       { header: 'Mobile', key: 'mobile', width: 15 },
+      { header: 'Address Line 1', key: 'address1', width: 30 },
+      { header: 'Address Line 2', key: 'address2', width: 30 },
+      { header: 'City', key: 'city', width: 15 },
+      { header: 'State', key: 'state', width: 15 },
+      { header: 'Pincode', key: 'pincode', width: 10 },
       { header: 'Role', key: 'role', width: 15 },
       { header: 'Status', key: 'status', width: 10 },
       { header: 'Source', key: 'source', width: 15 },
       { header: 'Amount Paid', key: 'amount', width: 15 },
-      { header: 'Payment ID', key: 'paymentId', width: 20 },
+      { header: 'Transaction ID', key: 'paymentId', width: 25 },
       { header: 'Registration Date', key: 'date', width: 25 }
     ];
 
@@ -489,6 +501,11 @@ const exportUsers = async (req, res) => {
         name: `${user.fname || ''} ${user.lname || ''}`.trim(),
         email: user.email,
         mobile: user.mobile || 'N/A',
+        address1: user.address1 || '',
+        address2: user.address2 || '',
+        city: user.city || '',
+        state: user.state || '',
+        pincode: user.pincode || '',
         role: user.playerRole || 'N/A',
         status: user.isUserPaid ? 'Paid' : 'Unpaid',
         source: user.isFromLandingPage ? 'Landing Page' : 'Website',

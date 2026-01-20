@@ -20,6 +20,7 @@ router.post('/login-coach', loginCoach);
 router.post('/resend-welcome-email', resendWelcomeEmail);
 router.post('/track-visit', trackVisit);
 router.post('/step1-lead', saveStep1Data);
+router.post('/update-profile', authenticate, require('../controller/authController').updateProfile);
 router.get('/partner/profile', authenticate, getPartnerProfile);
 router.get('/coach/my-players', authenticate, getCoachMyPlayers);
 router.get('/visits', getVisits);

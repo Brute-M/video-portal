@@ -84,7 +84,7 @@ const Header = () => {
 
                 {/* Desktop Navigation */}
                 <nav className="hidden lg:flex items-center gap-8 text-[15px] font-semibold tracking-wide ml-auto">
-                    {["Home", "About Us", "Teams", "Career", "Registration", "Contact Us"].map((item) => {
+                    {["Home", "About Us", "Teams", "Events", "Registration", "Contact Us"].map((item) => {
                         let path = "/";
                         if (item === "Home") path = "/";
                         else if (item === "Registration") path = "/auth?mode=register";
@@ -116,7 +116,7 @@ const Header = () => {
             {isMenuOpen && (
                 <div className="lg:hidden absolute top-full left-0 w-full bg-[#111a45] shadow-xl border-t border-white/10 z-50 px-6 py-4">
                     <nav className="flex flex-col text-left">
-                        {["Home", "About Us", "Teams", "Career", "Registration", "Contact Us"].map((item) => {
+                        {["Home", "About Us", "Teams", "Events", "Registration", "Contact Us"].map((item) => {
                             let path = "/";
                             if (item === "Home") path = "/";
                             else if (item === "Registration") path = "/auth?mode=register";

@@ -30,11 +30,22 @@ const upload = multer({ storage: storage });
  */
 
 const login = async (req, res) => {
-  const { email, password } = req.body;
-
   try {
-    // Check for hardcoded Admin credentials
-    if (email === 'admin@brpl.com' && password === 'admin123') {
+    const { email, mobile, identifier: reqIdentifier, password } = req.body;
+
+    // 0. Strict Validation
+    if (!password) {
+      return res.status(400).json({ statusCode: 400, data: { message: 'Password is required' } });
+    }
+
+    // 1. Resolve Identifier
+    const identifier = (email || mobile || reqIdentifier || '').trim();
+    if (!identifier) {
+      return res.status(400).json({ statusCode: 400, data: { message: 'Email or Mobile Number is required' } });
+    }
+
+    // 2. Admin Check (Hardcoded)
+    if (identifier === 'admin@brpl.com' && password === 'admin123') {
       const token = jwt.sign({ userId: 'admin', role: 'admin' }, process.env.JWT_SECRET, { expiresIn: '1h' });
       return res.json({
         statusCode: 200,
@@ -48,18 +59,45 @@ const login = async (req, res) => {
       });
     }
 
-    const user = await User.findOne({ email });
-    console.log(user)
+    // 3. Build Query Conditions
+    // We want to match Email OR Mobile (in various formats)
+    const orConditions = [
+      { email: identifier.toLowerCase() } // Always check email (exact, lower)
+    ];
+
+    // Check if identifier has digits (potential mobile)
+    const digitsOnly = identifier.replace(/\D/g, '');
+
+    if (digitsOnly.length > 0) {
+      // It has numbers, so checking User.mobile makes sense
+      orConditions.push({ mobile: identifier }); // Match exact input
+      orConditions.push({ mobile: digitsOnly }); // Match digits only (e.g. input "(555)..." vs db "555...")
+
+      // If robust length, match by last 10 digits (covers +91 vs non-prefix)
+      if (digitsOnly.length >= 10) {
+        const last10 = digitsOnly.slice(-10);
+        // Match any mobile ending with these 10 digits
+        orConditions.push({ mobile: { $regex: last10 + '$' } });
+      }
+    }
+
+    const user = await User.findOne({ $or: orConditions });
+
+    console.log("Login attempt for:", identifier, "Found:", !!user);
+
     if (!user) {
-      return res.status(401).json({ statusCode: 401, data: { message: 'Invalid email or password' } });
+      return res.status(401).json({ statusCode: 401, data: { message: 'Invalid credentials (User not found)' } });
     }
 
+    // 4. Verify Password (User exists, so password should be there)
     const isMatch = await bcrypt.compare(password, user.password);
-    console.log(isMatch)
+    console.log("Password match:", isMatch);
+
     if (!isMatch) {
-      return res.status(401).json({ statusCode: 401, data: { message: 'Invalid email or password' } });
+      return res.status(401).json({ statusCode: 401, data: { message: 'Invalid credentials' } });
     }
 
+    // 5. Success
     const token = jwt.sign({ userId: user._id, role: 'user' }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
     res.json({
@@ -74,8 +112,8 @@ const login = async (req, res) => {
     });
 
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ statusCode: 500, data: { message: 'Server error' } });
+    console.error("Login Controller Error:", error);
+    res.status(500).json({ statusCode: 500, data: { message: 'Server error', error: error.message } });
   }
 }
 
@@ -240,12 +278,16 @@ const register = async (req, res) => {
       }
     }
 
+    // Generate Token
+    const token = jwt.sign({ userId: newUser._id, role: 'user' }, process.env.JWT_SECRET, { expiresIn: '1h' });
+
     res.status(201).json({
       statusCode: 201,
       data: {
         message: 'Registration successful',
         userId: newUser._id,
-        email: newUser.email
+        email: newUser.email,
+        token
       }
     });
 
@@ -254,6 +296,55 @@ const register = async (req, res) => {
     res.status(500).json({ statusCode: 500, data: { message: 'Server error' } });
   }
 }
+
+
+const updateProfile = async (req, res) => {
+  try {
+    const userId = req.userId; // From middleware
+    const {
+      gender, zone_id, city, state, pincode,
+      address1, address2, aadhar, playerRole
+    } = req.body;
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ statusCode: 404, data: { message: 'User not found' } });
+    }
+
+    // Update fields if present
+    if (gender) user.gender = gender;
+    if (zone_id) user.zone_id = zone_id;
+    if (city) user.city = city;
+    if (state) user.state = state;
+    if (pincode) user.pincode = pincode;
+    if (address1) user.address1 = address1;
+    if (address2) user.address2 = address2;
+    if (aadhar) user.aadhar = aadhar;
+    // user.playerRole = playerRole; // Usually role shouldn't be changed after registration easily? Let's check reqs. 
+    // The req says they fill details in Step 3. So yes, allow update.
+    if (playerRole) user.playerRole = playerRole;
+
+    await user.save();
+
+    res.status(200).json({
+      statusCode: 200,
+      data: {
+        message: 'Profile updated successfully',
+        user: {
+          fname: user.fname,
+          lname: user.lname,
+          email: user.email,
+          mobile: user.mobile,
+          // include other fields if needed
+        }
+      }
+    });
+
+  } catch (error) {
+    console.error("Update Profile Error:", error);
+    res.status(500).json({ statusCode: 500, data: { message: 'Failed to update profile' } });
+  }
+};
 
 
 
@@ -866,22 +957,6 @@ const exportStep1Leads = async (req, res) => {
 module.exports = {
   login,
   register,
-  sendOtp,
-  verifyOtp,
-  forgotPassword,
-  resetPassword,
-  registerCoach,
-  loginCoach,
-  trackVisit,
-  getVisits,
-  getCoachMyPlayers,
-  getPartnerProfile,
-  resendWelcomeEmail,
-  saveStep1Data,
-  getStep1Leads,
-  exportStep1Leads,
-  login,
-  register,
   upload,
   sendOtp,
   verifyOtp,
@@ -895,5 +970,7 @@ module.exports = {
   trackVisit,
   getVisits,
   saveStep1Data,
-  getStep1Leads
+  getStep1Leads,
+  exportStep1Leads,
+  updateProfile
 };

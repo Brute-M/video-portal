@@ -83,12 +83,6 @@ const Videos = () => {
     const [isProfileLoading, setIsProfileLoading] = useState(true);
 
     // Define Role Categories
-    const ROLE_CATEGORIES = {
-        "Batsman": ["Opener", "Middle-order batter", "Finisher", "All-rounder"],
-        "Bowler": ["Fast bowler", "Swing bowler", "Yorker specialist", "Off spinner", "Leg spinner", "Left-arm spinner", "Chinaman", "Fielding specialist"],
-        "Wicketkeeper": ["Wicketkeeper batsman"]
-    };
-
     useEffect(() => {
         fetchVideos();
         fetchProfile();
@@ -105,11 +99,11 @@ const Videos = () => {
             if (profile?.playerRole) {
                 setRole(profile.playerRole);
             } else {
-                setRole("Opener"); // Default fallback
+                setRole("Batsman"); // Default fallback
             }
         } catch (error) {
             console.error("Failed to fetch profile", error);
-            setRole("Opener"); // Fallback on error
+            setRole("Batsman"); // Fallback on error
         } finally {
             setIsProfileLoading(false);
         }
@@ -381,9 +375,11 @@ const Videos = () => {
             try {
                 // Determine generic category for analysis API
                 let analysisCategory = "batsman";
-                if (ROLE_CATEGORIES["Bowler"].includes(role)) analysisCategory = "bowler";
-                else if (ROLE_CATEGORIES["Wicketkeeper"].includes(role)) analysisCategory = "wicket_keeper";
-                else if (ROLE_CATEGORIES["Batsman"].includes(role)) analysisCategory = "batsman";
+                // Simple mapping based on the new 4 roles
+                const r = role || "";
+                if (r === "Bowler") analysisCategory = "bowler";
+                else if (r === "Wicket Keeper") analysisCategory = "wicket_keeper";
+                else analysisCategory = "batsman"; // Covers Batsman and All-Rounder
 
                 const analysisFormData = new FormData();
                 analysisFormData.append("video", file);
@@ -705,15 +701,15 @@ const Videos = () => {
                                     <SelectValue placeholder={t('select_role')} />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {Object.entries(ROLE_CATEGORIES).map(([category, roles]) => (
-                                        <SelectGroup key={category}>
-                                            <SelectLabel>{category}</SelectLabel>
-                                            {roles.map((r) => (
-                                                <SelectItem key={r} value={r}>
-                                                    {r}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectGroup>
+                                    {[
+                                        "Batsman",
+                                        "Bowler",
+                                        "Wicket Keeper",
+                                        "All-Rounder"
+                                    ].map((r) => (
+                                        <SelectItem key={r} value={r}>
+                                            {r}
+                                        </SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>

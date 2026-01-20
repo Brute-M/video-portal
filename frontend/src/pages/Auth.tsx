@@ -3,9 +3,9 @@ import { useSearchParams, useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Mail, Lock, CheckCircle2, Phone, Eye, EyeOff, ArrowLeft, Loader2, ArrowRight } from "lucide-react";
+import { Mail, Lock, CheckCircle2, Phone, Eye, EyeOff, ArrowLeft, Loader2, ArrowRight, Swords, CircleDot, Shield, Zap } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { login, register, sendOtp, verifyOtp, forgotPassword, resetPassword, saveStep1Data } from "@/apihelper/auth";
+import { login, register, sendOtp, verifyOtp, forgotPassword, resetPassword, saveStep1Data, updateProfile } from "@/apihelper/auth";
 import { createLandingOrder, verifyLandingPayment } from "@/apihelper/payment";
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -57,6 +57,7 @@ const Auth = ({ forceRegister }: AuthProps) => {
   // Payment State
   const [paymentId, setPaymentId] = useState("");
   const [isPaymentProcessing, setIsPaymentProcessing] = useState(false);
+  const [userId, setUserId] = useState("");
 
 
   const [formData, setFormData] = useState({
@@ -179,25 +180,89 @@ const Auth = ({ forceRegister }: AuthProps) => {
       return;
     }
 
-    setIsLoading(true);
-    try {
-      // Save incomplete lead data
-      const trackingId = localStorage.getItem('brpl_tracking_id') || searchParams.get('trackingId');
-      await saveStep1Data({
-        name: `${formData.fname} ${formData.lname}`,
-        mobile: formData.mobile,
-        role: formData.playerRole,
-        state: formData.state,
-        city: formData.city,
-        trackingId
-      });
-      setCurrentStep(2);
-    } catch (error) {
-      console.error("Failed to save step 1", error);
+    if (!formData.email || !formData.password) {
       toast({
         variant: "destructive",
-        title: "Error",
-        description: "Something went wrong. Please try again."
+        title: "Missing Fields",
+        description: "Please enter your email and create a password.",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      // If user is already created in this session (e.g. went back from Step 2), just update or proceed
+      if (userId) {
+        // Optional: Update basic details if changed? 
+        // For now, let's just proceed to Step 2 to avoid "Mobile/Email already exists" error.
+        // If we want to support editing, we'd need an update API call here, or use updateProfile.
+        // Since Step 1 has core account fields (email/password/mobile), updating them is trickier.
+        // Let's assume for this flow, if they earned a userId, Step 1 is "done".
+        // But if they changed inputs?
+
+        // Better approach: Call updateProfile with the data, just in case they fixed a typo in Name/City/State.
+        await updateProfile(formData);
+        setCurrentStep(2);
+        toast({
+          title: "Details Updated",
+          description: "Proceeding to payment.",
+        });
+        return;
+      }
+
+      // Register logic now moved to Step 1
+      const trackingId = localStorage.getItem('brpl_tracking_id') || searchParams.get('trackingId');
+      const fbclid = localStorage.getItem('brpl_fbclid') || searchParams.get('fbclid');
+
+      const response = await register({
+        ...formData,
+        referralCodeUsed: formData.referralCode,
+        trackingId,
+        fbclid,
+        isPaid: false, // Not paid yet
+      });
+
+      console.log("Step 1 Response:", response);
+
+      const responseData = response.data || response;
+      const token = responseData.token || (response.data && response.data.token);
+      const newUserId = responseData.userId || (response.data && response.data.userId);
+      const email = responseData.email || (response.data && response.data.email);
+
+      console.log("Extracted Data:", { token, newUserId, email });
+
+      if (token) {
+        localStorage.setItem('token', token);
+        localStorage.setItem('userEmail', email);
+        setUserId(newUserId);
+        setCurrentStep(2);
+        toast({
+          title: "Account Created",
+          description: "Please complete payment to access full features.",
+        });
+      } else if (newUserId) {
+        // Fallback: If user created but no token (weird, but handle it)
+        setUserId(newUserId);
+        setCurrentStep(2);
+        toast({
+          title: "Account Created",
+          description: "Proceeding to payment.",
+        });
+      } else {
+        console.error("Critical: No token or userId in response");
+        toast({
+          variant: "destructive",
+          title: "Registration Error",
+          description: "Account created but valid response missing. Please try logging in."
+        });
+      }
+
+    } catch (error: any) {
+      console.error("Failed to register step 1", error);
+      toast({
+        variant: "destructive",
+        title: "Registration Failed",
+        description: error.response?.data?.message || "Something went wrong. Please try again."
       })
     } finally {
       setIsLoading(false);
@@ -233,21 +298,18 @@ const Auth = ({ forceRegister }: AuthProps) => {
         order_id: order.id,
         handler: async (response: any) => {
           try {
-            // Verify payment on backend (optional but recommended before proceeding)
-            // For registration flow, we might just store the ID and verify at final submit
-            // But step 3 needs to know it's paid.
-            // Let's verify here to be safe and get a confirmed status.
-
-            // Note: verifyLandingPayment usually expects a userId. 
-            // Since we don't have a user yet, we might just want to carry the paymentId forward.
-            // However, the existing verifyLandingPayment might fail if it needs a userId.
-            // Checking the backend authController implementation would be good, 
-            // but assuming we just need the paymentId for the register call.
+            await verifyLandingPayment({
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+              userId, // From state
+              amount: 1499
+            });
 
             setPaymentId(response.razorpay_payment_id);
             toast({
               title: "Payment Successful",
-              description: "Payment verified. Please complete your account details.",
+              description: "Payment verified. Please complete your profile.",
             });
             setCurrentStep(3);
 
@@ -379,33 +441,39 @@ const Auth = ({ forceRegister }: AuthProps) => {
 
     try {
       if (isRegister) {
-        // Collect tracking data from localStorage or URL
-        const trackingId = localStorage.getItem('brpl_tracking_id') || searchParams.get('trackingId');
-        const fbclid = localStorage.getItem('brpl_fbclid') || searchParams.get('fbclid');
+        // Step 3: Update Profile
+        // User is already created in Step 1.
 
-        await register({
-          ...formData,
-          referralCodeUsed: formData.referralCode,
-          trackingId,
-          fbclid,
-          isPaid: true,
-          paymentId: paymentId,
-          paymentAmount: 1499
+        await updateProfile({
+          ...formData, // Send what's needed
         });
-        // Removed success toast as per requirement
+
+        // Navigate to Thank You
         navigate("/thank-you");
         setIsRegister(false);
       } else {
         const response = await login({ email: formData.email, password: formData.password });
+        console.log("Login Response:", response);
 
         // Handle various potential token paths
         const token = response.token || response.data?.token || response.accessToken;
+        const role = response.data?.role || response.role;
+
+        console.log("Extracted Token:", token);
+        console.log("Extracted Role:", role);
 
         if (token) {
           localStorage.setItem('token', token);
           localStorage.setItem('userEmail', formData.email);
         } else {
           console.error("No token found in response");
+          toast({
+            variant: "destructive",
+            title: "Login Error",
+            description: "No access token received. Please try again or contact support."
+          });
+          setIsLoading(false);
+          return;
         }
 
         toast({
@@ -413,7 +481,10 @@ const Auth = ({ forceRegister }: AuthProps) => {
           description: "You've successfully signed in.",
         });
 
-        if (response.data?.role === 'admin' || response.role === 'admin') {
+        // Check if user is unpaid (Access Restricted handled on Dashboard, but maybe we can warn here too?)
+        // The dashboard will show the restricted view.
+
+        if (role === 'admin') {
           navigate("/admin/dashboard");
         } else {
           navigate("/dashboard");
@@ -423,8 +494,8 @@ const Auth = ({ forceRegister }: AuthProps) => {
       console.error("Auth error:", error);
       toast({
         variant: "destructive",
-        title: "Authentication Failed",
-        description: error.response?.data?.message || "Something went wrong. Please try again.",
+        title: "Action Failed",
+        description: error.response?.data?.data?.message || error.response?.data?.message || "Something went wrong. Please try again.",
       });
     } finally {
       setIsLoading(false);
@@ -469,16 +540,15 @@ const Auth = ({ forceRegister }: AuthProps) => {
       />
 
       {/* Full Screen Background Image */}
+      <div className="fixed inset-0 z-0 bg-[#0F172A]">
+        <div className="absolute inset-0 bg-black/50 z-10" /> {/* Dark Overlay */}
+        <div className="absolute inset-0 bg-[length:100%_auto] bg-top bg-no-repeat lg:bg-cover lg:bg-center" style={{ backgroundImage: "url('/register-footer-2.png')" }} />
+      </div>
+
       {isRegister && <FloatingRegisterButton />}
 
       {/* Main Content Area (Split View) */}
-      <div className="flex flex-col lg:flex-row flex-1 w-full min-h-[calc(100vh-80px)] relative z-20">
-
-        {/* Full Screen Background Image - Scoped to this section */}
-        <div className="absolute inset-0 z-0">
-          <div className="absolute inset-0 bg-black/50 z-10" /> {/* Dark Overlay */}
-          <div className="absolute inset-0 bg-cover bg-no-repeat bg-center" style={{ backgroundImage: "url('/register-footer-2.png')" }} />
-        </div>
+      <div className="flex flex-col lg:flex-row flex-1 w-full min-h-[calc(100vh-80px)] relative z-10">
 
         {/* Left Panel - Branding (Hidden on mobile) */}
         <div className="flex flex-1 flex-col justify-between p-6 lg:p-12 relative overflow-hidden z-10 w-full lg:w-auto min-h-[300px] lg:min-h-auto items-center text-center lg:items-start lg:text-left">
@@ -488,11 +558,10 @@ const Auth = ({ forceRegister }: AuthProps) => {
             <h1 className="text-3xl lg:text-7xl font-extrabold text-white mb-6 drop-shadow-xl leading-tight uppercase font-display">
               Join BRPL <br /> <span className="text-[#FFC928]">League 2026</span>
             </h1>
-            <div className="inline-flex items-center gap-3 bg-black/30 backdrop-blur-sm px-6 py-3 rounded-full border border-white/10">
-              <p className="text-lg lg:text-2xl font-bold text-white tracking-wide drop-shadow-md">
+            <div className="inline-flex items-center gap-3 bg-[#FFC928] backdrop-blur-sm px-6 py-2 rounded-full shadow-[0_0_15px_rgba(255,201,40,0.4)] border border-white/20">
+              <p className="text-lg lg:text-xl font-bold text-black tracking-wide">
                 Limited Slots in your City
               </p>
-              {/* <span className="text-2xl animate-pulse">⏳</span> */}
             </div>
           </div>
 
@@ -530,25 +599,16 @@ const Auth = ({ forceRegister }: AuthProps) => {
                     {currentStep === 1 && (
                       <div className="space-y-4 animate-fade-in">
                         <div className="space-y-2">
-                          <Label htmlFor="playerRole" className="text-white font-semibold shadow-black/50 drop-shadow-sm">Select Your Playing Role</Label>
+                          <Label htmlFor="playerRole" className="text-white font-semibold shadow-black/50 drop-shadow-sm">Select Your Role</Label>
                           <Select onValueChange={(val) => handleSelectChange(val, 'playerRole')} value={formData.playerRole} required>
                             <SelectTrigger className="h-12 bg-white text-black border-white/20 focus:ring-primary/50">
                               <SelectValue placeholder="Choose your playing role" />
                             </SelectTrigger>
-                            <SelectContent position="popper" side="bottom" align="start" className="max-h-[300px]">
-                              <SelectItem value="Opener">Opener</SelectItem>
-                              <SelectItem value="Middle-order batter">Middle-order batter</SelectItem>
-                              <SelectItem value="Finisher">Finisher</SelectItem>
-                              <SelectItem value="Fast bowler">Fast bowler</SelectItem>
-                              <SelectItem value="Swing bowler">Swing bowler</SelectItem>
-                              <SelectItem value="Yorker specialist">Yorker specialist</SelectItem>
-                              <SelectItem value="Off spinner">Off spinner</SelectItem>
-                              <SelectItem value="Leg spinner">Leg spinner</SelectItem>
-                              <SelectItem value="Left-arm spinner">Left-arm spinner</SelectItem>
-                              <SelectItem value="Chinaman">Chinaman</SelectItem>
-                              <SelectItem value="All-rounder">All-rounder</SelectItem>
-                              <SelectItem value="Wicketkeeper batsman">Wicketkeeper batsman</SelectItem>
-                              <SelectItem value="Fielding specialist">Fielding specialist</SelectItem>
+                            <SelectContent position="popper" side="bottom" align="start">
+                              <SelectItem value="Batsman">Batsman</SelectItem>
+                              <SelectItem value="Bowler">Bowler</SelectItem>
+                              <SelectItem value="Wicket Keeper">Wicket Keeper</SelectItem>
+                              <SelectItem value="All-Rounder">All-Rounder</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
@@ -614,6 +674,42 @@ const Auth = ({ forceRegister }: AuthProps) => {
                           </div>
                         </div>
 
+                        {/* NEW: Email and Password in Step 1 */}
+                        {isPhoneVerified && (
+                          <div className="space-y-4 animate-fade-in">
+                            <div className="space-y-2">
+                              <Label htmlFor="email" className="text-white font-semibold drop-shadow-sm">Email Address</Label>
+                              <div className="relative">
+                                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                                <Input id="email" type="email" className="pl-9 h-11 bg-white text-black placeholder:text-gray-500 border-white/20 focus-visible:ring-primary/50" value={formData.email} onChange={handleChange} required placeholder="Enter Email" />
+                              </div>
+                            </div>
+
+                            <div className="space-y-2">
+                              <Label htmlFor="password" className="text-white font-semibold drop-shadow-sm">Create Password</Label>
+                              <div className="relative">
+                                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                                <Input
+                                  id="password"
+                                  type={showRegisterPassword ? "text" : "password"}
+                                  className="pl-9 pr-10 h-11 bg-white text-black placeholder:text-gray-500 border-white/20 focus-visible:ring-primary/50"
+                                  value={formData.password}
+                                  onChange={handleChange}
+                                  required
+                                  placeholder="Create Password"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => setShowRegisterPassword(!showRegisterPassword)}
+                                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                                >
+                                  {showRegisterPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
                         <div className="flex items-start gap-2 pt-2">
                           <input type="checkbox" id="terms" className="mt-1" required />
                           <Label htmlFor="terms" className="text-sm text-zinc-200 font-medium leading-tight cursor-pointer drop-shadow-sm">
@@ -673,17 +769,11 @@ const Auth = ({ forceRegister }: AuthProps) => {
                     )}
 
                     {/* STEP 3: Create Account */}
+                    {/* STEP 3: Create Account - Now just additional info */}
                     {currentStep === 3 && (
                       <div className="space-y-4 animate-fade-in">
-                        <div className="space-y-2">
-                          <Label htmlFor="email" className="text-white font-semibold drop-shadow-sm">Email Address</Label>
-                          <div className="relative">
-                            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-                            <Input id="email" type="email" className="pl-9 h-11 bg-white text-black placeholder:text-gray-500 border-white/20 focus-visible:ring-primary/50" value={formData.email} onChange={handleChange} required placeholder="Enter Email" />
-                          </div>
-                        </div>
-
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          {/* Email/Password removed from here */}
                           <div className="space-y-2">
                             <Label htmlFor="gender" className="text-white font-semibold drop-shadow-sm">Gender</Label>
                             <Select onValueChange={(val) => handleSelectChange(val, 'gender')} value={formData.gender}>
@@ -698,26 +788,9 @@ const Auth = ({ forceRegister }: AuthProps) => {
                             </Select>
                           </div>
                           <div className="space-y-2">
-                            <Label htmlFor="password" className="text-white font-semibold drop-shadow-sm">Password</Label>
-                            <div className="relative">
-                              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-                              <Input
-                                id="password"
-                                type={showRegisterPassword ? "text" : "password"}
-                                className="pl-9 pr-10 h-11 bg-white text-black placeholder:text-gray-500 border-white/20 focus-visible:ring-primary/50"
-                                value={formData.password}
-                                onChange={handleChange}
-                                required
-                                placeholder="Create Password"
-                              />
-                              <button
-                                type="button"
-                                onClick={() => setShowRegisterPassword(!showRegisterPassword)}
-                                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                              >
-                                {showRegisterPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                              </button>
-                            </div>
+                            <Label htmlFor="aadhaar" className="text-white font-semibold drop-shadow-sm">Aadhaar (Optional)</Label>
+                            {/* Assuming aadhaar field exists in formData but wasn't in original display?? Let's check formData init. Yes, aadhar is there. */}
+                            <Input id="aadhar" value={(formData as any).aadhar} onChange={handleChange} placeholder="Aadhaar Number" className="h-11 bg-white text-black placeholder:text-gray-500 border-white/20 focus-visible:ring-primary/50" />
                           </div>
                         </div>
 
@@ -764,7 +837,7 @@ const Auth = ({ forceRegister }: AuthProps) => {
                         </div>
 
                         <Button type="submit" variant="hero" size="lg" className="w-full mt-4" disabled={isLoading}>
-                          {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Complete Registration"}
+                          {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Complete Profile"}
                         </Button>
 
                         <Button type="button" variant="ghost" onClick={() => setCurrentStep(2)} className="w-full">
@@ -777,18 +850,22 @@ const Auth = ({ forceRegister }: AuthProps) => {
                   // Login Form (Unchanged)
                   <>
                     <div className="space-y-2">
-                      <Label htmlFor="email" className="text-white font-semibold drop-shadow-sm">Email</Label>
+                      <Label htmlFor="email" className="text-white font-semibold drop-shadow-sm">Email or Mobile Number</Label>
                       <div className="relative">
-                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+                        {/^\+?\d+$/.test(formData.email) ? (
+                          <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+                        ) : (
+                          <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+                        )}
                         <Input
                           id="email"
-                          type="email"
-                          placeholder="you@example.com"
+                          type="text"
+                          placeholder="Email or Mobile"
                           className="pl-12 bg-white text-black placeholder:text-gray-500 border-white/20 focus-visible:ring-primary/50"
                           value={formData.email}
                           onChange={handleChange}
                           required
-                          autoComplete="off"
+                          autoComplete="username"
                         />
                       </div>
                     </div>
@@ -958,16 +1035,18 @@ const Auth = ({ forceRegister }: AuthProps) => {
         </div>
       </div>
 
-      {isRegister && (
-        <>
-          <TrustBar />
-          <RoadmapSection />
-          <div className="relative z-10 bg-white">
-            <RegistrationFAQ />
+      {
+        isRegister && (
+          <div className="relative z-10">
+            <TrustBar />
+            <RoadmapSection />
+            <div className="relative z-10 bg-white">
+              <RegistrationFAQ />
+            </div>
+            <RegistrationHero />
           </div>
-          <RegistrationHero />
-        </>
-      )}
+        )
+      }
 
       {/* OTP Modal */}
       <Dialog open={showOtpModal} onOpenChange={setShowOtpModal}>
@@ -1002,7 +1081,7 @@ const Auth = ({ forceRegister }: AuthProps) => {
           </div>
         </DialogContent>
       </Dialog>
-    </div>
+    </div >
   );
 };
 

@@ -40,3 +40,8 @@ export const saveStep1Data = async (data: any) => {
     const response = await api.post(ENDPOINTS.AUTH.SAVE_STEP1_DATA, data);
     return response.data;
 };
+
+export const updateProfile = async (data: any) => {
+    const response = await api.post('/auth/update-profile', data);
+    return response.data;
+};

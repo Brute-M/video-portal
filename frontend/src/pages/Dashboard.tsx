@@ -79,7 +79,7 @@ const Dashboard = () => {
   const handleRegistrationPayment = async () => {
     setIsProcessingPayment(true);
     try {
-      const order = await createLandingOrder(1);
+      const order = await createLandingOrder(1499);
 
       const options: any = {
         key: "rzp_live_RsBsR05m5SGbtT",
@@ -93,7 +93,7 @@ const Dashboard = () => {
             await verifyLandingPayment({
               ...response,
               userId: userProfile._id,
-              amount: 1
+              amount: 1499
             });
 
             toast({

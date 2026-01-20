@@ -22,6 +22,7 @@ import TeamsPage from "./pages/TeamsPage";
 import Career from "./pages/Career";
 import ContactUs from "./pages/ContactUs";
 import Registration from "./pages/Registration";
+import Events from "./pages/Events";
 import ThankYou from "./pages/ThankYou";
 import PaymentSuccessful from "./pages/PaymentSuccessful";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
@@ -29,6 +30,7 @@ import TermsAndConditions from "./pages/TermsAndConditions";
 import RegisteredUsers from "./pages/RegisteredUsers";
 import UserDetails from "./pages/UserDetails";
 import Payments from "./pages/Payments";
+import AdminEvents from "./pages/AdminEvents";
 
 import AOS from "aos";
 import "aos/dist/aos.css";
@@ -62,6 +64,7 @@ const App = () => {
                 <Route path="/about-us" element={<AboutUs />} />
                 <Route path="/teams" element={<TeamsPage />} />
                 <Route path="/career" element={<Career />} />
+                <Route path="/events" element={<Events />} />
                 <Route path="/contact-us" element={<ContactUs />} />
                 <Route path="/privacy-policy" element={<PrivacyPolicy />} />
                 <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
@@ -79,6 +82,7 @@ const App = () => {
                 <Route path="/admin/users/:userId" element={<UserDetails />} />
                 {/* <Route path="/admin/step1-leads" element={<Step1Leads />} /> */}
                 <Route path="/admin/payments" element={<Payments />} />
+                <Route path="/admin/events" element={<AdminEvents />} />
               </Route>
 
               <Route element={<DashboardLayout />}>
