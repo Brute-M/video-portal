@@ -8,7 +8,9 @@ const PixelTracker = () => {
 
     useEffect(() => {
         if (!initialized) {
-            ReactPixel.init('2343942202702670'); // Actual Pixel ID
+            const pixelId = '2343942202702670';
+            ReactPixel.init(pixelId, undefined, { debug: true, autoConfig: true }); // Actual Pixel ID
+            ReactPixel.pageView(); // Track initial page view
             setInitialized(true);
         }
     }, [initialized]);

@@ -308,6 +308,15 @@ const Auth = ({ forceRegister }: AuthProps) => {
             });
 
             setPaymentId(response.razorpay_payment_id);
+
+            // Track Facebook Pixel Purchase Event
+            import('react-facebook-pixel').then((x) => x.default.track('Purchase', {
+              value: 1499,
+              currency: 'INR',
+              content_name: 'Registration Fee',
+              content_type: 'product'
+            }));
+
             toast({
               title: "Payment Successful",
               description: "Payment verified. Please complete your profile.",
