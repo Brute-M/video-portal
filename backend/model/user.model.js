@@ -26,6 +26,7 @@ const userSchema = new mongoose.Schema({
   address2: { type: String },
   aadhar: { type: String, required: false },
   trail_video: { type: String }, // Path to the uploaded trail video file
+  profileImage: { type: String }, // Path to the uploaded passport-size profile image
   playerRole: { type: String },
   isPaid: { type: Boolean, default: false },
   paymentAmount: { type: Number },

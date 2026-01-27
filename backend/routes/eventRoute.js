@@ -9,6 +9,7 @@ const uploadFields = eventController.upload.fields([
 ]);
 
 router.post('/create', uploadFields, eventController.createEvent);
+router.put('/:id', uploadFields, eventController.updateEvent);
 router.get('/', eventController.getEvents);
 router.delete('/:id', eventController.deleteEvent);
 

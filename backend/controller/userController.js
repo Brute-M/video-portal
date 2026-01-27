@@ -47,7 +47,10 @@ const getUsers = async (req, res) => {
       },
       {
         $match: {
-          isUserPaid: type === 'paid',
+          // Only filter by payment status if type is explicitly provided
+          ...(type === 'paid' && { isUserPaid: true }),
+          ...(type === 'unpaid' && { isUserPaid: false }),
+          // If type is not provided, show all users (for recent registrations)
           ...(req.query.search && {
             $or: [
               { fname: { $regex: req.query.search, $options: 'i' } },
@@ -66,10 +69,14 @@ const getUsers = async (req, res) => {
       },
       {
         $project: {
+          _id: 1,
           fname: 1,
           lname: 1,
           email: 1,
           mobile: 1,
+          state: 1,
+          zone_id: 1,
+          profileImage: 1,
           playerRole: 1,
           isPaid: '$isUserPaid',
           createdAt: 1,

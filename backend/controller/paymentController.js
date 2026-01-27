@@ -9,13 +9,16 @@ const razorpay = new Razorpay({
     key_secret: '1pFXfyat0LN1xPEeadrz1RN4' || process.env.RAZORPAY_KEY_SECRET,
 });
 
+// ACTUAL AMOUNT (INR)
+const TEST_AMOUNT_INR = 1499;
+
 // Create an order
 exports.createOrder = async (req, res) => {
     const { amount, currency = 'INR', receipt } = req.body;
 
     try {
         const options = {
-            amount: 1499 * 100, // amount in smallest currency unit (1499 INR)
+            amount: TEST_AMOUNT_INR * 100, // amount in smallest currency unit
             currency,
             receipt,
         };
@@ -34,7 +37,7 @@ exports.createOrderLanding = async (req, res) => {
 
     try {
         const options = {
-            amount: 1499 * 100, // amount in smallest currency unit (1499 INR)
+            amount: TEST_AMOUNT_INR * 100, // amount in smallest currency unit
             currency,
             receipt,
         };
@@ -68,7 +71,7 @@ exports.verifyPayment = async (req, res) => {
                 if (video) {
                     video.status = 'completed';
                     video.paymentId = razorpay_payment_id;
-                    video.amount = 1499; // Updated to 1499 for production/regular use
+                    video.amount = TEST_AMOUNT_INR;
                     await video.save();
                     return res.json({ message: "Payment verified and video updated successfully", success: true });
                 }
@@ -111,7 +114,7 @@ exports.verifyLandingPayment = async (req, res) => {
                 await Payment.create({
                     userId,
                     transactionId: razorpay_payment_id,
-                    amount: amount || 1499,
+                    amount: amount || TEST_AMOUNT_INR,
                     type: 'registration',
                     status: 'completed'
                 });

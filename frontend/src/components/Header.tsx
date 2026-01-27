@@ -38,8 +38,8 @@ const Header = () => {
                     {/* Contact Info (Hide on small screens) */}
                     <div className="hidden md:flex items-center gap-6">
                         <div className="flex items-center gap-2">
-                            {/* <Phone className="w-4 h-4 fill-current" /> */}
-                            {/* <a href="tel:+918860342926" className="text-[13px] font-bold tracking-wide hover:text-blue-600 transition-colors">+(91) 8860342926</a> */}
+                            <Phone className="w-4 h-4 fill-current" />
+                            <a href="tel:+918130955866" className="text-[13px] font-bold tracking-wide hover:text-blue-600 transition-colors">+(91) 81309 55866</a>
                         </div>
                         <div className="h-4 w-px bg-slate-300" />
                         <div className="flex items-center gap-2">
@@ -84,7 +84,7 @@ const Header = () => {
 
                 {/* Desktop Navigation */}
                 <nav className="hidden lg:flex items-center gap-8 text-[15px] font-semibold tracking-wide ml-auto">
-                    {["Home", "About Us", "Teams", "Events", "Registration", "Contact Us"].map((item) => {
+                    {["Home", "About Us", "Teams", "Events", "Career", "Registration", "Contact Us"].map((item) => {
                         let path = "/";
                         if (item === "Home") path = "/";
                         else if (item === "Registration") path = "/auth?mode=register";
@@ -116,7 +116,7 @@ const Header = () => {
             {isMenuOpen && (
                 <div className="lg:hidden absolute top-full left-0 w-full bg-[#111a45] shadow-xl border-t border-white/10 z-50 px-6 py-4">
                     <nav className="flex flex-col text-left">
-                        {["Home", "About Us", "Teams", "Events", "Registration", "Contact Us"].map((item) => {
+                        {["Home", "About Us", "Teams", "Events", "Career", "Registration", "Contact Us"].map((item) => {
                             let path = "/";
                             if (item === "Home") path = "/";
                             else if (item === "Registration") path = "/auth?mode=register";

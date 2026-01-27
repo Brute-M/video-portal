@@ -112,6 +112,7 @@ const Teams: React.FC = () => {
                     src={team.logo}
                     alt={team.name}
                     className="h-full w-full object-contain p-2"
+                    loading="lazy"
                     onError={(e) => {
                       (e.currentTarget as HTMLImageElement).style.display = "none";
                     }}

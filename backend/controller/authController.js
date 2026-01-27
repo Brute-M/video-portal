@@ -24,6 +24,31 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
+// Multer config for profile image (passport-size)
+const profileImageStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'uploads/');
+  },
+  filename: (req, file, cb) => {
+    cb(null, 'profile_' + Date.now() + path.extname(file.originalname));
+  }
+});
+
+const uploadProfileImage = multer({
+  storage: profileImageStorage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = /jpeg|jpg|png|gif/;
+    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+    const mimetype = allowedTypes.test(file.mimetype);
+    if (extname && mimetype) {
+      return cb(null, true);
+    } else {
+      cb(new Error('Only image files are allowed!'));
+    }
+  }
+});
+
 /**
  * @param {Object} req - The request object.
  * @param {Object} res - The response object.
@@ -954,10 +979,58 @@ const exportStep1Leads = async (req, res) => {
   }
 };
 
+const uploadProfileImageHandler = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({
+        statusCode: 400,
+        data: { message: 'No image file provided' }
+      });
+    }
+
+    const userId = req.userId; // From auth middleware
+    if (!userId) {
+      return res.status(401).json({
+        statusCode: 401,
+        data: { message: 'Unauthorized' }
+      });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        statusCode: 404,
+        data: { message: 'User not found' }
+      });
+    }
+
+    // Update user profile image
+    user.profileImage = req.file.path;
+    await user.save();
+
+    res.json({
+      statusCode: 200,
+      data: {
+        message: 'Profile image uploaded successfully',
+        imageUrl: `/uploads/${req.file.filename}`,
+        profileImage: user.profileImage
+      }
+    });
+  } catch (error) {
+    console.error('Upload Profile Image Error:', error);
+    res.status(500).json({
+      statusCode: 500,
+      data: { message: 'Failed to upload profile image' }
+    });
+  }
+};
+
 module.exports = {
   login,
   register,
   upload,
+  uploadProfileImage,
+  uploadProfileImageHandler,
   sendOtp,
   verifyOtp,
   forgotPassword,

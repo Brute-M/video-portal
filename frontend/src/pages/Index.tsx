@@ -1,4 +1,4 @@
-import PointsTable from "@/components/PointsTable";
+import EventGallerySlider from "@/components/EventGallerySlider";
 import Teams from "@/components/Teams";
 import Banner from "@/components/Banner";
 import SEO from "@/components/SEO";
@@ -13,8 +13,8 @@ const Index = () => {
       {/* Hero Section */}
       <Banner />
 
-      {/* Points Table Section */}
-      <PointsTable />
+      {/* Event Gallery Slider (Formerly Points Table) */}
+      <EventGallerySlider />
 
       {/* Teams Section */}
       <Teams />

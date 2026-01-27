@@ -48,6 +48,7 @@ const MeetOurTeamSection: React.FC = () => {
                       src={member.image}
                       alt={member.name}
                       className="w-full h-full object-cover object-top"
+                      loading="lazy"
                     />
                   </div>
 

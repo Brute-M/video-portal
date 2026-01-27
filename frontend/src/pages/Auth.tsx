@@ -29,6 +29,7 @@ import TrustBar from "@/components/TrustBar";
 import RoadmapSection from "@/components/RoadmapSection";
 import RegistrationHero from "@/components/RegistrationHero";
 import FloatingRegisterButton from "@/components/FloatingRegisterButton";
+import FloatingWhatsAppButton from "@/components/FloatingWhatsAppButton";
 
 type AuthProps = {
   forceRegister?: boolean;
@@ -67,7 +68,7 @@ const Auth = ({ forceRegister }: AuthProps) => {
     fname: "",
     lname: "",
     mobile: "",
-    gender: "",
+
     zone_id: "",
     city: "",
     state: "",
@@ -542,10 +543,11 @@ const Auth = ({ forceRegister }: AuthProps) => {
       {/* Full Screen Background Image */}
       <div className="fixed inset-0 z-0 bg-[#0F172A]">
         <div className="absolute inset-0 bg-black/50 z-10" /> {/* Dark Overlay */}
-        <div className="absolute inset-0 bg-[length:100%_auto] bg-top bg-no-repeat lg:bg-cover lg:bg-center" style={{ backgroundImage: "url('/register-footer-2.png')" }} />
+        <div className="absolute inset-0 bg-cover bg-center bg-no-repeat" style={{ backgroundImage: "url('/register-footer-2.png')" }} />
       </div>
 
       {isRegister && <FloatingRegisterButton />}
+      {isRegister && <FloatingWhatsAppButton />}
 
       {/* Main Content Area (Split View) */}
       <div className="flex flex-col lg:flex-row flex-1 w-full min-h-[calc(100vh-80px)] relative z-10">
@@ -562,6 +564,9 @@ const Auth = ({ forceRegister }: AuthProps) => {
               <p className="text-lg lg:text-xl font-bold text-black tracking-wide">
                 Limited Slots in your City
               </p>
+            </div>
+            <div className="mt-6 text-white text-lg font-semibold drop-shadow-md bg-black/40 px-4 py-2 rounded-lg inline-block backdrop-blur-sm border border-white/10">
+              📞 Call us: <a href="tel:8130955866" className="text-[#FFC928] hover:underline">81309 55866</a>
             </div>
           </div>
 
@@ -774,19 +779,7 @@ const Auth = ({ forceRegister }: AuthProps) => {
                       <div className="space-y-4 animate-fade-in">
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           {/* Email/Password removed from here */}
-                          <div className="space-y-2">
-                            <Label htmlFor="gender" className="text-white font-semibold drop-shadow-sm">Gender</Label>
-                            <Select onValueChange={(val) => handleSelectChange(val, 'gender')} value={formData.gender}>
-                              <SelectTrigger className="h-11 bg-white text-black border-white/20 focus:ring-primary/50">
-                                <SelectValue placeholder="Select Gender" />
-                              </SelectTrigger>
-                              <SelectContent position="popper" side="bottom" align="start">
-                                <SelectItem value="Male">Male</SelectItem>
-                                <SelectItem value="Female">Female</SelectItem>
-                                <SelectItem value="Other">Other</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
+
                           <div className="space-y-2">
                             <Label htmlFor="aadhaar" className="text-white font-semibold drop-shadow-sm">Aadhaar (Optional)</Label>
                             {/* Assuming aadhaar field exists in formData but wasn't in original display?? Let's check formData init. Yes, aadhar is there. */}

@@ -92,6 +92,7 @@ const PointsTable: React.FC = () => {
                           src={row.logo}
                           alt={row.name}
                           className="h-full w-full object-contain drop-shadow-md"
+                          loading="lazy"
                           onError={(e) => {
                             (e.currentTarget as HTMLImageElement).style.display = "none";
                           }}

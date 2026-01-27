@@ -31,24 +31,9 @@ const createEvent = async (req, res) => {
         const mainImage = req.files['image'][0].location;
 
         const mediaItems = [];
-        if (req.files['gallery']) {
-            req.files['gallery'].forEach(file => {
-                // Determine type based on mimetype
-                const type = file.mimetype.startsWith('video') ? 'video' : 'image';
-
-                // For simplified implementation, we'll assume basic width/height or frontend handles it
-                // Ideally, we shoud extract metadata here, but for now we'll store basic info
-
-                mediaItems.push({
-                    type: type,
-                    src: file.location,
-                    // Basic default dimensions, frontend can override or we can add metadata extraction later
-                    width: type === 'video' ? 1920 : 1000,
-                    height: type === 'video' ? 1080 : 1000,
-                    // If video and we have a poster upload logic (complex), skipping for now or using default
-                });
-            });
-        }
+        // Single image enforcement: No gallery processing.
+        // We can optionally push the main image to mediaItems if we want unified handling, 
+        // but for now, we'll keep strict separation as requested.
 
         const newEvent = new Event({
             title,
@@ -164,9 +149,47 @@ const deleteEvent = async (req, res) => {
     }
 };
 
+// Update Event
+const updateEvent = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { title, date, location, category } = req.body;
+
+        const event = await Event.findById(id);
+        if (!event) {
+            return res.status(404).json({ message: "Event not found" });
+        }
+
+        // Update fields
+        if (title) event.title = title;
+        if (date) event.date = date;
+        if (location) event.location = location;
+        if (category) event.category = category;
+
+        // Handle image update
+        if (req.files && req.files['image']) {
+            // Delete old image
+            if (event.image) {
+                const key = getKeyFromUrl(event.image);
+                if (key) await deleteFromS3(key).catch(e => console.error("Failed to delete old banner", e));
+            }
+            // Set new image
+            event.image = req.files['image'][0].location;
+        }
+
+        await event.save();
+        res.status(200).json({ statusCode: 200, data: event, message: "Event updated successfully" });
+
+    } catch (error) {
+        console.error("Error updating event:", error);
+        res.status(500).json({ statusCode: 500, message: "Error updating event", error: error.message });
+    }
+};
+
 module.exports = {
     upload,
     createEvent,
     getEvents,
-    deleteEvent
+    deleteEvent,
+    updateEvent
 };

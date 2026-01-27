@@ -21,11 +21,12 @@ const deleteFromS3 = async (key) => {
     }
 };
 
-const getPresignedUrl = async (key) => {
+const getPresignedUrl = async (key, options = {}) => {
     try {
         const command = new GetObjectCommand({
             Bucket: 'brpl-uploads',
-            Key: key
+            Key: key,
+            ...options
         });
         const url = await getSignedUrl(s3Client, command, { expiresIn: 3600 });
         return url;

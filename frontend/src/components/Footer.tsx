@@ -8,10 +8,10 @@ const Footer: React.FC = () => {
 
       {/* Player Images - Absolute Positioned */}
       <div className="absolute left-0 bottom-28 z-0 hidden xl:block pointer-events-none">
-        <img src="/foot1.png" alt="Player Left" className="h-[200px] object-contain opacity-80" />
+        <img src="/foot1.png" alt="Player Left" className="h-[200px] object-contain opacity-80" loading="lazy" />
       </div>
       <div className="absolute right-0 bottom-28 z-0 hidden xl:block pointer-events-none">
-        <img src="/foot2.png" alt="Player Right" className="h-[200px] object-contain opacity-80" />
+        <img src="/foot2.png" alt="Player Right" className="h-[200px] object-contain opacity-80" loading="lazy" />
       </div>
 
       <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-10 lg:px-10 py-12 md:py-10">
@@ -33,7 +33,7 @@ const Footer: React.FC = () => {
                 "Eastern Rhions",
               ].map((item) => (
                 <li key={item} className="flex items-center gap-2 group cursor-pointer hover:translate-x-1 transition-transform">
-                  <span className="text-[#FFC928] text-[10px]">▶</span>
+                  <span className="text-[#FFC928] text-[8px]">●</span>
                   <Link to="/teams" className="text-gray-200 hover:text-white transition-colors">{item}</Link>
                 </li>
               ))}
@@ -53,7 +53,7 @@ const Footer: React.FC = () => {
                 { name: "News & Events", path: "#" }
               ].map((item) => (
                 <li key={item.name} className="flex items-center gap-2 group cursor-pointer hover:translate-x-1 transition-transform">
-                  <span className="text-[#FFC928] text-[10px]">▶</span>
+                  <span className="text-[#FFC928] text-[8px]">●</span>
                   <Link to={item.path} className="text-gray-200 hover:text-white transition-colors">
                     {item.name}
                   </Link>
@@ -62,8 +62,8 @@ const Footer: React.FC = () => {
             </ul>
             {/* Store Buttons */}
             <div className="flex gap-3 mt-4">
-              <img src="/ios-app.png" alt="ios-app" className="w-25 h-12" />
-              <img src="/google-store.webp" alt="android-app" className="w-22 h-12" />
+              <img src="/ios-app.png" alt="ios-app" className="w-25 h-12" loading="lazy" />
+              <img src="/google-store.webp" alt="android-app" className="w-22 h-12" loading="lazy" />
             </div>
           </div>
 
@@ -77,10 +77,10 @@ const Footer: React.FC = () => {
               {[
                 { name: "Privacy & Policy", path: "/privacy-policy" },
                 { name: "Terms & Condition", path: "/terms-and-conditions" },
-                { name: "Cricket Rulebook", path: "/cricket-rulebook" },
+                // { name: "Cricket Rulebook", path: "/cricket-rulebook" },
               ].map((item) => (
                 <li key={item.name} className="flex items-center gap-2 group cursor-pointer hover:translate-x-1 transition-transform">
-                  <span className="text-[#FFC928] text-[10px]">▶</span>
+                  <span className="text-[#FFC928] text-[8px]">●</span>
                   <Link to={item.path} className="text-gray-200 hover:text-white transition-colors">
                     {item.name}
                   </Link>
@@ -101,7 +101,7 @@ const Footer: React.FC = () => {
                 { name: "News", path: "#" }
               ].map((item) => (
                 <li key={item.name} className="flex items-center gap-2 group cursor-pointer hover:translate-x-1 transition-transform">
-                  <span className="text-[#FFC928] text-[10px]">▶</span>
+                  <span className="text-[#FFC928] text-[8px]">●</span>
                   <Link to={item.path} className="text-gray-200 hover:text-white transition-colors">
                     {item.name}
                   </Link>
@@ -146,7 +146,7 @@ const Footer: React.FC = () => {
       {/* Bottom copyright bar */}
       <div className="w-full bg-black text-center py-8 text-[13px] text-white">
         <span>
-          © Copyright 2025 | All Rights Reserved by Beyond Reach Premier League
+          © Copyright {new Date().getFullYear()} | All Rights Reserved by Beyond Reach Premier League
         </span>
       </div>
     </footer>

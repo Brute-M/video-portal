@@ -14,6 +14,7 @@ const AboutSection: React.FC = () => {
                             src="/about-1.png"
                             alt="Cricket Action"
                             className="w-full h-full object-cover"
+                            loading="lazy"
                         />
                     </div>
                 </div>

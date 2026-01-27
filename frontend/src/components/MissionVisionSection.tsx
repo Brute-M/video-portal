@@ -71,6 +71,7 @@ const MissionVisionSection: React.FC = () => {
                                 src={activeTab === 'mission' ? "/about-2.jpg" : "/vision.jpg"}
                                 alt="Target and Mission"
                                 className="w-full h-auto object-cover"
+                                loading="lazy"
                             />
                         </div>
                     </div>

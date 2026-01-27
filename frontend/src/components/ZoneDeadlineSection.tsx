@@ -49,7 +49,7 @@ const ZoneDeadlineSection = () => {
                 <div className="flex flex-col md:flex-row items-center justify-center gap-3 mb-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
                     <AlertTriangle className="w-10 h-10 text-[#FFC928] animate-pulse" />
                     <h2 className="text-3xl md:text-5xl font-extrabold text-white uppercase tracking-wider font-display">
-                        YOUR ZONE IS <span className="text-[#FFC928]">FILLING UP FAST</span>
+                        ZONES ARE <span className="text-[#FFC928]">NEARING CAPACITY</span>
                     </h2>
                 </div>
 
@@ -58,29 +58,29 @@ const ZoneDeadlineSection = () => {
                     {/* Stat 1 */}
                     <div className="flex flex-col items-center p-4">
                         <span className="text-5xl md:text-6xl font-bold text-white mb-2 font-display">78%</span>
-                        <span className="text-[#FFC928] font-bold tracking-widest text-sm uppercase">SEATS FILLED</span>
+                        <span className="text-[#FFC928] font-bold tracking-widest text-sm">Registrations Completed</span>
                     </div>
 
                     {/* Stat 2 */}
                     <div className="flex flex-col items-center p-4 border-y md:border-y-0 md:border-x border-white/10">
                         <span className="text-5xl md:text-6xl font-bold text-white mb-2 font-mono tabular-nums tracking-wider text-shadow">{timeLeft}</span>
-                        <span className="text-[#FFC928] font-bold tracking-widest text-sm uppercase">TIME REMAINING</span>
+                        <span className="text-[#FFC928] font-bold tracking-widest text-sm">Time Left</span>
                     </div>
 
                     {/* Stat 3 */}
                     <div className="flex flex-col items-center p-4">
                         <span className="text-5xl md:text-6xl font-bold text-white mb-2 font-display">89</span>
-                        <span className="text-[#FFC928] font-bold tracking-widest text-sm uppercase">SPOTS REMAINING</span>
+                        <span className="text-[#FFC928] font-bold tracking-widest text-sm">Slots Available</span>
                     </div>
                 </div>
 
                 {/* CTA Text */}
                 <div className="space-y-4 mb-10">
                     <p className="text-xl md:text-2xl text-gray-300 italic font-medium">
-                        PLAYERS WHO WAIT, <span className="text-[#FF5555]">MISS OUT.</span>
+                        Those who hesitate fall behind.
                     </p>
-                    <p className="text-2xl md:text-3xl text-white font-bold uppercase tracking-wide">
-                        PLAYERS WHO ACT, <span className="border-b-4 border-[#FFC928]">MAKE HISTORY.</span>
+                    <p className="text-2xl md:text-3xl text-white font-bold tracking-wide">
+                        Those who step forward, leave their mark.
                     </p>
                 </div>
 
@@ -89,7 +89,7 @@ const ZoneDeadlineSection = () => {
                     onClick={() => navigate("/auth?mode=register")}
                     className="bg-[#FFC928] text-black hover:bg-[#FFC928]/90 text-lg md:text-xl font-bold px-10 py-6 h-auto rounded-full shadow-[0_0_20px_rgba(255,201,40,0.4)] transition-all hover:scale-105 hover:shadow-[0_0_30px_rgba(255,201,40,0.6)]"
                 >
-                    REGISTER NOW <ArrowRight className="w-6 h-6 ml-2" />
+                    👉 Secure Your Spot
                 </Button>
             </div>
         </div>

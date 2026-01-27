@@ -30,7 +30,10 @@ import TermsAndConditions from "./pages/TermsAndConditions";
 import RegisteredUsers from "./pages/RegisteredUsers";
 import UserDetails from "./pages/UserDetails";
 import Payments from "./pages/Payments";
+
 import AdminEvents from "./pages/AdminEvents";
+import AdminJobsList from "./pages/AdminJobsList";
+import AdminJobForm from "./pages/AdminJobForm";
 
 import AOS from "aos";
 import "aos/dist/aos.css";
@@ -83,6 +86,9 @@ const App = () => {
                 {/* <Route path="/admin/step1-leads" element={<Step1Leads />} /> */}
                 <Route path="/admin/payments" element={<Payments />} />
                 <Route path="/admin/events" element={<AdminEvents />} />
+                <Route path="/admin/jobs" element={<AdminJobsList />} />
+                <Route path="/admin/jobs/create" element={<AdminJobForm />} />
+                <Route path="/admin/jobs/edit/:id" element={<AdminJobForm />} />
               </Route>
 
               <Route element={<DashboardLayout />}>

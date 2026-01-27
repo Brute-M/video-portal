@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { login, register, upload, sendOtp, verifyOtp, forgotPassword, resetPassword, registerCoach, loginCoach, resendWelcomeEmail, getPartnerProfile, getCoachMyPlayers, trackVisit, getVisits, saveStep1Data } = require('../controller/authController');
+const { login, register, upload, uploadProfileImage, uploadProfileImageHandler, sendOtp, verifyOtp, forgotPassword, resetPassword, registerCoach, loginCoach, resendWelcomeEmail, getPartnerProfile, getCoachMyPlayers, trackVisit, getVisits, saveStep1Data } = require('../controller/authController');
 const authenticate = require('../middleware/authMiddleware');
 const User = require('../model/user.model');
 
@@ -21,6 +21,7 @@ router.post('/resend-welcome-email', resendWelcomeEmail);
 router.post('/track-visit', trackVisit);
 router.post('/step1-lead', saveStep1Data);
 router.post('/update-profile', authenticate, require('../controller/authController').updateProfile);
+router.post('/upload-profile-image', authenticate, uploadProfileImage.single('profileImage'), uploadProfileImageHandler);
 router.get('/partner/profile', authenticate, getPartnerProfile);
 router.get('/coach/my-players', authenticate, getCoachMyPlayers);
 router.get('/visits', getVisits);
@@ -41,7 +42,8 @@ router.get('/profile', authenticate, async (req, res) => {
         lname: user.lname,
         mobile: user.mobile,
         isFromLandingPage: user.isFromLandingPage,
-        isPaid: user.isPaid || !!user.paymentId
+        isPaid: user.isPaid || !!user.paymentId,
+        profileImage: user.profileImage
       }
     });
   } catch (err) {

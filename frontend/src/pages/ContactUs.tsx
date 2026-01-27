@@ -154,10 +154,10 @@ const ContactUs = () => {
                                 </p>
 
                                 <div className="space-y-4 text-sm md:text-base">
-                                    {/* <div className="flex items-start gap-3">
+                                    <div className="flex items-start gap-3">
                                         <Phone className="w-5 h-5 mt-0.5 flex-shrink-0" />
-                                        <span>+(91) 8860342926</span>
-                                    </div> */}
+                                        <span>+(91) 81309 55866</span>
+                                    </div>
                                     <div className="flex items-start gap-3">
                                         <Mail className="w-5 h-5 mt-0.5 flex-shrink-0" />
                                         <span>info@brpl.net</span>
