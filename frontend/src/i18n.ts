@@ -12,7 +12,7 @@ const resources = {
             "video_uploaded": "Video Successfully Uploaded",
             "access_restricted": "Access Restricted",
             "unlock_dashboard": "To unlock your dashboard and start uploading videos, please complete your registration payment and verification.",
-            "complete_payment": "Complete Payment (₹ 1)",
+            "complete_payment": "Complete Payment (₹ 1499)",
             "initiating": "Initiating...",
             "secure_payment": "Secure payment via Razorpay. Access will be granted immediately upon verification.",
             "payment_pending": "Payment Pending",
