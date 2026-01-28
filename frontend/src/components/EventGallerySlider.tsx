@@ -14,35 +14,35 @@ import { ArrowRight, MapPin, Calendar } from "lucide-react";
 const galleryEvents = [
     {
         id: 1,
-        image: "https://brpl-uploads.s3.ap-south-1.amazonaws.com/events/1769497220534-DSC03389.jpg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=AKIASMNFQCV6DD6DRHQP%2F20260127%2Fap-south-1%2Fs3%2Faws4_request&X-Amz-Date=20260127T161914Z&X-Amz-Expires=3600&X-Amz-Signature=f2a29c875ddc83bc883028386943b1867ab3e575dd4d95e12c2c7161d4b2e969&X-Amz-SignedHeaders=host&x-amz-checksum-mode=ENABLED&x-id=GetObject", // Stadium/Cricket generic
+        image: "https://brpl-public-uploads.s3.ap-south-1.amazonaws.com/DSC03663+.jpg", // Stadium/Cricket generic
         title: "Launch Event",
         date: "March 15, 2026",
         location: "New Delhi"
     },
     {
         id: 2,
-        image: "https://brpl-uploads.s3.ap-south-1.amazonaws.com/events/1769497420696-DSC03504.jpg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=AKIASMNFQCV6DD6DRHQP%2F20260127%2Fap-south-1%2Fs3%2Faws4_request&X-Amz-Date=20260127T162801Z&X-Amz-Expires=3600&X-Amz-Signature=f5468b70dd814a0ffdeb643dee5dd543311d51d771ec9225dd0dd2e572cebc0c&X-Amz-SignedHeaders=host&x-amz-checksum-mode=ENABLED&x-id=GetObject", // Cricket action
+        image: "https://brpl-public-uploads.s3.ap-south-1.amazonaws.com/DSC03331.jpg", // Cricket action
         title: "Launch Event",
         date: "March 15, 2026",
         location: "New Delhi"
     },
     {
         id: 3,
-        image: "https://brpl-uploads.s3.ap-south-1.amazonaws.com/events/1769503244908-DSC03756.jpg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=AKIASMNFQCV6DD6DRHQP%2F20260127%2Fap-south-1%2Fs3%2Faws4_request&X-Amz-Date=20260127T162801Z&X-Amz-Expires=3600&X-Amz-Signature=226fcad318e746c49edb58dfb4545dfafee628c46b9f91833537a09d417189fa&X-Amz-SignedHeaders=host&x-amz-checksum-mode=ENABLED&x-id=GetObject", // Cricket crowd/team
+        image: "https://brpl-public-uploads.s3.ap-south-1.amazonaws.com/DSC03756.jpg", // Cricket crowd/team
         title: "Launch Event",
         date: "March 15, 2026",
         location: "New Delhi"
     },
     {
         id: 4,
-        image: "https://brpl-uploads.s3.ap-south-1.amazonaws.com/events/1769500755568-DSC03585.jpg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=AKIASMNFQCV6DD6DRHQP%2F20260127%2Fap-south-1%2Fs3%2Faws4_request&X-Amz-Date=20260127T162801Z&X-Amz-Expires=3600&X-Amz-Signature=a9ddfb137ed57da53932ca9cb8d9d73f143419dc0753e2dac52bc08a65f78aa8&X-Amz-SignedHeaders=host&x-amz-checksum-mode=ENABLED&x-id=GetObject", // Sports general
+        image: "https://brpl-public-uploads.s3.ap-south-1.amazonaws.com/DSC03335.jpg", // Sports general
         title: "Launch Event",
         date: "March 15, 2026",
         location: "New Delhi"
     },
     {
         id: 5,
-        image: "https://brpl-public-uploads.s3.ap-south-1.amazonaws.com/8.jpg", // Trophy/Award
+        image: "https://brpl-public-uploads.s3.ap-south-1.amazonaws.com/DSC03549.jpg", // Trophy/Award
         title: "Launch Event",
         date: "March 15, 2026",
         location: "New Delhi"
