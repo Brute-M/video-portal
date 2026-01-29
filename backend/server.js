@@ -76,4 +76,5 @@ app.use("/api/jobs", jobRoutes);
 app.listen(port, () => {
   console.log(`server is running on port ${port}`);
   console.log('Server restarted for event controller updates');
+  console.log("user latest code on the server")
 });
