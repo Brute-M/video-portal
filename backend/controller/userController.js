@@ -47,9 +47,8 @@ const getUsers = async (req, res) => {
       },
       {
         $match: {
-          // Only filter by payment status if type is explicitly provided
-          ...(type === 'paid' && { isUserPaid: true }),
-          ...(type === 'unpaid' && { isUserPaid: false }),
+          isUserPaid: true,
+          isFromLandingPage: true,
           // If type is not provided, show all users (for recent registrations)
           ...(req.query.search && {
             $or: [
@@ -79,6 +78,7 @@ const getUsers = async (req, res) => {
           profileImage: 1,
           playerRole: 1,
           isPaid: '$isUserPaid',
+          isFromLandingPage: 1, // Added field
           createdAt: 1,
           videoCount: { $size: '$userVideos' },
           videos: '$userVideos',
@@ -124,6 +124,17 @@ const getUsers = async (req, res) => {
           }
         }
       },
+      {
+        $addFields: {
+          transactionId: '$lastPaymentId' // Alias for clarity
+        }
+      },
+      {
+        $match: {
+          // specific amount filter if provided
+          ...(req.query.amount && { paymentAmount: parseInt(req.query.amount) })
+        }
+      },
       { $sort: { createdAt: -1 } },
       {
         $facet: {
@@ -138,7 +149,7 @@ const getUsers = async (req, res) => {
       }
     ]);
 
-    const data = users[0].data;
+    const data = users[0].data || [];
     const total = users[0].metadata[0] ? users[0].metadata[0].total : 0;
     const page = parseInt(req.query.page || 1);
     const limit = parseInt(req.query.limit || 10);
