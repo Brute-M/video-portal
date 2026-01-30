@@ -9,8 +9,8 @@ async function findData() {
         await mongoose.connect(dbURI);
         console.log("Connected to MongoDB");
 
-        const mobile = "9717174805";
-        const email = "sardanapankul@gmail.com";
+        const mobile = "9552371517";
+        const email = "avirajpawar75@gmail.com";
         console.log(`Searching for Mobile: ${mobile}, Email: ${email}`);
 
         const userByMobile = await User.findOne({ mobile });

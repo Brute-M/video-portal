@@ -11,6 +11,12 @@ require('dotenv').config();
 const multer = require('multer');
 const path = require('path');
 const crypto = require('crypto');
+const { S3Client } = require('@aws-sdk/client-s3');
+const multerS3 = require('multer-s3');
+
+const s3 = new S3Client({
+  region: process.env.AWS_REGION || 'ap-south-1'
+});
 
 // Multer config for trail video
 const storage = multer.diskStorage({
@@ -24,13 +30,16 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
-// Multer config for profile image (passport-size)
-const profileImageStorage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, 'uploads/');
+const profileImageStorage = multerS3({
+  s3: s3,
+  bucket: process.env.AWS_BUCKET_NAME || 'brpl-public-uploads',
+  metadata: function (req, file, cb) {
+    cb(null, { fieldName: file.fieldname });
   },
-  filename: (req, file, cb) => {
-    cb(null, 'profile_' + Date.now() + path.extname(file.originalname));
+  key: function (req, file, cb) {
+    const ext = path.extname(file.originalname);
+    // Save to 'profiles/' folder in bucket
+    cb(null, `profiles/profile_${Date.now()}_${Math.round(Math.random() * 1E9)}${ext}`);
   }
 });
 
@@ -39,6 +48,7 @@ const uploadProfileImage = multer({
   limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
   fileFilter: (req, file, cb) => {
     const allowedTypes = /jpeg|jpg|png|gif/;
+    // Check extension and mimetype
     const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
     const mimetype = allowedTypes.test(file.mimetype);
     if (extname && mimetype) {
@@ -1004,15 +1014,16 @@ const uploadProfileImageHandler = async (req, res) => {
       });
     }
 
-    // Update user profile image
-    user.profileImage = req.file.path;
+    // Update user profile image with S3 URL
+    // req.file.location contains the S3 URL
+    user.profileImage = req.file.location;
     await user.save();
 
     res.json({
       statusCode: 200,
       data: {
         message: 'Profile image uploaded successfully',
-        imageUrl: `/uploads/${req.file.filename}`,
+        imageUrl: user.profileImage, // Return full S3 URL
         profileImage: user.profileImage
       }
     });
