@@ -134,3 +134,17 @@ exports.verifyLandingPayment = async (req, res) => {
         res.status(400).json({ message: "Invalid signature", success: false });
     }
 };
+
+exports.getOrderDetails = async (req, res) => {
+    try {
+        const order = await razorpay.orders.fetch(req.params.id);
+        if (!order) {
+            return res.status(404).json({ message: "Order not found", success: false });
+        }
+
+        res.json({ message: "Order details fetched successfully", success: true, data: order });
+    } catch (error) {
+        console.error('Error fetching order details:', error);
+        res.status(500).send(error);
+    }
+};

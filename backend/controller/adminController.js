@@ -84,7 +84,7 @@ const getPaginatedRecords = async (req, res) => {
             return res.status(403).json({ message: 'Forbidden' });
         }
 
-        const type = (req.query.type || 'users').toString();
+        const type = (req.query.type || 'users').toString().trim().toLowerCase();
         const page = Math.max(1, Number(req.query.page) || 1);
         const limit = Math.min(100, Math.max(5, Number(req.query.limit) || 10));
         const search = (req.query.search || '').toString().trim();
@@ -94,9 +94,12 @@ const getPaginatedRecords = async (req, res) => {
         const Model = type === 'coaches' ? Coach : type === 'influencers' ? Influencer : User;
 
         const filter = {};
-        if (type === 'users') {
+
+        // Apply isFromLandingPage for all user-related types
+        if (['users', 'paid', 'unpaid'].includes(type)) {
             filter.isFromLandingPage = true;
         }
+
         if (search) {
             // eslint-disable-next-line no-useless-escape
             filter.$or = [
@@ -121,7 +124,19 @@ const getPaginatedRecords = async (req, res) => {
         const skip = (safePage - 1) * limit;
 
         let items;
-        if (type === 'users') {
+        // Apply type-specific filters for User model
+        if (type === 'paid') {
+            filter.isPaid = true;
+        } else if (type === 'unpaid') {
+            filter.isPaid = false;
+            filter.$or = [
+                { paymentAmount: 0 },
+                { paymentAmount: { $exists: false } },
+                { paymentAmount: null }
+            ];
+        }
+
+        if (['users', 'paid', 'unpaid'].includes(type)) {
             items = await User.aggregate([
                 { $match: filter },
                 { $sort: { createdAt: -1 } },
@@ -484,6 +499,90 @@ const manualUserPaymentUpdate = async (req, res) => {
     }
 };
 
+const getUnpaidUsers = async (req, res) => {
+    try {
+        if (req.role !== 'admin' && req.userId !== 'admin') {
+            return res.status(403).json({ message: 'Forbidden' });
+        }
+
+        const page = Math.max(1, Number(req.query.page) || 1);
+        const limit = Math.min(100, Math.max(5, Number(req.query.limit) || 10));
+        const search = (req.query.search || '').toString().trim();
+        const startDate = req.query.startDate;
+        const endDate = req.query.endDate;
+
+        // Base requirements: Landing Page + Unpaid
+        const baseFilter = {
+            // isFromLandingPage: true, // Removed to match export logic
+            isPaid: false
+        };
+
+        // Payment check: 0 or null/undefined
+        const paymentOr = [
+            { paymentAmount: 0 },
+            { paymentAmount: { $exists: false } },
+            { paymentAmount: null }
+        ];
+
+        // Search check
+        const searchOr = [];
+        if (search) {
+            const regex = { $regex: search, $options: 'i' };
+            searchOr.push({ email: regex });
+            searchOr.push({ mobile: regex });
+            searchOr.push({ name: regex });
+            searchOr.push({ fname: regex });
+            searchOr.push({ lname: regex });
+        }
+
+        // Date check
+        const dateFilter = {};
+        if (startDate && endDate) {
+            dateFilter.createdAt = {
+                $gte: new Date(startDate),
+                $lte: new Date(new Date(endDate).setHours(23, 59, 59, 999))
+            };
+        }
+
+        // Combine all filters
+        const finalFilter = {
+            ...baseFilter,
+            ...dateFilter,
+            $and: [
+                { $or: paymentOr }
+            ]
+        };
+
+        if (searchOr.length > 0) {
+            finalFilter.$and.push({ $or: searchOr });
+        }
+
+        const total = await User.countDocuments(finalFilter);
+        const items = await User.find(finalFilter)
+            .select('-password')
+            .sort({ createdAt: -1 })
+            .skip((page - 1) * limit)
+            .limit(limit);
+
+        return res.json({
+            statusCode: 200,
+            data: {
+                items,
+                pagination: {
+                    page,
+                    limit,
+                    total,
+                    pages: Math.ceil(total / limit)
+                }
+            }
+        });
+
+    } catch (error) {
+        console.error('Error fetching unpaid users:', error);
+        return res.status(500).json({ message: 'Server error fetching unpaid users' });
+    }
+};
+
 module.exports = {
     adminLandingLogin,
     getAllRecords,
@@ -492,6 +591,7 @@ module.exports = {
     getDashboardChartData,
     downloadUserInvoice,
     getPayments,
-    manualUserPaymentUpdate
+    manualUserPaymentUpdate,
+    getUnpaidUsers
 };
 

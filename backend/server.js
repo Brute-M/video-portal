@@ -63,6 +63,7 @@ app.get("/", (req, res) => {
 
 
 app.use("/auth", authRoutes);
+app.use("/api/auth", authRoutes); // Alias for consistency
 app.use("/api/video", videoRoutes);
 app.use("/api", userRoutes);
 app.use("/api/coupons", couponRoutes);
@@ -70,8 +71,10 @@ app.use("/api/locations", locationRoute);
 app.use("/api/contact", contactRoute);
 app.use("/api/payment", paymentRoute);
 app.use("/admin", adminRoutes);
+app.use("/api/admin", adminRoutes); // Alias for consistency
 app.use("/api/events", eventRoutes);
 app.use("/api/jobs", jobRoutes);
+app.use("/api/nav-links", require("./routes/navLinkRoute"));
 
 app.listen(port, () => {
   console.log(`server is running on port ${port}`);
