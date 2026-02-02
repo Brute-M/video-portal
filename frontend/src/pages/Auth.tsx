@@ -684,7 +684,7 @@ const Auth = ({ forceRegister }: AuthProps) => {
                           </div>
                           <div className="space-y-2">
                             <Label htmlFor="city" className="text-white font-semibold drop-shadow-sm">City</Label>
-                            <Input id="city" value={formData.city} onChange={handleChange} required placeholder="Trial City" className="h-11 bg-white text-black placeholder:text-gray-500 border-white/20 focus-visible:ring-primary/50" />
+                            <Input id="city" value={formData.city} onChange={handleChange} required placeholder="City" className="h-11 bg-white text-black placeholder:text-gray-500 border-white/20 focus-visible:ring-primary/50" />
                           </div>
                         </div>
 
