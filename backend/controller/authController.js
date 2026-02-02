@@ -32,11 +32,11 @@ const upload = multer({ storage: storage });
 
 const profileImageStorage = multerS3({
   s3: s3,
-  bucket: process.env.AWS_BUCKET_NAME || 'brpl-public-uploads',
-  metadata: function (req, file, cb) {
+  bucket: process.env.AWS_BUCKET_NAME,
+  metadata: function (_, file, cb) {
     cb(null, { fieldName: file.fieldname });
   },
-  key: function (req, file, cb) {
+  key: function (_, file, cb) {
     const ext = path.extname(file.originalname);
     // Save to 'profiles/' folder in bucket
     cb(null, `profiles/profile_${Date.now()}_${Math.round(Math.random() * 1E9)}${ext}`);
@@ -46,7 +46,7 @@ const profileImageStorage = multerS3({
 const uploadProfileImage = multer({
   storage: profileImageStorage,
   limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
-  fileFilter: (req, file, cb) => {
+  fileFilter: (_, file, cb) => {
     const allowedTypes = /jpeg|jpg|png|gif/;
     // Check extension and mimetype
     const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
@@ -407,8 +407,10 @@ const sendOtp = async (req, res) => {
     await Otp.create({ mobile, otp });
 
     // Send Real OTP via SMS API
-    const { sendSmsOtp } = require('../utils/smsService');
-    await sendSmsOtp(mobile, otp);
+    if (process.env.NODE_ENV === "production") {
+      const { sendSmsOtp } = require('../utils/smsService');
+      await sendSmsOtp(mobile, otp);
+    }
 
     console.log(`OTP generated for ${mobile}: ${otp}`);
 

@@ -16,7 +16,8 @@ const coachSchema = new mongoose.Schema({
     address: { type: String },
     image: { type: String }, // URL or path
     referralCode: { type: String, unique: true },
-    isVerified: { type: Boolean, default: false }
+    isVerified: { type: Boolean, default: false },
+    isActive: { type: Boolean, default: true }
 }, { timestamps: true });
 
 module.exports = mongoose.model('Coach', coachSchema);

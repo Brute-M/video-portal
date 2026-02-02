@@ -22,6 +22,11 @@ router.get('/charts', authenticate, getDashboardChartData);
 // Invoice Download
 router.get('/invoice/:userId', authenticate, downloadUserInvoice);
 
+// Coach & Referral
+const { createCoach, getReferralLink } = require('../controller/coachController');
+router.post('/coaches', authenticate, createCoach);
+router.get('/coaches/:id/referral-link', authenticate, getReferralLink);
+
 // Payments Tracking
 router.get('/payments', authenticate, getPayments);
 

@@ -5,8 +5,8 @@ const User = require('../model/user.model');
 const Payment = require('../model/payment.model');
 
 const razorpay = new Razorpay({
-    key_id: 'rzp_live_RsBsR05m5SGbtT' || process.env.RAZORPAY_KEY_ID,
-    key_secret: '1pFXfyat0LN1xPEeadrz1RN4' || process.env.RAZORPAY_KEY_SECRET,
+    key_id: process.env.RAZORPAY_KEY_ID || 'rzp_live_RsBsR05m5SGbtT',
+    key_secret: process.env.RAZORPAY_KEY_SECRET || '1pFXfyat0LN1xPEeadrz1RN4',
 });
 
 // ACTUAL AMOUNT (INR)
@@ -57,7 +57,7 @@ exports.verifyPayment = async (req, res) => {
     const body = razorpay_order_id + "|" + razorpay_payment_id;
 
     const expectedSignature = crypto
-        .createHmac('sha256', '1pFXfyat0LN1xPEeadrz1RN4')
+        .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET || '1pFXfyat0LN1xPEeadrz1RN4')
         .update(body.toString())
         .digest('hex');
 
@@ -98,7 +98,7 @@ exports.verifyLandingPayment = async (req, res) => {
     const body = razorpay_order_id + "|" + razorpay_payment_id;
 
     const expectedSignature = crypto
-        .createHmac('sha256', '1pFXfyat0LN1xPEeadrz1RN4')
+        .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET || '1pFXfyat0LN1xPEeadrz1RN4')
         .update(body.toString())
         .digest('hex');
 

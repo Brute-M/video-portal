@@ -19,7 +19,7 @@ const storage = multerS3({
         cb(null, `${userId}/${Date.now()}-${file.originalname}`);
     },
     limits: {
-        fileSize: 1024 * 1024 * 1024 // 1GB
+        fileSize: 500 * 1024 * 1024 // 500MB
     }
 });
 
@@ -29,6 +29,11 @@ const uploadVideo = async (req, res) => {
     try {
         if (!req.file) {
             return res.status(400).json({ statusCode: 400, data: { message: 'No video file uploaded' } });
+        }
+
+        const maximumVideosReached = await Video.countDocuments({ userId: req.userId });
+        if (maximumVideosReached === 2) {
+            return res.status(400).json({ statusCode: 400, data: { message: 'Maximum videos limit reached' } });
         }
 
         const user = await User.findById(req.userId);
