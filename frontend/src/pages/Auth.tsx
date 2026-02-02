@@ -552,7 +552,7 @@ const Auth = ({ forceRegister }: AuthProps) => {
       {/* Full Screen Background Image */}
       <div className="fixed inset-0 z-0 bg-[#0F172A]">
         <div className="absolute inset-0 bg-black/50 z-10" /> {/* Dark Overlay */}
-        <div className="absolute inset-0 bg-cover bg-center bg-no-repeat" style={{ backgroundImage: "url('/register-footer-2.png')" }} />
+        <div className="absolute inset-0 bg-[length:100%_100%] bg-center bg-no-repeat" style={{ backgroundImage: "url('https://brpl-public-uploads.s3.ap-south-1.amazonaws.com/DSC03585+(1)+(1).jpg')" }} />
       </div>
 
       {isRegister && <FloatingRegisterButton />}
@@ -683,7 +683,7 @@ const Auth = ({ forceRegister }: AuthProps) => {
                             <Input id="state" value={formData.state} onChange={handleChange} required placeholder="Select State" className="h-11 bg-white text-black placeholder:text-gray-500 border-white/20 focus-visible:ring-primary/50" />
                           </div>
                           <div className="space-y-2">
-                            <Label htmlFor="city" className="text-white font-semibold drop-shadow-sm">Trial City</Label>
+                            <Label htmlFor="city" className="text-white font-semibold drop-shadow-sm">City</Label>
                             <Input id="city" value={formData.city} onChange={handleChange} required placeholder="Trial City" className="h-11 bg-white text-black placeholder:text-gray-500 border-white/20 focus-visible:ring-primary/50" />
                           </div>
                         </div>
