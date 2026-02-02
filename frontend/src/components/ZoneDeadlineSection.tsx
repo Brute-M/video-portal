@@ -8,8 +8,8 @@ const ZoneDeadlineSection = () => {
     const [timeLeft, setTimeLeft] = useState("00:00:00:00");
 
     useEffect(() => {
-        // Set target date to January 31, 2026 at 11:59:59 PM
-        const targetDate = new Date("2026-01-31T23:59:59").getTime();
+        // Set target date to 10 days from now
+        const targetDate = new Date().getTime() + (10 * 24 * 60 * 60 * 1000);
 
         const timer = setInterval(() => {
             const now = new Date().getTime();
