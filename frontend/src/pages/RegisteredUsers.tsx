@@ -124,10 +124,16 @@ const RegisteredUsers = () => {
         <div className="space-y-8 animate-fade-in">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <h1 className="text-3xl font-display font-bold text-foreground">Registered Users</h1>
-                <Button onClick={handleExport} variant="outline" className="gap-2">
-                    <FileSpreadsheet className="w-4 h-4" />
-                    Export Excel
-                </Button>
+                <div className="flex items-center gap-3">
+                    <Button onClick={handleExport} variant="outline" className="gap-2">
+                        <FileSpreadsheet className="w-4 h-4" />
+                        Export Excel
+                    </Button>
+                    <div className="px-4 py-2 bg-green-50 text-green-600 rounded-md text-sm font-medium flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                        {totalRecords} Records Found
+                    </div>
+                </div>
             </div>
 
             <FilterBar onFilterChange={handleFilterChange} />
@@ -136,7 +142,6 @@ const RegisteredUsers = () => {
                 <CardHeader>
                     <CardTitle className="text-lg flex justify-between items-center">
                         <span>All Registered Users (Landing Page)</span>
-                        <span className="text-sm font-normal text-muted-foreground">Total: {totalRecords}</span>
                     </CardTitle>
                 </CardHeader>
                 <CardContent>

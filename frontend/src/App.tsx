@@ -30,10 +30,14 @@ import TermsAndConditions from "./pages/TermsAndConditions";
 import RegisteredUsers from "./pages/RegisteredUsers";
 import UserDetails from "./pages/UserDetails";
 import Payments from "./pages/Payments";
+import Press from "./pages/Press";
 
 import AdminEvents from "./pages/AdminEvents";
 import AdminJobsList from "./pages/AdminJobsList";
 import AdminJobForm from "./pages/AdminJobForm";
+// import AdminNavLinks from "./pages/AdminNavLinks";
+import AdminAmbassadors from "./pages/AdminAmbassadors";
+import AdminTeams from "./pages/AdminTeams";
 
 import AOS from "aos";
 import "aos/dist/aos.css";
@@ -71,6 +75,7 @@ const App = () => {
                 <Route path="/contact-us" element={<ContactUs />} />
                 <Route path="/privacy-policy" element={<PrivacyPolicy />} />
                 <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
+                <Route path="/press/:id" element={<Press />} />
               </Route>
 
               <Route path="/thank-you" element={<ThankYou />} />
@@ -89,6 +94,9 @@ const App = () => {
                 <Route path="/admin/jobs" element={<AdminJobsList />} />
                 <Route path="/admin/jobs/create" element={<AdminJobForm />} />
                 <Route path="/admin/jobs/edit/:id" element={<AdminJobForm />} />
+                <Route path="/admin/ambassadors" element={<AdminAmbassadors />} />
+                <Route path="/admin/teams" element={<AdminTeams />} />
+                {/* <Route path="/admin/nav-links" element={<AdminNavLinks />} /> */}
               </Route>
 
               <Route element={<DashboardLayout />}>

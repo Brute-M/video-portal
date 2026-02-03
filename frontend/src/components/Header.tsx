@@ -6,6 +6,7 @@ import { useState, useEffect } from "react";
 const Header = () => {
     const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 768);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [navLinks, setNavLinks] = useState<any[]>([]);
 
     useEffect(() => {
         const handleResize = () => {
@@ -14,6 +15,43 @@ const Header = () => {
 
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
+    useEffect(() => {
+        const fetchNavLinks = async () => {
+            try {
+                // Dynamic import to avoid circular dependency issues if any, though api helper is safe
+                const api = (await import("@/apihelper/api")).default;
+                const response = await api.get('/nav-links');
+                if (response.data && response.data.length > 0) {
+                    setNavLinks(response.data);
+                } else {
+                    // Fallback to default links if no dynamic links exist
+                    setNavLinks([
+                        { label: "Home", path: "/", isActive: true, isExternal: false },
+                        { label: "About Us", path: "/about-us", isActive: true, isExternal: false },
+                        { label: "Teams", path: "/teams", isActive: true, isExternal: false },
+                        { label: "Events", path: "/events", isActive: true, isExternal: false },
+                        { label: "Career", path: "/career", isActive: true, isExternal: false },
+                        { label: "Registration", path: "/auth?mode=register", isActive: true, isExternal: false },
+                        { label: "Contact Us", path: "/contact-us", isActive: true, isExternal: false },
+                    ]);
+                }
+            } catch (error) {
+                console.error("Failed to fetch nav links", error);
+                // Fallback on error
+                setNavLinks([
+                    { label: "Home", path: "/", isActive: true, isExternal: false },
+                    { label: "About Us", path: "/about-us", isActive: true, isExternal: false },
+                    { label: "Teams", path: "/teams", isActive: true, isExternal: false },
+                    { label: "Events", path: "/events", isActive: true, isExternal: false },
+                    { label: "Career", path: "/career", isActive: true, isExternal: false },
+                    { label: "Registration", path: "/auth?mode=register", isActive: true, isExternal: false },
+                    { label: "Contact Us", path: "/contact-us", isActive: true, isExternal: false },
+                ]);
+            }
+        };
+        fetchNavLinks();
     }, []);
 
     return (
@@ -84,23 +122,29 @@ const Header = () => {
 
                 {/* Desktop Navigation */}
                 <nav className="hidden lg:flex items-center gap-8 text-[15px] font-semibold tracking-wide ml-auto">
-                    {["Home", "About Us", "Teams", "Events", "Career", "Registration", "Contact Us"].map((item) => {
-                        let path = "/";
-                        if (item === "Home") path = "/";
-                        else if (item === "Registration") path = "/auth?mode=register";
-                        else path = `/${item.toLowerCase().replace(" ", "-")}`;
-
-                        return (
-                            <Link
-                                key={item}
-                                to={path}
+                    {navLinks.filter(link => link.isActive).map((link) => (
+                        link.isExternal ? (
+                            <a
+                                key={link._id || link.label}
+                                href={link.path}
+                                target="_blank"
+                                rel="noopener noreferrer"
                                 className="hover:text-yellow-400 transition-colors relative group py-1"
                             >
-                                {item}
+                                {link.label}
+                                <span className="absolute bottom-0 left-0 w-full h-0.5 bg-yellow-400 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left" />
+                            </a>
+                        ) : (
+                            <Link
+                                key={link._id || link.label}
+                                to={link.path}
+                                className="hover:text-yellow-400 transition-colors relative group py-1"
+                            >
+                                {link.label}
                                 <span className="absolute bottom-0 left-0 w-full h-0.5 bg-yellow-400 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left" />
                             </Link>
-                        );
-                    })}
+                        )
+                    ))}
                 </nav>
 
                 {/* Mobile Menu Button - Styled as White Card */}
@@ -116,23 +160,29 @@ const Header = () => {
             {isMenuOpen && (
                 <div className="lg:hidden absolute top-full left-0 w-full bg-[#111a45] shadow-xl border-t border-white/10 z-50 px-6 py-4">
                     <nav className="flex flex-col text-left">
-                        {["Home", "About Us", "Teams", "Events", "Career", "Registration", "Contact Us"].map((item) => {
-                            let path = "/";
-                            if (item === "Home") path = "/";
-                            else if (item === "Registration") path = "/auth?mode=register";
-                            else path = `/${item.toLowerCase().replace(" ", "-")}`;
-
-                            return (
-                                <Link
-                                    key={item}
-                                    to={path}
+                        {navLinks.filter(link => link.isActive).map((link) => (
+                            link.isExternal ? (
+                                <a
+                                    key={link._id || link.label}
+                                    href={link.path}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
                                     className="block py-4 text-white text-[16px] font-medium hover:text-yellow-400 border-b border-white/20 last:border-0"
                                     onClick={() => setIsMenuOpen(false)}
                                 >
-                                    {item}
+                                    {link.label}
+                                </a>
+                            ) : (
+                                <Link
+                                    key={link._id || link.label}
+                                    to={link.path}
+                                    className="block py-4 text-white text-[16px] font-medium hover:text-yellow-400 border-b border-white/20 last:border-0"
+                                    onClick={() => setIsMenuOpen(false)}
+                                >
+                                    {link.label}
                                 </Link>
-                            );
-                        })}
+                            )
+                        ))}
                     </nav>
                 </div>
             )}

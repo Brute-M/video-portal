@@ -28,6 +28,7 @@ export const ENDPOINTS = {
     ADMIN: {
         BASE: '/admin',
         RECORDS: '/admin/records',
+        UNPAID_USERS: '/admin/unpaid-users',
         STATS: '/admin/stats',
         CHARTS: '/admin/charts',
         INVOICE: (id: string) => `/admin/invoice/${id}`,

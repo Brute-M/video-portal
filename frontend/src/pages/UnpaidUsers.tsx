@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { getUsers } from "@/apihelper/user";
+import { getAdminUnpaidUsers } from "@/apihelper/user";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { UserTable } from "@/components/UserTable";
@@ -24,20 +24,24 @@ const UnpaidUsers = () => {
     const fetchUsers = async (filters: any) => {
         setIsLoading(true);
         try {
-            const data: any = await getUsers('unpaid', { ...filters, page, limit });
-            // Handle both array (legacy/fallback) and paginated response
-            if (data && data.items) {
-                setUsers(data.items);
-                setTotalPages(data.pagination.pages);
-                setTotalRecords(data.pagination.total);
-            } else if (Array.isArray(data)) {
-                // Fallback if backend not updated immediately or error
-                setUsers(data);
-                setTotalRecords(data.length);
-            } else {
-                setUsers([]);
-                setTotalRecords(0);
+            const response: any = await getAdminUnpaidUsers({ ...filters, page, limit });
+
+            // Check if response has data property (standard API response)
+            if (response && response.data && response.data.items) {
+                setUsers(response.data.items);
+                setTotalPages(response.data.pagination.pages);
+                setTotalRecords(response.data.pagination.total);
+            } else if (response && response.items) {
+                // Fallback if response is already the data object
+                setUsers(response.items);
+                setTotalPages(response.pagination.pages);
+                setTotalRecords(response.pagination.total);
+            } else if (Array.isArray(response)) {
+                // Legacy array fallback
+                setUsers(response);
+                setTotalRecords(response.length);
             }
+
         } catch (error: any) {
             console.error("Failed to fetch unpaid users", error);
             toast({

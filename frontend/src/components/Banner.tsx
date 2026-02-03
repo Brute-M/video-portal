@@ -6,11 +6,12 @@ import { Link } from "react-router-dom";
 const slides = [
   {
     id: 0,
-    // background: "/bg-cricket1.jpg",
-    background: "/banner-2.png",
-    title: "BHARAT KI LEAGUE",
-    subtitle: "BHARTIYO KA SAPNA",
+    background: "/banner-brpl.jpeg",
   },
+  // {
+  //   id: 1,
+  //   background: "/banner.png",
+  // },
   // {
   //   id: 1,
   //   // background: "/bg-cricket1.jpg",
@@ -65,76 +66,23 @@ const Banner = () => {
   };
 
   return (
-    <div className="relative w-full h-auto md:h-[680px] lg:h-[680px] overflow-hidden font-sans bg-[#020617]">
+    <div className="relative w-full h-auto overflow-hidden font-sans bg-[#020617]">
       <Carousel setApi={setApi} className="h-full">
         <CarouselContent className="h-full">
           {slides.map((slide, index) => (
             <CarouselItem key={slide.id} className="h-full">
-              <div className="relative w-full h-full">
-                {/* Mobile View Image - Maintains Aspect Ratio */}
+              <div className="relative w-full h-full overflow-hidden">
+                {/* Image - Maintains Aspect Ratio on all devices */}
                 <img
                   src={slide.background}
                   alt="Banner"
-                  className="block md:hidden w-full h-auto"
+                  className={`w-full h-auto object-cover transition-transform duration-[10000ms] ease-out ${index === current ? 'scale-110' : 'scale-100'}`}
                 />
-
-                {/* Desktop Background View */}
-                <div
-                  className="hidden md:block absolute inset-0 z-0 bg-cover bg-no-repeat"
-                  style={{
-                    backgroundImage: `url('${slide.background}')`,
-                    backgroundPosition: "left center",
-                    backgroundSize: "cover",
-                  }}
-                />
-
-                {/* Shared Overlays (Visible on both Mobile and Desktop) */}
-                <div className="absolute inset-0 bg-[#070d1e]/20 pointer-events-none" />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#020617]/20 via-transparent to-[#020617]/20 pointer-events-none" />
-                <div className="absolute inset-0 bg-gradient-to-r from-[#020617]/20 via-transparent to-[#020617]/20 pointer-events-none" />
 
                 {/* Content Overlay */}
                 <div className="absolute inset-0 z-10 w-full h-full max-w-[1400px] mx-auto px-4 md:px-10 lg:px-16 flex items-center">
-                  {/* <div className="absolute left-2 md:left-6 lg:left-10 top-1/2 -translate-y-1/2 hidden md:block select-none pointer-events-none">
-                    <span
-                      className="block text-[170px] lg:text-[170px] xl:text-[80px] font-black text-transparent leading-none opacity-60 tracking-[0.15em] filter blur-[0.2px]"
-                      style={{
-                        WebkitTextStroke: "6px rgba(147, 147, 147, 0.63)",
-                        writingMode: "vertical-rl",
-                        transform: "rotate(180deg)",
-                        fontFamily: "Suez One, serif",
-                      }}
-                    >
-                      CRICKET
-                    </span>
-                  </div> */}
-
                   <div className="flex flex-col items-center justify-center w-full mx-auto text-center gap-2 md:gap-3 z-20">
-                    <h1 className={`text-xl sm:text-3xl md:text-[50px] lg:text-[60px] xl:text-[70px] font-black text-white uppercase leading-tight tracking-wider ${index === current ? 'animate-fade-in-left' : 'opacity-0'}`}
-                      style={{
-                        textShadow: '0 4px 8px rgba(0,0,0,0.5), 0 0 20px rgba(0,0,0,0.8)'
-                      }}
-                    >
-                      {slide.title}
-                    </h1>
-                    <h2 className={`text-xl sm:text-3xl md:text-[50px] lg:text-[60px] xl:text-[70px] font-black text-[#FFC928] uppercase leading-tight tracking-wider mt-3 ${index === current ? 'animate-fade-in-right' : 'opacity-0'}`}
-                      style={{
-                        textShadow: '0 4px 8px rgba(0,0,0,0.5), 0 0 20px rgba(255, 201, 40, 0.4)',
-                        animationDelay: "0.2s"
-                      }}
-                    >
-                      {slide.subtitle}
-                    </h2>
-
-                    {/* Registration Button */}
-                    <div className={`mt-8 ${index === current ? 'animate-fade-in-up duration-700 delay-300' : 'opacity-0'}`}>
-                      <Button asChild variant="hero" size="xl" className="font-bold text-lg px-10 shadow-xl hover:scale-105 transition-transform duration-300">
-                        <Link to="/auth?mode=register">
-                          REGISTER NOW
-                        </Link>
-                      </Button>
-                    </div>
-
+                    {/* Overlay content is currently empty/commented out in original but keeping structure */}
                   </div>
                 </div>
               </div>

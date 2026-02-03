@@ -15,9 +15,9 @@ const RegistrationHero = () => {
         <section className="relative w-full h-auto py-12 md:py-0 md:h-[400px] flex items-center justify-center overflow-hidden">
             {/* Background Image with Overlay */}
             <div
-                className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat"
+                className="absolute inset-0 z-0 bg-[length:100%_100%] bg-center bg-no-repeat"
                 style={{
-                    backgroundImage: "url('/register-footer-2.png')",
+                    backgroundImage: "url('https://brpl-public-uploads.s3.ap-south-1.amazonaws.com/DSC03585+(1)+(1).jpg')",
                 }}
             >
                 <div className="absolute inset-0 bg-black/60 md:bg-black/50" /> {/* Dark overlay for text readability */}

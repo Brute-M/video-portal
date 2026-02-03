@@ -11,8 +11,10 @@ import {
     LayoutDashboard,
     CreditCard,
     X,
-    Briefcase
+    Briefcase,
+    Link as LinkIcon
 } from "lucide-react";
+
 import { useToast } from "@/hooks/use-toast";
 import { ModeToggle } from "@/components/mode-toggle";
 
@@ -41,6 +43,9 @@ const AdminLayout = () => {
         { icon: Users, label: "Registered Users", path: "/admin/registered-users" },
         { icon: CreditCard, label: "Events", path: "/admin/events" },
         { icon: Briefcase, label: "Manage Jobs", path: "/admin/jobs" },
+        { icon: Users, label: "Ambassadors", path: "/admin/ambassadors" },
+        { icon: Users, label: "Teams", path: "/admin/teams" },
+        // { icon: LinkIcon, label: "Nav Links", path: "/admin/nav-links" },
         // { icon: Users, label: "Step 1 Leads", path: "/admin/step1-leads" },
     ];
 

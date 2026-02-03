@@ -2,6 +2,7 @@ import EventGallerySlider from "@/components/EventGallerySlider";
 import Teams from "@/components/Teams";
 import Banner from "@/components/Banner";
 import SEO from "@/components/SEO";
+import AmbassadorsSection from "@/components/AmbassadorsSection";
 
 const Index = () => {
   return (
@@ -15,6 +16,9 @@ const Index = () => {
 
       {/* Event Gallery Slider (Formerly Points Table) */}
       <EventGallerySlider />
+
+      {/* Ambassadors Section */}
+      <AmbassadorsSection />
 
       {/* Teams Section */}
       <Teams />

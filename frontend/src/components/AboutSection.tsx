@@ -11,9 +11,9 @@ const AboutSection: React.FC = () => {
                 <div className="w-full lg:w-1/2 flex justify-center lg:justify-end pr-0 lg:pr-10">
                     <div className="relative w-full">
                         <img
-                            src="/about-us-1.png"
+                            src="https://brpl-public-uploads.s3.ap-south-1.amazonaws.com/DSC03663++(2)+(2).jpg"
                             alt="Cricket Action"
-                            className="w-full h-full object-cover rounded-xl"
+                            className="w-full h-[500px] object-cover rounded-xl"
                             loading="lazy"
                         />
                     </div>
