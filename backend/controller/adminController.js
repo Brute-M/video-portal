@@ -166,6 +166,8 @@ const getPaginatedRecords = async (req, res) => {
                         createdAt: 1,
                         trail_video: 1,
                         isFromLandingPage: 1,
+                        profileImage: 1,
+                        city: 1, // Also adding city as BRPLShareCard uses it
                         videoCount: { $size: '$userVideos' },
                         videos: '$userVideos',
                         paymentAmount: {

@@ -313,5 +313,34 @@ const sendUserRegistrationSuccessEmail = async (email, name, password) => {
     }
 };
 
-module.exports = { sendInvoiceEmail, sendPasswordResetEmail, sendContactEmail, sendRegistrationOtpEmail, sendWelcomeEmail, sendUserRegistrationSuccessEmail };
+const sendPartnerEmail = async (partnerDetails) => {
+    try {
+        const { firstName, lastName, email, contactNumber, companyName, partnershipType, message } = partnerDetails;
+
+        const mailOptions = {
+            from: process.env.SMTP_USER,
+            to: process.env.COMPANY_EMAIL || 'info@brpl.net',
+            subject: `New Partner Submission from ${firstName} ${lastName}`,
+            html: `
+                <h3>New Partner Application</h3>
+                <p><strong>Name:</strong> ${firstName} ${lastName}</p>
+                <p><strong>Company Name:</strong> ${companyName || 'N/A'}</p>
+                <p><strong>Email:</strong> ${email}</p>
+                <p><strong>Contact Number:</strong> ${contactNumber}</p>
+                <p><strong>Partnership Type:</strong> ${partnershipType}</p>
+                <p><strong>Message:</strong></p>
+                <p>${message}</p>
+            `
+        };
+
+        const info = await transporter.sendMail(mailOptions);
+        console.log('Partner email sent: %s', info.messageId);
+        return info;
+    } catch (error) {
+        console.error('Error sending partner email:', error);
+        // Log error but don't throw to avoid failing the controller request
+    }
+};
+
+module.exports = { sendInvoiceEmail, sendPasswordResetEmail, sendContactEmail, sendRegistrationOtpEmail, sendWelcomeEmail, sendUserRegistrationSuccessEmail, sendPartnerEmail };
 
