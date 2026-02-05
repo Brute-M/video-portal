@@ -18,12 +18,13 @@ const eventRoutes = require("./routes/eventRoute");
 const jobRoutes = require("./routes/jobRoute");
 const ambassadorRoutes = require("./routes/ambassadorRoute");
 const teamRoutes = require("./routes/teamRoute");
+const partnerRoutes = require("./routes/partnerRoutes");
 
 const path = require("path");
 const app = express();
 const port = 5000;
 // const dbURI = "mongodb://localhost:27017/videoPortal";
-const dbURI = "mongodb+srv://ektadev531_db_user:PLKibNBAsz34iqrU@mycluster.rrydwwg.mongodb.net/brpl";
+const dbURI = "mongodb+srv://brpl-dev-write:YnJwbC1kZXYtd3JpdGU@brpl-dev.nj1umik.mongodb.net/brpl";
 
 app.use(cors());
 app.use(express.json());
@@ -78,6 +79,7 @@ app.use("/api/events", eventRoutes);
 app.use("/api/jobs", jobRoutes);
 app.use("/api/ambassadors", ambassadorRoutes);
 app.use("/api/teams", teamRoutes);
+app.use("/api/partners", partnerRoutes);
 app.use("/api/nav-links", require("./routes/navLinkRoute"));
 
 app.listen(port, () => {
