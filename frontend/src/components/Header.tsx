@@ -1,6 +1,6 @@
 
 import { Link } from "react-router-dom";
-import { Phone, Mail, LogIn, Facebook, Twitter, Linkedin, Instagram, Menu } from "lucide-react";
+import { Phone, Mail, LogIn, Linkedin, Menu } from "lucide-react";
 import { useState, useEffect } from "react";
 
 const Header = () => {
@@ -33,6 +33,7 @@ const Header = () => {
                         { label: "Teams", path: "/teams", isActive: true, isExternal: false },
                         { label: "Events", path: "/events", isActive: true, isExternal: false },
                         { label: "Career", path: "/career", isActive: true, isExternal: false },
+                        { label: "Partners", path: "/partners", isActive: true, isExternal: false },
                         { label: "Registration", path: "/auth?mode=register", isActive: true, isExternal: false },
                         { label: "Contact Us", path: "/contact-us", isActive: true, isExternal: false },
                     ]);
@@ -46,6 +47,7 @@ const Header = () => {
                     { label: "Teams", path: "/teams", isActive: true, isExternal: false },
                     { label: "Events", path: "/events", isActive: true, isExternal: false },
                     { label: "Career", path: "/career", isActive: true, isExternal: false },
+                    { label: "Partners", path: "/partners", isActive: true, isExternal: false },
                     { label: "Registration", path: "/auth?mode=register", isActive: true, isExternal: false },
                     { label: "Contact Us", path: "/contact-us", isActive: true, isExternal: false },
                 ]);
@@ -92,18 +94,18 @@ const Header = () => {
                     <div className="flex items-center justify-center md:justify-end gap-4 w-full md:w-auto md:ml-auto">
                         <Link
                             to="/auth"
-                            className="flex items-center gap-2 font-bold hover:text-blue-600 transition-colors group text-[13px]"
+                            className="flex items-center gap-2 font-bold bg-yellow-400 text-slate-900 px-4 py-1.5 rounded-full hover:bg-yellow-500 transition-all shadow-md group text-[13px]"
                         >
-                            <LogIn className="w-4 h-4 stroke-[2.5] group-hover:stroke-blue-600" />
+                            <LogIn className="w-4 h-4 stroke-[2.5]" />
                             <span className="uppercase tracking-wide">LOGIN</span>
                         </Link>
 
                         <div className="h-4 w-px bg-slate-300" />
 
                         <div className="flex items-center gap-3 md:gap-4">
-                            <a href="https://www.facebook.com/profile.php?id=61584782136820" target="_blank" rel="noopener noreferrer" className="hover:text-blue-600 transition-colors"><Facebook className="w-3.5 h-3.5 fill-current" /></a>
-                            <a href="https://x.com/BRPLOfficial" target="_blank" rel="noopener noreferrer" className="hover:text-blue-600 transition-colors"><Twitter className="w-3.5 h-3.5 fill-current" /></a>
-                            <a href="https://www.instagram.com/brplofficial/" target="_blank" rel="noopener noreferrer" className="hover:text-blue-600 transition-colors"><Instagram className="w-3.5 h-3.5 stroke-[2]" /></a>
+                            <a href="https://www.facebook.com/profile.php?id=61584782136820" target="_blank" rel="noopener noreferrer" className="hover:opacity-80 transition-opacity"><img src="/facebook.png" alt="Facebook" className="w-5 h-5 object-contain" /></a>
+                            <a href="https://x.com/BRPLOfficial" target="_blank" rel="noopener noreferrer" className="hover:opacity-80 transition-opacity"><img src="/twiter.png" alt="Twitter" className="w-5 h-5 object-contain" /></a>
+                            <a href="https://www.instagram.com/brpl.t10?igsh=MXBvbWp4dnhoYWRrbQ%3D%3D" target="_blank" rel="noopener noreferrer" className="hover:opacity-80 transition-opacity"><img src="/instagram.png" alt="Instagram" className="w-5 h-5 object-contain" /></a>
                         </div>
                     </div>
                 </div>

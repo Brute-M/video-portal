@@ -45,6 +45,7 @@ const AdminLayout = () => {
         { icon: Briefcase, label: "Manage Jobs", path: "/admin/jobs" },
         { icon: Users, label: "Ambassadors", path: "/admin/ambassadors" },
         { icon: Users, label: "Teams", path: "/admin/teams" },
+        { icon: Users, label: "Partners", path: "/admin/partners" },
         // { icon: LinkIcon, label: "Nav Links", path: "/admin/nav-links" },
         // { icon: Users, label: "Step 1 Leads", path: "/admin/step1-leads" },
     ];

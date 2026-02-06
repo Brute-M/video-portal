@@ -139,10 +139,41 @@ const ContactUs = () => {
                                         disabled={loading}
                                         className="w-full rounded-full bg-[#063772] py-4 text-sm md:text-base font-semibold text-white tracking-wide hover:bg-[#042b5c] transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
                                     >
-                                        {loading ? "Sending..." : "submit message"}
+                                        {loading ? "Sending..." : "Submit Message"}
                                     </button>
                                 </div>
                             </form>
+
+                            <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {/* Customer Support */}
+                                <div className="border border-gray-200 rounded-2xl p-6 hover:shadow-md transition-shadow bg-blue-50/30">
+                                    <h4 className="font-bold text-[#0b2a5b] text-lg mb-4">Customer Support</h4>
+                                    <div className="flex items-start gap-4">
+                                        <div className="w-10 h-10 rounded-full bg-[#e4ebf5] flex items-center justify-center flex-shrink-0">
+                                            <Phone className="w-5 h-5 text-[#0b2a5b]" />
+                                        </div>
+                                        <div className="flex flex-col gap-1.5 text-gray-600">
+                                            <a href="tel:+918130955866" className="hover:text-[#0b2a5b] transition-colors font-medium">+(91) 81309 55866</a>
+                                            <a href="tel:+919821563585" className="hover:text-[#0b2a5b] transition-colors font-medium">+(91) 98215 63585</a>
+                                            <span className="text-white text-sm font-semibold bg-[#0b2a5b] px-3 py-1.5 rounded-full border border-[#0b2a5b] inline-block w-fit mt-1 shadow-md">10 AM to 7 PM</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Sales Head */}
+                                <div className="border border-gray-200 rounded-2xl p-6 hover:shadow-md transition-shadow bg-blue-50/30">
+                                    <h4 className="font-bold text-[#0b2a5b] text-lg mb-4">Sales Head</h4>
+                                    <div className="flex items-start gap-4">
+                                        <div className="w-10 h-10 rounded-full bg-[#e4ebf5] flex items-center justify-center flex-shrink-0">
+                                            <Phone className="w-5 h-5 text-[#0b2a5b]" />
+                                        </div>
+                                        <div className="flex flex-col gap-1.5 text-gray-600">
+                                            <span className="font-semibold text-gray-800">Naval Verma</span>
+                                            <a href="tel:+919217060779" className="hover:text-[#0b2a5b] transition-colors font-medium">+91 9217060779</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         {/* Right: Help card and map */}
@@ -153,11 +184,9 @@ const ContactUs = () => {
                                     Have question about our service or need immediate assistance?
                                 </p>
 
-                                <div className="space-y-4 text-sm md:text-base">
-                                    <div className="flex items-start gap-3">
-                                        <Phone className="w-5 h-5 mt-0.5 flex-shrink-0" />
-                                        <span>+(91) 81309 55866</span>
-                                    </div>
+                                <div className="space-y-6 text-sm md:text-base">
+
+
                                     <div className="flex items-start gap-3">
                                         <Mail className="w-5 h-5 mt-0.5 flex-shrink-0" />
                                         <span>info@brpl.net</span>

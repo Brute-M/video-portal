@@ -38,6 +38,8 @@ import AdminJobForm from "./pages/AdminJobForm";
 // import AdminNavLinks from "./pages/AdminNavLinks";
 import AdminAmbassadors from "./pages/AdminAmbassadors";
 import AdminTeams from "./pages/AdminTeams";
+import BecomePartner from "./pages/BecomePartner";
+import AdminPartners from "./pages/AdminPartners";
 
 import AOS from "aos";
 import "aos/dist/aos.css";
@@ -76,6 +78,7 @@ const App = () => {
                 <Route path="/privacy-policy" element={<PrivacyPolicy />} />
                 <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
                 <Route path="/press/:id" element={<Press />} />
+                <Route path="/partners" element={<BecomePartner />} />
               </Route>
 
               <Route path="/thank-you" element={<ThankYou />} />
@@ -96,6 +99,7 @@ const App = () => {
                 <Route path="/admin/jobs/edit/:id" element={<AdminJobForm />} />
                 <Route path="/admin/ambassadors" element={<AdminAmbassadors />} />
                 <Route path="/admin/teams" element={<AdminTeams />} />
+                <Route path="/admin/partners" element={<AdminPartners />} />
                 {/* <Route path="/admin/nav-links" element={<AdminNavLinks />} /> */}
               </Route>
 

@@ -184,6 +184,10 @@
     background-size: 200% 200%;
     animation: gradient 8s ease infinite;
   }
+
+  .animate-spin-slow {
+    animation: spin 3s linear infinite;
+  }
 }
 
 @keyframes float {
@@ -209,6 +213,16 @@
 
   100% {
     background-position: 0% 50%;
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
   }
 }
 
@@ -302,9 +316,12 @@
   body * {
     visibility: hidden;
   }
-  #analysis-report-container, #analysis-report-container * {
+
+  #analysis-report-container,
+  #analysis-report-container * {
     visibility: visible;
   }
+
   #analysis-report-container {
     position: absolute;
     left: 0;
@@ -314,6 +331,7 @@
     padding-top: 0 !important;
     border: none !important;
   }
+
   /* Hide close button in print */
   .no-print {
     display: none !important;

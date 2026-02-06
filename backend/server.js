@@ -24,7 +24,7 @@ const path = require("path");
 const app = express();
 const port = 5000;
 // const dbURI = "mongodb://localhost:27017/videoPortal";
-const dbURI = "mongodb+srv://brpl-dev-write:YnJwbC1kZXYtd3JpdGU@brpl-dev.nj1umik.mongodb.net/brpl";
+const dbURI = process.env.MONGO_URL || "mongodb+srv://brpl-dev-write:YnJwbC1kZXYtd3JpdGU@brpl-dev.nj1umik.mongodb.net/brpl";
 
 app.use(cors());
 app.use(express.json());
