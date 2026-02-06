@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from "@/components/ui/carousel";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { Play } from "lucide-react";
+import { Play, UserPlus } from "lucide-react";
 import VideoModal from "./VideoModal";
 
 const slides = [
@@ -74,7 +74,7 @@ const Banner = () => {
         <CarouselContent className="h-full">
           {slides.map((slide, index) => (
             <CarouselItem key={slide.id} className="h-full">
-              <div className="relative w-full h-full overflow-hidden">
+              <div className="relative w-full h-auto md:h-full overflow-hidden">
                 {/* Image - Maintains Aspect Ratio on all devices */}
                 <img
                   src={slide.background}
@@ -83,27 +83,27 @@ const Banner = () => {
                 />
 
                 {/* Content Overlay */}
-                <div className="absolute inset-0 z-10 w-full h-full max-w-[1400px] mx-auto px-4 md:px-10 lg:px-16 flex items-end md:items-center pb-8 md:pb-0">
-                  <div className="flex flex-col items-start justify-center w-full gap-4 md:gap-6 z-20">
+                <div className="relative md:absolute md:inset-0 z-10 w-full h-auto md:h-full max-w-[1400px] mx-auto px-4 md:px-10 lg:px-16 flex flex-col justify-end items-center md:items-end py-4 md:pb-12">
+                  <div className="flex flex-col items-center md:items-end justify-center w-full gap-8 md:gap-12 z-20">
                     {/* Buttons Container */}
-                    <div className="flex flex-col sm:flex-row gap-4 mt-auto md:mt-0 ml-4 md:ml-0">
+                    <div className="flex flex-row gap-4 w-full justify-center md:justify-end">
                       <Link to="/registration">
                         <Button
                           size="lg"
-                          className="bg-amber-500 hover:bg-amber-600 text-black font-bold text-base md:text-lg px-8 h-12 md:h-14 rounded-full shadow-[0_0_20px_rgba(245,158,11,0.5)] transform hover:scale-105 transition-all duration-300"
+                          className="bg-amber-500 hover:bg-amber-600 text-black font-bold text-xs md:text-sm px-4 md:px-6 h-10 md:h-12 rounded-full shadow-[0_0_20px_rgba(245,158,11,0.5)] transform hover:scale-105 transition-all duration-300 flex items-center justify-center"
                         >
-                          REGISTER NOW
+                          <span>REGISTER NOW</span>
                         </Button>
                       </Link>
 
                       <Button
                         variant="outline"
                         size="lg"
-                        className="bg-transparent border-2 border-white text-white hover:bg-white/10 hover:text-white font-bold text-base md:text-lg px-8 h-12 md:h-14 rounded-full backdrop-blur-sm transform hover:scale-105 transition-all duration-300 gap-2"
+                        className="bg-transparent border-2 border-white text-white hover:bg-white/10 hover:text-white font-bold text-xs md:text-sm px-4 md:px-6 h-10 md:h-12 rounded-full backdrop-blur-sm transform hover:scale-105 transition-all duration-300 flex items-center justify-center gap-2"
                         onClick={() => setIsVideoModalOpen(true)}
                       >
                         <Play className="w-5 h-5 fill-current" />
-                        PLAY VIDEO
+                        <span>PLAY VIDEO</span>
                       </Button>
                     </div>
                   </div>

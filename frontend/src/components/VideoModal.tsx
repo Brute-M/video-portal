@@ -18,12 +18,12 @@ const VideoModal: React.FC<VideoModalProps> = ({ isOpen, onClose, videoSrc }) =>
                     <DialogDescription>A video player modal</DialogDescription>
                 </VisuallyHidden.Root>
                 <div className="relative aspect-video w-full">
-                    <button
+                    {/* <button
                         onClick={onClose}
                         className="absolute top-4 right-4 z-50 p-2 text-white/80 hover:text-white bg-black/40 hover:bg-black/60 rounded-full transition-all"
                     >
                         <X className="w-6 h-6" />
-                    </button>
+                    </button> */}
                     <video
                         src={videoSrc}
                         className="w-full h-full object-contain"
