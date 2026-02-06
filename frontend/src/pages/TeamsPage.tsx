@@ -24,7 +24,7 @@ const TeamsPage = () => {
     }, []);
 
     return (
-        <div className="min-h-screen bg-gray-50 overflow-x-hidden">
+        <div className="min-h-screen bg-gray-50">
             <SEO
                 title="Our Teams"
                 description="Meet the teams competing in the Beyond Reach Premier League. Passion, skill, and dedication on full display."
@@ -33,9 +33,10 @@ const TeamsPage = () => {
                 title=""
                 currentPage=""
                 videoSrc="https://brpl-public-uploads.s3.ap-south-1.amazonaws.com/teams-video.mp4"
+                scrollToId="teams-content"
             />
 
-            <section className="container mx-auto px-4 py-16" data-aos="fade-up">
+            <section id="teams-content" className="container mx-auto px-4 py-16" data-aos="fade-up">
                 {isLoading ? (
                     <div className="flex justify-center items-center h-64">
                         <Loader2 className="h-10 w-10 animate-spin text-[#111a45]" />

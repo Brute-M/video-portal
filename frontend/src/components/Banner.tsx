@@ -117,7 +117,7 @@ const Banner = () => {
       <VideoModal
         isOpen={isVideoModalOpen}
         onClose={() => setIsVideoModalOpen(false)}
-        videoSrc="https://brpl-public-uploads.s3.ap-south-1.amazonaws.com/teams-video.mp4"
+        videoSrc="https://brpl-public-uploads.s3.ap-south-1.amazonaws.com/BRPL_Launch_Film.mp4"
       />
 
       {/* <div className="absolute bottom-7 md:bottom-8 left-1/2 -translate-x-1/2 z-20 flex items-center gap-3">

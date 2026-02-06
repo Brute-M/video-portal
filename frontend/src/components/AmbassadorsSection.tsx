@@ -99,7 +99,14 @@ const AmbassadorsSection: React.FC = () => {
                                             {/* Content */}
                                             <div className="absolute bottom-0 left-0 w-full h-[35%] bg-[#1e2330] p-2 flex flex-col justify-center items-center text-center transition-colors duration-300 group-hover:bg-[#FFC928]">
                                                 <h3 className="text-white text-lg font-bold mb-1 group-hover:text-[#111a45] leading-tight transition-colors duration-300">{ambassador.name}</h3>
-                                                <p className="text-gray-300 text-[10px] uppercase tracking-wider group-hover:text-[#111a45] leading-tight transition-colors duration-300">{ambassador.designation}</p>
+                                                <p className="text-gray-300 text-[10px] uppercase tracking-wider group-hover:text-[#111a45] leading-tight transition-colors duration-300">
+                                                    {ambassador.designation?.split('(').map((part: string, index: number) => (
+                                                        <React.Fragment key={index}>
+                                                            {index === 0 ? part : `(${part}`}
+                                                            {index < ambassador.designation.split('(').length - 1 && <br />}
+                                                        </React.Fragment>
+                                                    ))}
+                                                </p>
                                             </div>
                                         </div>
                                     </Link>

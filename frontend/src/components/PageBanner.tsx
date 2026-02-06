@@ -1,26 +1,48 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { Home } from "lucide-react";
+import { Home, ChevronDown } from "lucide-react";
 
 interface PageBannerProps {
     title: string;
     currentPage: string;
     videoSrc?: string;
+    scrollToId?: string;
 }
 
-const PageBanner: React.FC<PageBannerProps> = ({ title, currentPage, videoSrc }) => {
+const PageBanner: React.FC<PageBannerProps> = ({ title, currentPage, videoSrc, scrollToId }) => {
+    const handleScrollDown = () => {
+        if (scrollToId) {
+            const element = document.getElementById(scrollToId);
+            if (element) {
+                element.scrollIntoView({ behavior: 'smooth' });
+            }
+        } else {
+            window.scrollTo({
+                top: window.innerHeight,
+                behavior: 'smooth'
+            });
+        }
+    };
+
     return (
-        <div className={`relative w-full h-auto ${videoSrc ? 'md:h-[350px] lg:h-[400px]' : 'md:h-[350px] lg:h-[400px]'} bg-[#111a45] overflow-hidden`}>
+        <div className={`relative w-full ${videoSrc ? 'h-[80vh]' : 'h-auto md:h-[350px] lg:h-[400px]'} bg-[#111a45] overflow-hidden`}>
             {videoSrc ? (
-                /* Video Background */
-                <video
-                    src={videoSrc}
-                    autoPlay
-                    loop
-                    muted
-                    playsInline
-                    className="absolute inset-0 w-full h-full object-cover"
-                />
+                <>
+                    {/* Video Background */}
+                    <video
+                        src={videoSrc}
+                        autoPlay
+                        loop
+                        muted
+                        playsInline
+                        className="absolute inset-0 w-full h-full object-cover"
+                    />
+
+                    {/* Scroll Down Arrow */}
+                    <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-20 animate-bounce cursor-pointer" onClick={handleScrollDown}>
+                        <ChevronDown className="w-10 h-10 text-[#FFD700] opacity-80 hover:opacity-100 transition-opacity" />
+                    </div>
+                </>
             ) : (
                 <>
                     {/* Mobile Background Image - Maintains Aspect Ratio */}
