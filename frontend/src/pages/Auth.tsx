@@ -113,73 +113,73 @@ const Auth = ({ forceRegister }: AuthProps) => {
     setFormData({ ...formData, [field]: value });
   };
 
-  const handleSendOtp = async () => {
-    if (!formData.mobile || !/^\d{10}$/.test(formData.mobile)) {
-      toast({
-        variant: "destructive",
-        title: "Invalid Mobile Number",
-        description: "Please enter a valid 10-digit mobile number.",
-      });
-      return;
-    }
+  //   const handleSendOtp = async () => {
+  //     if (!formData.mobile || !/^\d{10}$/.test(formData.mobile)) {
+  //       toast({
+  //         variant: "destructive",
+  //         title: "Invalid Mobile Number",
+  //         description: "Please enter a valid 10-digit mobile number.",
+  //       });
+  //       return;
+  //     }
+  // 
+  //     setIsSendingOtp(true);
+  //     try {
+  //       const response = await sendOtp(formData.mobile, isRegister);
+  //       if (response.success) {
+  //         toast({
+  //           title: "OTP Sent",
+  //           description: `OTP sent to ${formData.mobile}.`,
+  //         });
+  //         setShowOtpModal(true);
+  //       }
+  //     } catch (error: any) {
+  //       toast({
+  //         variant: "destructive",
+  //         title: "Failed to Send OTP",
+  //         description: error.response?.data?.message || "Something went wrong.",
+  //       });
+  //     } finally {
+  //       setIsSendingOtp(false);
+  //     }
+  //   };
 
-    setIsSendingOtp(true);
-    try {
-      const response = await sendOtp(formData.mobile, isRegister);
-      if (response.success) {
-        toast({
-          title: "OTP Sent",
-          description: `OTP sent to ${formData.mobile}.`,
-        });
-        setShowOtpModal(true);
-      }
-    } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Failed to Send OTP",
-        description: error.response?.data?.message || "Something went wrong.",
-      });
-    } finally {
-      setIsSendingOtp(false);
-    }
-  };
-
-  const handleVerifyOtp = async () => {
-    if (!otpInput) return;
-
-    setIsVerifyingOtp(true);
-    try {
-      const response = await verifyOtp(formData.mobile, otpInput);
-      if (response.success) {
-        toast({
-          title: "Phone Verified",
-          description: "Your mobile number has been verified successfully.",
-        });
-        setIsPhoneVerified(true);
-        setShowOtpModal(false);
-        setFormData(prev => ({ ...prev, otp: otpInput }));
-      }
-    } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Verification Failed",
-        description: error.response?.data?.message || "Invalid OTP.",
-      });
-    } finally {
-      setIsVerifyingOtp(false);
-    }
-  };
+  //   const handleVerifyOtp = async () => {
+  //     if (!otpInput) return;
+  // 
+  //     setIsVerifyingOtp(true);
+  //     try {
+  //       const response = await verifyOtp(formData.mobile, otpInput);
+  //       if (response.success) {
+  //         toast({
+  //           title: "Phone Verified",
+  //           description: "Your mobile number has been verified successfully.",
+  //         });
+  //         setIsPhoneVerified(true);
+  //         setShowOtpModal(false);
+  //         setFormData(prev => ({ ...prev, otp: otpInput }));
+  //       }
+  //     } catch (error: any) {
+  //       toast({
+  //         variant: "destructive",
+  //         title: "Verification Failed",
+  //         description: error.response?.data?.message || "Invalid OTP.",
+  //       });
+  //     } finally {
+  //       setIsVerifyingOtp(false);
+  //     }
+  //   };
 
   const handleStep1Submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isPhoneVerified) {
-      toast({
-        variant: "destructive",
-        title: "Verification Required",
-        description: "Please verify your mobile number before proceeding.",
-      });
-      return;
-    }
+    // if (!isPhoneVerified) {
+    //   toast({
+    //     variant: "destructive",
+    //     title: "Verification Required",
+    //     description: "Please verify your mobile number before proceeding.",
+    //   });
+    //   return;
+    // }
 
     if (!formData.email || !formData.password) {
       toast({
@@ -651,14 +651,14 @@ const Auth = ({ forceRegister }: AuthProps) => {
                                 className="pl-20 h-11 bg-white text-black placeholder:text-gray-500 border-white/20 focus-visible:ring-primary/50"
                                 value={formData.mobile}
                                 onChange={handleChange}
-                                disabled={isPhoneVerified}
+                                // disabled={isPhoneVerified}
                                 required
                                 inputMode="numeric"
                                 maxLength={10}
                                 placeholder="Enter your mobile number"
                               />
                             </div>
-                            {isPhoneVerified ? (
+                            {/* {isPhoneVerified ? (
                               <Button type="button" variant="outline" className="h-11 border-green-500 text-green-500" disabled>
                                 <CheckCircle2 className="w-4 h-4 mr-2" />
                                 Verified
@@ -673,7 +673,7 @@ const Auth = ({ forceRegister }: AuthProps) => {
                               >
                                 {isSendingOtp ? <Loader2 className="w-4 h-4 animate-spin" /> : "Send OTP"}
                               </Button>
-                            )}
+                            )} */}
                           </div>
                         </div>
 
@@ -689,7 +689,8 @@ const Auth = ({ forceRegister }: AuthProps) => {
                         </div>
 
                         {/* NEW: Email and Password in Step 1 */}
-                        {isPhoneVerified && (
+                        {/* {isPhoneVerified && ( */}
+                        {true && (
                           <div className="space-y-4 animate-fade-in">
                             <div className="space-y-2">
                               <Label htmlFor="email" className="text-white font-semibold drop-shadow-sm">Email Address</Label>
@@ -722,6 +723,7 @@ const Auth = ({ forceRegister }: AuthProps) => {
                               </div>
                             </div>
                           </div>
+                          // )}
                         )}
 
                         <div className="flex items-start gap-2 pt-2">
@@ -1051,7 +1053,7 @@ const Auth = ({ forceRegister }: AuthProps) => {
       }
 
       {/* OTP Modal */}
-      <Dialog open={showOtpModal} onOpenChange={setShowOtpModal}>
+      {/* <Dialog open={showOtpModal} onOpenChange={setShowOtpModal}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Verify Mobile Number</DialogTitle>
@@ -1082,7 +1084,7 @@ const Auth = ({ forceRegister }: AuthProps) => {
             </Button>
           </div>
         </DialogContent>
-      </Dialog>
+      </Dialog> */}
     </div >
   );
 };
