@@ -4,6 +4,8 @@ import Banner from "@/components/Banner";
 import SEO from "@/components/SEO";
 import AmbassadorsSection from "@/components/AmbassadorsSection";
 
+import WhoWeAre from "@/components/WhoWeAre";
+
 const Index = () => {
   return (
     <div className="min-h-screen bg-transparent relative flex flex-col font-sans">
@@ -13,6 +15,9 @@ const Index = () => {
       />
       {/* Hero Section */}
       <Banner />
+
+      {/* Who We Are Section */}
+      <WhoWeAre />
 
       {/* Event Gallery Slider (Formerly Points Table) */}
       <EventGallerySlider />

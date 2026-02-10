@@ -585,6 +585,76 @@ const getUnpaidUsers = async (req, res) => {
     }
 };
 
+const createUser = async (req, res) => {
+    try {
+        if (req.role !== 'admin' && req.userId !== 'admin') {
+            return res.status(403).json({ message: 'Forbidden' });
+        }
+
+        const {
+            fname, lname, email, mobile, city, state, playerRole,
+            password, isPaid, paymentAmount, paymentId,
+            isFromLandingPage
+        } = req.body;
+
+        if (!email || !mobile || !fname) {
+            return res.status(400).json({ message: 'Name, Email and Mobile are required' });
+        }
+
+        // Check if user exists
+        const existingUser = await User.findOne({
+            $or: [{ email: email.toLowerCase() }, { mobile }]
+        });
+
+        if (existingUser) {
+            return res.status(400).json({ message: 'User with this email or mobile already exists' });
+        }
+
+        const hashedPassword = await bcrypt.hash(password || 'Brpl@123', 10);
+
+        const newUser = new User({
+            fname,
+            lname,
+            email: email.toLowerCase(),
+            mobile,
+            city,
+            state,
+            playerRole,
+            password: hashedPassword,
+            isPaid: Boolean(isPaid),
+            paymentAmount: isPaid ? Number(paymentAmount) : 0,
+            paymentId: isPaid ? paymentId : undefined,
+            isFromLandingPage: Boolean(isFromLandingPage),
+            conversionType: 'manual_admin'
+        });
+
+        const savedUser = await newUser.save();
+
+        // Create Payment Record if paid
+        if (isPaid && paymentId) {
+            const newPayment = new Payment({
+                userId: savedUser._id,
+                transactionId: paymentId,
+                amount: Number(paymentAmount),
+                type: 'registration',
+                status: 'completed',
+                paymentGateway: 'manual_admin'
+            });
+            await newPayment.save();
+        }
+
+        res.status(201).json({
+            statusCode: 201,
+            message: 'User created successfully',
+            data: savedUser
+        });
+
+    } catch (error) {
+        console.error('Error creating user:', error);
+        res.status(500).json({ message: 'Server error creating user', error: error.message });
+    }
+};
+
 module.exports = {
     adminLandingLogin,
     getAllRecords,
@@ -594,6 +664,7 @@ module.exports = {
     downloadUserInvoice,
     getPayments,
     manualUserPaymentUpdate,
-    getUnpaidUsers
+    getUnpaidUsers,
+    createUser
 };
 

@@ -50,7 +50,8 @@ const userSchema = new mongoose.Schema({
   userAgent: { type: String },
   fbclid: { type: String },
   trackingId: { type: String },
-  conversionType: { type: String, enum: ['code', 'fallback', 'organic', 'none'], default: 'none' }
+  conversionType: { type: String, enum: ['code', 'fallback', 'organic', 'none'], default: 'none' },
+  campaignCode: { type: String } // Code from the QR Campaign
 }, { timestamps: true });
 
 

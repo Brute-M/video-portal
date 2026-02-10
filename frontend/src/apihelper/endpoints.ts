@@ -33,5 +33,6 @@ export const ENDPOINTS = {
         CHARTS: '/admin/charts',
         INVOICE: (id: string) => `/admin/invoice/${id}`,
         MANUAL_PAYMENT: (id: string) => `/admin/users/${id}/payment`,
+        CREATE_USER: '/admin/users',
     }
 };

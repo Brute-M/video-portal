@@ -42,10 +42,10 @@ const TeamsPage = () => {
                         <Loader2 className="h-10 w-10 animate-spin text-[#111a45]" />
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-y-12 gap-x-8 justify-items-center">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-y-12 gap-x-8 justify-items-center">
                         {teams.map((team) => (
                             <div key={team._id} className="flex flex-col items-center group cursor-pointer">
-                                <div className="relative h-36 w-36 sm:h-44 sm:w-44 md:h-52 md:w-52 lg:h-60 lg:w-60 transition-transform duration-300 group-hover:scale-105 group-hover:shadow-[0_0_30px_rgba(255,165,0,0.6)] rounded-full">
+                                <div className="relative h-56 w-56 sm:h-64 sm:w-64 md:h-72 md:w-72 lg:h-80 lg:w-80 transition-transform duration-300 group-hover:scale-105 group-hover:shadow-[0_0_30px_rgba(255,165,0,0.6)] rounded-full">
                                     {/* Rotating Gradient Border - Always Visible */}
                                     <div
                                         className="absolute -inset-1 rounded-full animate-spin-slow"
@@ -59,7 +59,7 @@ const TeamsPage = () => {
                                         <img
                                             src={team.logo}
                                             alt={team.name}
-                                            className="h-28 w-28 sm:h-28 sm:w-28 md:h-32 md:w-32 lg:h-40 lg:w-40 object-contain p-2"
+                                            className="h-44 w-44 sm:h-48 sm:w-48 md:h-56 md:w-56 lg:h-60 lg:w-60 object-contain p-2"
                                         />
                                     </div>
                                 </div>

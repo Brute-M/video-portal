@@ -80,10 +80,11 @@ app.use("/api/jobs", jobRoutes);
 app.use("/api/ambassadors", ambassadorRoutes);
 app.use("/api/teams", teamRoutes);
 app.use("/api/partners", partnerRoutes);
+app.use("/api/campaigns", require("./routes/campaignRoutes"));
 app.use("/api/nav-links", require("./routes/navLinkRoute"));
 
 app.listen(port, () => {
   console.log(`server is running on port ${port}`);
-  console.log('Server restarted for event controller updates');
+  console.log('Server listening for campaigns');
   console.log("user latest code on the server")
 });

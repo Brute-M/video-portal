@@ -78,6 +78,7 @@ const Auth = ({ forceRegister }: AuthProps) => {
     otp: "",
     playerRole: "",
     referralCode: "",
+    campaignCode: "",
   });
 
   const [availableCities, setAvailableCities] = useState<any[]>([]);
@@ -93,8 +94,15 @@ const Auth = ({ forceRegister }: AuthProps) => {
 
     // Auto-fill referral code
     const refCode = searchParams.get("ref") || localStorage.getItem("brpl_ref_code");
-    if (refCode) {
-      setFormData(prev => ({ ...prev, referralCode: refCode }));
+    // Auto-fill campaign code
+    const campCode = searchParams.get("campaign");
+
+    if (refCode || campCode) {
+      setFormData(prev => ({
+        ...prev,
+        referralCode: refCode || prev.referralCode,
+        campaignCode: campCode || prev.campaignCode
+      }));
     }
   }, [searchParams, forceRegister]);
 

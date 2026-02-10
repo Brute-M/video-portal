@@ -284,7 +284,8 @@ const register = async (req, res) => {
       userAgent: clientUa,
       fbclid: fbclid || (matchedVisit ? matchedVisit.fbclid : undefined),
       trackingId: trackingId || (matchedVisit ? matchedVisit.trackingId : undefined),
-      conversionType
+      conversionType,
+      campaignCode: req.body.campaignCode // Save if present
     });
 
     await newUser.save();

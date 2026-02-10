@@ -12,7 +12,8 @@ import {
     CreditCard,
     X,
     Briefcase,
-    Link as LinkIcon
+    Link as LinkIcon,
+    QrCode
 } from "lucide-react";
 
 import { useToast } from "@/hooks/use-toast";
@@ -46,6 +47,7 @@ const AdminLayout = () => {
         { icon: Users, label: "Ambassadors", path: "/admin/ambassadors" },
         { icon: Users, label: "Teams", path: "/admin/teams" },
         { icon: Users, label: "Partners", path: "/admin/partners" },
+        { icon: QrCode, label: "QR Campaigns", path: "/admin/campaigns" },
         // { icon: LinkIcon, label: "Nav Links", path: "/admin/nav-links" },
         // { icon: Users, label: "Step 1 Leads", path: "/admin/step1-leads" },
     ];
@@ -85,7 +87,7 @@ const AdminLayout = () => {
                     </Button>
                 </div>
 
-                <div className="flex-1 py-6 px-3">
+                <div className="flex-1 py-6 px-3 overflow-y-auto">
                     <nav className="space-y-2">
                         {navItems.map((item) => (
                             <Link

@@ -9,6 +9,8 @@ const slides = [
   {
     id: 0,
     background: "/banner-brpl.jpeg",
+    // title: "BRPL", // Brand Name
+    // subtitle: "Bharat ki League, Bharatiyon ka Sapna", // Slogan
   },
   // {
   //   id: 1,
@@ -84,7 +86,19 @@ const Banner = () => {
 
                 {/* Content Overlay */}
                 <div className="relative md:absolute md:inset-0 z-10 w-full h-auto md:h-full max-w-[1400px] mx-auto px-4 md:px-10 lg:px-16 flex flex-col justify-end items-center md:items-end py-4 md:pb-12">
-                  <div className="flex flex-col items-center md:items-end justify-center w-full gap-8 md:gap-12 z-20">
+                  <div className="flex flex-col items-center md:items-end justify-center w-full gap-8 md:gap-10 z-20">
+                    {/* Branding Text */}
+                    {/* {slide.title && (
+                      <div className="text-center md:text-right space-y-2 animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-300">
+                        <h1 className="text-5xl md:text-7xl lg:text-9xl font-black text-white tracking-tighter drop-shadow-[0_4px_4px_rgba(0,0,0,0.5)]">
+                          {slide.title}
+                        </h1>
+                        <p className="text-xl md:text-3xl lg:text-4xl font-bold text-amber-500 tracking-wide uppercase drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]">
+                          {slide.subtitle}
+                        </p>
+                      </div>
+                    )} */}
+
                     {/* Buttons Container */}
                     <div className="flex flex-row gap-4 w-full justify-center md:justify-end">
                       <Link to="/registration">

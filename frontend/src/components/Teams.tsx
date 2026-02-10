@@ -4,17 +4,17 @@ const teams = [
   {
     name: "North East Panthers",
     logo: "/2.png",
-    bg: "bg-white",
+    bg: "bg-[#0F172A]",
   },
   {
     name: "Central Strikers",
     logo: "/5.png",
-    bg: "bg-white",
+    bg: "bg-[#0F172A]",
   },
   {
     name: "Western Heroes",
     logo: "/4.png",
-    bg: "bg-white",
+    bg: "bg-[#0F172A]",
   },
   {
     name: "Northern Dabanggss",
@@ -24,7 +24,7 @@ const teams = [
   {
     name: "Southern Lions",
     logo: "/1.png",
-    bg: "bg-white",
+    bg: "bg-[#0F172A]",
   },
 ];
 
@@ -97,8 +97,11 @@ const Teams: React.FC = () => {
             className="text-center text-[#FFD700] text-3xl md:text-4xl lg:text-[40px] font-extrabold tracking-[0.05em] mb-8 md:mb-10"
             style={{ fontFamily: "'Rye', serif" }}
           >
-            Teams
+            BRPL Teams
           </h2>
+          <p className="text-center text-amber-500 font-bold uppercase tracking-wider text-sm md:text-base mb-8 md:mb-10 -mt-6 italic">
+            Bharat ki League, Bharatiyon ka Sapna
+          </p>
 
           {/* Logos slider - auto slide only (no arrows) */}
           <div className="relative w-full">

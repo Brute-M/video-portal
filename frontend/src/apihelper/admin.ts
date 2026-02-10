@@ -77,6 +77,11 @@ export const exportUsersExcel = async (search: string = '', type: string = '', s
     return response.data;
 };
 
+export const createUser = async (userData: any) => {
+    const response = await api.post(ENDPOINTS.ADMIN.CREATE_USER, userData);
+    return response.data;
+};
+
 export const updateUserPayment = async (userId: string, paymentId: string, paymentAmount: number) => {
     const response = await api.patch(ENDPOINTS.ADMIN.MANUAL_PAYMENT(userId), {
         paymentId,

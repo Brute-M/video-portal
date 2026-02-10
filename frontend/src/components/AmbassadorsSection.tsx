@@ -59,9 +59,12 @@ const AmbassadorsSection: React.FC = () => {
                         className="text-white text-3xl md:text-4xl lg:text-[40px] font-extrabold tracking-[0.05em] mb-4"
                         style={{ fontFamily: "'Rye', serif" }}
                     >
-                        Our Ambassadors
+                        BRPL Ambassadors
                     </h2>
                     <div className="h-1 w-24 bg-[#FFC928] rounded-full" />
+                    <p className="text-center text-amber-500 font-bold uppercase tracking-wider text-sm md:text-base mt-4 italic">
+                        Bharat ki League, Bharatiyon ka Sapna
+                    </p>
                 </div>
 
                 {/* Carousel */}

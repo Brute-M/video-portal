@@ -39,6 +39,7 @@ import AdminJobForm from "./pages/AdminJobForm";
 import AdminAmbassadors from "./pages/AdminAmbassadors";
 import AdminTeams from "./pages/AdminTeams";
 import BecomePartner from "./pages/BecomePartner";
+import AdminCampaigns from "./pages/AdminCampaigns";
 import AdminPartners from "./pages/AdminPartners";
 
 import AOS from "aos";
@@ -100,6 +101,7 @@ const App = () => {
                 <Route path="/admin/ambassadors" element={<AdminAmbassadors />} />
                 <Route path="/admin/teams" element={<AdminTeams />} />
                 <Route path="/admin/partners" element={<AdminPartners />} />
+                <Route path="/admin/campaigns" element={<AdminCampaigns />} />
                 {/* <Route path="/admin/nav-links" element={<AdminNavLinks />} /> */}
               </Route>
 

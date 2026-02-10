@@ -1,0 +1,94 @@
+import React from "react";
+import { MoveRight } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+
+const WhoWeAre = () => {
+    return (
+        <section className="w-full py-16 md:py-24 bg-[#020617] text-white overflow-hidden relative">
+            {/* Decorative Elements */}
+            <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+                <div className="absolute -top-[20%] -left-[10%] w-[50%] h-[50%] bg-blue-600/10 rounded-full blur-[100px]" />
+                <div className="absolute top-[30%] -right-[10%] w-[40%] h-[40%] bg-amber-500/10 rounded-full blur-[100px]" />
+            </div>
+
+            <div className="container mx-auto px-4 md:px-6 relative z-10">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+                    {/* Content Side */}
+                    <div className="flex flex-col gap-6" data-aos="fade-right">
+                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 w-fit">
+                            <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                            <span className="text-amber-500 text-xs font-bold tracking-wider uppercase">
+                                About The League
+                            </span>
+                        </div>
+
+                        <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold leading-tight">
+                            Who We Are <br />
+                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-amber-600">
+                                BRPL (Beyond Reach Premier League)
+                            </span>
+                        </h2>
+
+                        <p className="text-lg text-gray-300 leading-relaxed border-l-4 border-amber-500 pl-4 italic">
+                            "BRPL – Bharat ki League, Bharatiyon ka Sapna"
+                        </p>
+
+                        <p className="text-gray-400 leading-relaxed">
+                            Welcome to the <span className="text-white font-semibold">Beyond Reach Premier League (BRPL)</span>,
+                            the ultimate platform designed to empower creators and athletes across India.
+                            At BRPL, we believe in the power of talent and the dream of every Indian to shine on a global stage.
+                        </p>
+
+                        <p className="text-gray-400 leading-relaxed">
+                            We provide an all-in-one ecosystem where you can upload high-quality videos, showcase your skills,
+                            connect with a massive audience, and start earning. Whether you are a budding cricketer,
+                            a creative artist, or a passionate entertainer, BRPL is your launchpad to success.
+                        </p>
+
+                        <div className="pt-4 flex flex-wrap gap-4">
+                            <Link to="/about-us">
+                                <Button className="bg-amber-500 hover:bg-amber-600 text-black font-bold rounded-full px-8 py-6 text-base shadow-[0_0_15px_rgba(245,158,11,0.3)] hover:shadow-[0_0_25px_rgba(245,158,11,0.5)] transition-all duration-300">
+                                    Read More
+                                    <MoveRight className="ml-2 w-5 h-5" />
+                                </Button>
+                            </Link>
+                        </div>
+                    </div>
+
+                    {/* Image/Visual Side */}
+                    <div className="relative" data-aos="fade-left">
+                        <div className="relative aspect-video rounded-2xl overflow-hidden border border-white/10 shadow-2xl bg-[#0f172a]">
+                            <img
+                                src="/about-us.png"
+                                alt="About BRPL"
+                                className="w-full h-full object-cover"
+                            />
+
+                            {/* Overlay Content */}
+                            <div className="absolute bottom-0 left-0 w-full p-6 bg-gradient-to-t from-black/80 to-transparent">
+                                <h3 className="text-white font-bold text-xl">Connecting India's Talent</h3>
+                                <p className="text-gray-300 text-sm">Join the revolution today.</p>
+                            </div>
+                        </div>
+
+                        {/* Floating Element */}
+                        <div className="absolute -bottom-6 -right-6 bg-[#1e293b] p-4 rounded-xl border border-white/10 shadow-xl hidden md:block">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center text-amber-500">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" /><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" /><path d="M4 22h16" /><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22" /><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22" /><path d="M18 2h-6c-1.1 0-2 .49-2 1v10c0 .55.45 1 1 1h8c.55 0 1-.45 1-1V3c0-.51-.9-1-2-1Z" /></svg>
+                                </div>
+                                <div>
+                                    <p className="text-white font-bold">Premier League</p>
+                                    <p className="text-xs text-amber-500">Official Partner</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    );
+};
+
+export default WhoWeAre;
