@@ -70,7 +70,7 @@ const AdminCampaigns = () => {
         e.preventDefault();
         setIsSubmitting(true);
         try {
-            await apiClient.post("/campaigns/create", newItem);
+            await apiClient.post("/api/campaigns/create", newItem);
             toast.success("Campaign created successfully");
             setNewItem({
                 title: "",
