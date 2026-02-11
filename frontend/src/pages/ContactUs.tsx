@@ -1,5 +1,6 @@
+import React, { useState } from "react";
+import { Link } from "react-router-dom";
 import PageBanner from "@/components/PageBanner";
-import { useState } from "react";
 import { submitContactAPI } from "@/apihelper/contact";
 import toast from "react-hot-toast";
 import {
@@ -169,8 +170,20 @@ const ContactUs = () => {
                                         </div>
                                         <div className="flex flex-col gap-1.5 text-gray-600">
                                             <span className="font-semibold text-gray-800">Naval Verma</span>
-                                            <a href="tel:+919217060779" className="hover:text-[#0b2a5b] transition-colors font-medium">+91 9217060779</a>
                                         </div>
+                                    </div>
+                                </div>
+                                {/* Sponsorship & Partnership */}
+                                <div className="border border-gray-200 rounded-2xl p-6 hover:shadow-md transition-shadow bg-blue-50/30 md:col-span-2">
+                                    <h4 className="font-bold text-[#0b2a5b] text-lg mb-4">Sponsorship & Partnership</h4>
+                                    <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+                                        <p className="text-gray-600 font-medium">Write For Sponsorship and Partnership inquiries</p>
+                                        <Link
+                                            to="/partners"
+                                            className="bg-[#0b2a5b] hover:bg-[#063772] text-white px-6 py-2.5 rounded-full font-semibold transition-all shadow-md hover:shadow-lg whitespace-nowrap"
+                                        >
+                                            Click Here
+                                        </Link>
                                     </div>
                                 </div>
                             </div>
@@ -216,7 +229,7 @@ const ContactUs = () => {
                         </div>
                     </div>
                 </div>
-            </section>
+            </section >
 
             <AlertDialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
                 <AlertDialogContent className="max-w-md rounded-2xl">
@@ -239,7 +252,7 @@ const ContactUs = () => {
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
-        </div>
+        </div >
     );
 };
 

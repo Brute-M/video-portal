@@ -35,15 +35,12 @@ const WhoWeAre = () => {
                         </p>
 
                         <p className="text-gray-400 leading-relaxed">
-                            Welcome to the <span className="text-white font-semibold">Beyond Reach Premier League (BRPL)</span>,
-                            the ultimate platform designed to empower creators and athletes across India.
-                            At BRPL, we believe in the power of talent and the dream of every Indian to shine on a global stage.
+                            <span className="text-white font-semibold">Beyond Reach Premier League (BRPL)</span> is a professional  <span className="text-white font-semibold">Indian T10 tennis ball cricket league</span> created to democratize access to competitive cricket. Designed around grassroots participation, zonal representation, and innovation, BRPL offers aspiring players from across India a structured pathway to professional cricket without bias, privilege, or geographical limitation.
                         </p>
 
                         <p className="text-gray-400 leading-relaxed">
-                            We provide an all-in-one ecosystem where you can upload high-quality videos, showcase your skills,
-                            connect with a massive audience, and start earning. Whether you are a budding cricketer,
-                            a creative artist, or a passionate entertainer, BRPL is your launchpad to success.
+                            BRPL blends <span className="text-white font-semibold">high-speed T10 action, nationwide talent discovery</span>, and <span className="text-white font-semibold">regional pride</span>, making it a league that is both competitive and deeply connected to India’s cricketing culture.
+
                         </p>
 
                         <div className="pt-4 flex flex-wrap gap-4">
@@ -60,7 +57,7 @@ const WhoWeAre = () => {
                     <div className="relative" data-aos="fade-left">
                         <div className="relative aspect-video rounded-2xl overflow-hidden border border-white/10 shadow-2xl bg-[#0f172a]">
                             <img
-                                src="/about-us.png"
+                                src="/home2.png"
                                 alt="About BRPL"
                                 className="w-full h-full object-cover"
                             />

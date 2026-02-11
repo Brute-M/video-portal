@@ -81,6 +81,7 @@ app.use("/api/ambassadors", ambassadorRoutes);
 app.use("/api/teams", teamRoutes);
 app.use("/api/partners", partnerRoutes);
 app.use("/api/campaigns", require("./routes/campaignRoutes"));
+app.use("/api/faqs", require("./routes/faqRoute"));
 app.use("/api/nav-links", require("./routes/navLinkRoute"));
 
 app.listen(port, () => {

@@ -41,6 +41,9 @@ import AdminTeams from "./pages/AdminTeams";
 import BecomePartner from "./pages/BecomePartner";
 import AdminCampaigns from "./pages/AdminCampaigns";
 import AdminPartners from "./pages/AdminPartners";
+import TypesOfPartners from "./pages/TypesOfPartners";
+import FAQs from "./pages/FAQs";
+import AdminFAQs from "./pages/AdminFAQs";
 
 import AOS from "aos";
 import "aos/dist/aos.css";
@@ -80,6 +83,8 @@ const App = () => {
                 <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
                 <Route path="/press/:id" element={<Press />} />
                 <Route path="/partners" element={<BecomePartner />} />
+                <Route path="/types-of-partners" element={<TypesOfPartners />} />
+                <Route path="/faqs" element={<FAQs />} />
               </Route>
 
               <Route path="/thank-you" element={<ThankYou />} />
@@ -102,6 +107,7 @@ const App = () => {
                 <Route path="/admin/teams" element={<AdminTeams />} />
                 <Route path="/admin/partners" element={<AdminPartners />} />
                 <Route path="/admin/campaigns" element={<AdminCampaigns />} />
+                <Route path="/admin/faqs" element={<AdminFAQs />} />
                 {/* <Route path="/admin/nav-links" element={<AdminNavLinks />} /> */}
               </Route>
 

@@ -33,7 +33,17 @@ const Header = () => {
                         { label: "Teams", path: "/teams", isActive: true, isExternal: false },
                         { label: "Events", path: "/events", isActive: true, isExternal: false },
                         { label: "Career", path: "/career", isActive: true, isExternal: false },
-                        { label: "Partners", path: "/partners", isActive: true, isExternal: false },
+                        {
+                            label: "Partners",
+                            path: "/partners",
+                            isActive: true,
+                            isExternal: false,
+                            subLinks: [
+                                { label: "BRPL Partner", path: "/partners" },
+                                { label: "BRPL Sponsors", path: "/types-of-partners" }
+                            ]
+                        },
+                        { label: "FAQs", path: "/faqs", isActive: true, isExternal: false },
                         { label: "Registration", path: "/auth?mode=register", isActive: true, isExternal: false },
                         { label: "Contact Us", path: "/contact-us", isActive: true, isExternal: false },
                     ]);
@@ -47,7 +57,19 @@ const Header = () => {
                     { label: "Teams", path: "/teams", isActive: true, isExternal: false },
                     { label: "Events", path: "/events", isActive: true, isExternal: false },
                     { label: "Career", path: "/career", isActive: true, isExternal: false },
-                    { label: "Partners", path: "/partners", isActive: true, isExternal: false },
+                    {
+                        label: "Partners",
+                        path: "/partners",
+                        isActive: true,
+                        isExternal: false,
+
+                        subLinks: [
+                            { label: "BRPL Partner", path: "/partners" },
+                            { label: "BRPL Sponsors", path: "" }
+                            // { label: "BRPL Sponsors", path: "/types-of-partners" }
+                        ]
+                    },
+                    { label: "FAQs", path: "/faqs", isActive: true, isExternal: false },
                     { label: "Registration", path: "/auth?mode=register", isActive: true, isExternal: false },
                     { label: "Contact Us", path: "/contact-us", isActive: true, isExternal: false },
                 ]);
@@ -125,7 +147,19 @@ const Header = () => {
                 {/* Desktop Navigation */}
                 <nav className="hidden lg:flex items-center gap-8 text-[15px] font-semibold tracking-wide ml-auto">
                     {navLinks.filter(link => link.isActive).map((link) => (
-                        link.isExternal ? (
+                        link.subLinks ? (
+                            <div key={link._id || link.label} className="relative group">
+                                <button className="hover:text-yellow-400 transition-colors py-1 flex items-center gap-1">
+                                    {link.label}
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-chevron-down w-4 h-4"><path d="m6 9 6 6 6-6" /></svg>
+                                </button>
+                                <div className="absolute top-full left-0 w-48 bg-[#111a45] shadow-xl border-t-2 border-yellow-400 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform origin-top pt-2">
+                                    {link.subLinks.map((sub: any) => (
+                                        <Link key={sub.label} to={sub.path} className="block px-4 py-3 hover:bg-white/10 text-sm">{sub.label}</Link>
+                                    ))}
+                                </div>
+                            </div>
+                        ) : link.isExternal ? (
                             <a
                                 key={link._id || link.label}
                                 href={link.path}
@@ -163,7 +197,23 @@ const Header = () => {
                 <div className="lg:hidden absolute top-full left-0 w-full bg-[#111a45] shadow-xl border-t border-white/10 z-50 px-6 py-4">
                     <nav className="flex flex-col text-left">
                         {navLinks.filter(link => link.isActive).map((link) => (
-                            link.isExternal ? (
+                            link.subLinks ? (
+                                <div key={link._id || link.label} className="border-b border-white/20 last:border-0">
+                                    <div className="py-4 text-white text-[16px] font-medium">{link.label}</div>
+                                    <div className="pl-4 pb-2 border-l border-white/10 ml-1">
+                                        {link.subLinks.map((sub: any) => (
+                                            <Link
+                                                key={sub.label}
+                                                to={sub.path}
+                                                className="block py-2 text-white/80 hover:text-yellow-400 text-sm"
+                                                onClick={() => setIsMenuOpen(false)}
+                                            >
+                                                {sub.label}
+                                            </Link>
+                                        ))}
+                                    </div>
+                                </div>
+                            ) : link.isExternal ? (
                                 <a
                                     key={link._id || link.label}
                                     href={link.path}

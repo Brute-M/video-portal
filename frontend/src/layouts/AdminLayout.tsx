@@ -13,7 +13,8 @@ import {
     X,
     Briefcase,
     Link as LinkIcon,
-    QrCode
+    QrCode,
+    HelpCircle
 } from "lucide-react";
 
 import { useToast } from "@/hooks/use-toast";
@@ -48,6 +49,7 @@ const AdminLayout = () => {
         { icon: Users, label: "Teams", path: "/admin/teams" },
         { icon: Users, label: "Partners", path: "/admin/partners" },
         { icon: QrCode, label: "QR Campaigns", path: "/admin/campaigns" },
+        { icon: HelpCircle, label: "Manage FAQs", path: "/admin/faqs" },
         // { icon: LinkIcon, label: "Nav Links", path: "/admin/nav-links" },
         // { icon: Users, label: "Step 1 Leads", path: "/admin/step1-leads" },
     ];
