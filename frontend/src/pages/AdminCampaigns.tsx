@@ -19,7 +19,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Trash, Download, QrCode } from "lucide-react";
+import { Plus, Trash, Download, QrCode, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import apiClient from "@/apihelper/api";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -39,11 +39,19 @@ const AdminCampaigns = () => {
     const [campaigns, setCampaigns] = useState<Campaign[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const [newItem, setNewItem] = useState({
         title: "",
         targetUrl: window.location.origin + "/registration", // Default to registration page
+        description: "",
+    });
+
+    const [editItem, setEditItem] = useState<Campaign | null>(null);
+    const [editFormData, setEditFormData] = useState({
+        title: "",
+        targetUrl: "",
         description: "",
     });
 
@@ -82,6 +90,35 @@ const AdminCampaigns = () => {
         } catch (error: any) {
             console.error("Failed to create campaign", error);
             toast.error(error.response?.data?.message || "Failed to create campaign");
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const handleEditClick = (campaign: Campaign) => {
+        setEditItem(campaign);
+        setEditFormData({
+            title: campaign.title,
+            targetUrl: campaign.targetUrl,
+            description: campaign.description,
+        });
+        setIsEditDialogOpen(true);
+    };
+
+    const handleUpdate = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!editItem) return;
+
+        setIsSubmitting(true);
+        try {
+            await apiClient.put(`/api/campaigns/${editItem._id}`, editFormData);
+            toast.success("Campaign updated successfully");
+            setIsEditDialogOpen(false);
+            setEditItem(null);
+            fetchCampaigns();
+        } catch (error: any) {
+            console.error("Failed to update campaign", error);
+            toast.error(error.response?.data?.message || "Failed to update campaign");
         } finally {
             setIsSubmitting(false);
         }
@@ -172,6 +209,49 @@ const AdminCampaigns = () => {
                         </form>
                     </DialogContent>
                 </Dialog>
+
+                {/* Edit Dialog */}
+                <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>Edit Campaign</DialogTitle>
+                            <DialogDescription>
+                                Update the campaign details. Note: Changing the URL might affect already printed QR codes if the structure changes significantly, but the code tracking should persist.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <form onSubmit={handleUpdate} className="space-y-4 pt-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="edit-title">Campaign Title</Label>
+                                <Input
+                                    id="edit-title"
+                                    value={editFormData.title}
+                                    onChange={(e) => setEditFormData({ ...editFormData, title: e.target.value })}
+                                    required
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="edit-targetUrl">Target URL</Label>
+                                <Input
+                                    id="edit-targetUrl"
+                                    value={editFormData.targetUrl}
+                                    onChange={(e) => setEditFormData({ ...editFormData, targetUrl: e.target.value })}
+                                    required
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="edit-description">Description (Optional)</Label>
+                                <Textarea
+                                    id="edit-description"
+                                    value={editFormData.description}
+                                    onChange={(e) => setEditFormData({ ...editFormData, description: e.target.value })}
+                                />
+                            </div>
+                            <Button type="submit" className="w-full" disabled={isSubmitting}>
+                                {isSubmitting ? "Updating..." : "Update Campaign"}
+                            </Button>
+                        </form>
+                    </DialogContent>
+                </Dialog>
             </div>
 
             <Card>
@@ -230,6 +310,15 @@ const AdminCampaigns = () => {
                                                 >
                                                     <Download className="w-4 h-4 mr-2" />
                                                     Download QR
+                                                </Button>
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() => handleEditClick(campaign)}
+                                                    className="hover:bg-yellow-50 hover:text-yellow-600"
+                                                >
+                                                    <Pencil className="w-4 h-4 mr-2" />
+                                                    Edit
                                                 </Button>
                                                 <Button
                                                     variant="destructive"

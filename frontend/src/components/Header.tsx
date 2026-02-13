@@ -44,7 +44,7 @@ const Header = () => {
                             ]
                         },
                         { label: "FAQs", path: "/faqs", isActive: true, isExternal: false },
-                        { label: "Registration", path: "/auth?mode=register", isActive: true, isExternal: false },
+                        { label: "Registration", path: "//registration", isActive: true, isExternal: false },
                         { label: "Contact Us", path: "/contact-us", isActive: true, isExternal: false },
                     ]);
                 }
@@ -70,7 +70,7 @@ const Header = () => {
                         ]
                     },
                     { label: "FAQs", path: "/faqs", isActive: true, isExternal: false },
-                    { label: "Registration", path: "/auth?mode=register", isActive: true, isExternal: false },
+                    { label: "Registration", path: "/registration", isActive: true, isExternal: false },
                     { label: "Contact Us", path: "/contact-us", isActive: true, isExternal: false },
                 ]);
             }

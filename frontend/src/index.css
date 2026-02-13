@@ -339,3 +339,19 @@
     display: none !important;
   }
 }
+
+@keyframes border-move {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  100% {
+    background-position: 200% 50%;
+    /* Moves from left to right constantly */
+  }
+}
+
+.animate-border-move {
+  animation: border-move 3s linear infinite;
+  background-size: 200% 100%;
+}

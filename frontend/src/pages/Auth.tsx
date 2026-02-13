@@ -30,6 +30,7 @@ import RoadmapSection from "@/components/RoadmapSection";
 import RegistrationHero from "@/components/RegistrationHero";
 import FloatingRegisterButton from "@/components/FloatingRegisterButton";
 import FloatingWhatsAppButton from "@/components/FloatingWhatsAppButton";
+import AuthVideoFeed from "@/components/AuthVideoFeed";
 
 type AuthProps = {
   forceRegister?: boolean;
@@ -558,9 +559,9 @@ const Auth = ({ forceRegister }: AuthProps) => {
       />
 
       {/* Full Screen Background Image */}
-      <div className="fixed inset-0 z-0 bg-[#0F172A]">
-        <div className="absolute inset-0 bg-black/50 z-10" /> {/* Dark Overlay */}
-        <div className="absolute inset-0 bg-[length:100%_100%] bg-center bg-no-repeat" style={{ backgroundImage: "url('https://brpl-public-uploads.s3.ap-south-1.amazonaws.com/DSC03585+(1)+(1).jpg')" }} />
+      <div className="absolute inset-0 z-0 bg-[#0F172A]">
+        {/* <div className="absolute inset-0 bg-black/50 z-10" /> Dark Overlay */}
+        <div className="absolute inset-0 bg-[length:100%_auto] bg-top bg-no-repeat" style={{ backgroundImage: "url('/auth-banner.png')" }} />
       </div>
 
       {isRegister && <FloatingRegisterButton />}
@@ -574,21 +575,30 @@ const Auth = ({ forceRegister }: AuthProps) => {
           {/* Background Image REMOVED from here */}
 
           <div className="relative z-10 mt-12 lg:mt-32">
-            <h1 className="text-3xl lg:text-7xl font-extrabold text-white mb-6 drop-shadow-xl leading-tight uppercase font-display">
-              Join BRPL <br /> <span className="text-[#FFC928]">League 2026</span>
-            </h1>
-            <div className="inline-flex items-center gap-3 bg-[#FFC928] backdrop-blur-sm px-6 py-2 rounded-full shadow-[0_0_15px_rgba(255,201,40,0.4)] border border-white/20">
+            {/* Buttons Section */}
+            <div className="flex flex-col sm:flex-row gap-4 mt-8 md:mt-[32rem] animate-fade-in-up md:ml-12">
+              <button
+                onClick={() => document.getElementById('auth-form-container')?.scrollIntoView({ behavior: 'smooth' })}
+                className="bg-[#FFC928] text-black font-extrabold text-lg px-8 py-3 rounded-xl shadow-[0_0_20px_rgba(255,201,40,0.4)] hover:scale-105 transition-transform uppercase tracking-wider skew-x-[-10deg]"
+              >
+                <span className="block skew-x-[10deg]">Register Now</span>
+              </button>
+
+              <a
+                href="tel:8130955866"
+                className="bg-black/40 backdrop-blur-md border border-white/20 text-white font-bold text-lg px-8 py-3 rounded-xl hover:bg-black/60 transition-all flex items-center justify-center gap-2 skew-x-[-10deg]"
+              >
+                <span className="block skew-x-[10deg] not-italic">📞 81309 55866</span>
+              </a>
+            </div>
+            {/* <div className="inline-flex items-center gap-3 bg-[#FFC928] backdrop-blur-sm px-6 py-2 rounded-full shadow-[0_0_15px_rgba(255,201,40,0.4)] border border-white/20">
               <p className="text-lg lg:text-xl font-bold text-black tracking-wide">
                 Limited Slots in your City
               </p>
             </div>
             <div className="mt-6 text-white text-lg font-semibold drop-shadow-md bg-black/40 px-4 py-2 rounded-lg inline-block backdrop-blur-sm border border-white/10">
               📞 Call us: <a href="tel:8130955866" className="text-[#FFC928] hover:underline">81309 55866</a>
-            </div>
-          </div>
-
-          <div className="relative z-10">
-            {/* Placeholder */}
+            </div> */}
           </div>
         </div>
 
@@ -699,23 +709,21 @@ const Auth = ({ forceRegister }: AuthProps) => {
                         {/* NEW: Email and Password in Step 1 */}
                         {/* {isPhoneVerified && ( */}
                         {true && (
-                          <div className="space-y-4 animate-fade-in">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 animate-fade-in">
                             <div className="space-y-2">
                               <Label htmlFor="email" className="text-white font-semibold drop-shadow-sm">Email Address</Label>
                               <div className="relative">
-                                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-                                <Input id="email" type="email" className="pl-9 h-11 bg-white text-black placeholder:text-gray-500 border-white/20 focus-visible:ring-primary/50" value={formData.email} onChange={handleChange} required placeholder="Enter Email" />
+                                <Input id="email" type="email" className="pl-3 h-11 bg-white text-black placeholder:text-gray-500 border-white/20 focus-visible:ring-primary/50" value={formData.email} onChange={handleChange} required placeholder="Enter Email" />
                               </div>
                             </div>
 
                             <div className="space-y-2">
                               <Label htmlFor="password" className="text-white font-semibold drop-shadow-sm">Create Password</Label>
                               <div className="relative">
-                                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
                                 <Input
                                   id="password"
                                   type={showRegisterPassword ? "text" : "password"}
-                                  className="pl-9 pr-10 h-11 bg-white text-black placeholder:text-gray-500 border-white/20 focus-visible:ring-primary/50"
+                                  className="pl-3 pr-10 h-11 bg-white text-black placeholder:text-gray-500 border-white/20 focus-visible:ring-primary/50"
                                   value={formData.password}
                                   onChange={handleChange}
                                   required
@@ -1032,7 +1040,7 @@ const Auth = ({ forceRegister }: AuthProps) => {
                         if (forceRegister) {
                           navigate("/registration");
                         } else {
-                          navigate("/auth?mode=register");
+                          navigate("/registration");
                         }
                       }
                     }}
@@ -1050,6 +1058,7 @@ const Auth = ({ forceRegister }: AuthProps) => {
       {
         isRegister && (
           <div className="relative z-10">
+            <AuthVideoFeed />
             <TrustBar />
             <RoadmapSection />
             <div className="relative z-10 bg-white">

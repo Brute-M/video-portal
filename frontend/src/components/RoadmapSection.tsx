@@ -7,18 +7,6 @@ const RoadmapSection = () => {
         {
             id: 1,
             icon: FileText,
-            title: "RECORD YOUR SKILLS",
-            // The image text says "RECORD YOUR SKILLS"? Wait, user text says "Sign Up & Pay" for Step 1.
-            // Let's re-read the prompt details.
-            // Image has: 1. RECORD YOUR SKILLS, 2. CLEAR ZONE TRIALS ...
-            // Text Request has: 
-            // Step 1: Sign Up & Pay (Form)
-            // Step 2: Record & Upload (Phone)
-            // Step 3: Get Shortlisted (Search)
-            // Step 4: Play Live on TV (Stadium/TV)
-
-            // I MUST FOLLOW THE TEXT REQUEST CONTENT but DESIGN from Image.
-
             headline: "SIGN UP & PAY",
             description: "Fill your details and pay the one-time entry fee of ₹1499 to secure your spot.",
         },
@@ -44,32 +32,42 @@ const RoadmapSection = () => {
 
     return (
         <>
-            <section className="w-full bg-white py-16 px-4 md:px-8 relative">
-                <div className="max-w-7xl mx-auto">
-                    <h2 className="text-center text-4xl md:text-5xl font-extrabold text-[#111827] mb-20 uppercase tracking-wide font-display">
+            <section className="w-full relative py-20 px-4 md:px-8 overflow-hidden">
+                {/* Background Image & Overlay */}
+                {/* Background Image & Overlay */}
+                <div className="absolute inset-0 z-0">
+                    <img src="/banner.png" alt="Stadium Background" className="w-full h-full object-cover opacity-100" />
+                    <div className="absolute inset-0 bg-[#0f172a]/70 mix-blend-multiply" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#0f172a] via-transparent to-[#0f172a]/80" />
+                </div>
+
+                <div className="max-w-7xl mx-auto relative z-10">
+                    <h2 className="text-center text-3xl md:text-5xl font-black text-white mb-24 uppercase tracking-tighter font-sans italic drop-shadow-2xl">
                         YOUR JOURNEY TO <span className="text-[#FFC928]">GLORY</span>
                     </h2>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-6 mt-12">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-8 mt-12">
                         {steps.map((step) => (
                             <div
                                 key={step.id}
-                                className="bg-white rounded-3xl p-6 lg:p-8 flex flex-col items-center text-center shadow-[0_10px_40px_-15px_rgba(0,0,0,0.1)] hover:shadow-2xl transition-all duration-300 relative group border border-gray-100 mt-8"
+                                className="group relative bg-white/5 backdrop-blur-md rounded-2xl p-8 pt-12 flex flex-col items-center text-center border border-white/10 hover:border-[#FFC928]/50 transition-all duration-500 hover:-translate-y-4 hover:scale-105 shadow-[0_8px_32px_0_rgba(0,0,0,0.37)] hover:shadow-[0_20px_40px_-15px_rgba(255,201,40,0.3)]"
                             >
                                 {/* Floating Step Number */}
-                                <div className="absolute -top-10 left-1/2 -translate-x-1/2 w-20 h-20 bg-[#FF5555] rounded-full flex items-center justify-center border-[6px] border-white shadow-lg z-10">
-                                    <span className="text-3xl font-bold text-white">{step.id}</span>
+                                <div className="absolute -top-10 left-1/2 -translate-x-1/2 w-20 h-20 bg-gradient-to-br from-[#FF5555] to-[#D92020] rounded-full flex items-center justify-center border-4 border-[#0f172a] shadow-[0_0_20px_rgba(255,85,85,0.6)] z-20 group-hover:scale-110 transition-transform duration-300">
+                                    <span className="text-3xl font-black text-white drop-shadow-md">{step.id}</span>
                                 </div>
 
-                                <div className="mt-10 mb-6 text-gray-400 group-hover:text-[#FFC928] transition-colors duration-300">
-                                    <step.icon className="w-12 h-12" strokeWidth={1.5} />
+                                <div className="mt-6 mb-6 p-4 rounded-full bg-white/5 border border-white/10 group-hover:bg-[#FFC928]/20 group-hover:border-[#FFC928]/50 transition-all duration-500">
+                                    <step.icon className="w-10 h-10 text-white/80 group-hover:text-[#FFC928] transition-colors duration-300" strokeWidth={2} />
                                 </div>
 
-                                <h3 className="text-xl font-bold text-[#1e2330] mb-3 uppercase">
+                                <h3 className="text-xl font-bold text-white mb-4 uppercase tracking-wide group-hover:text-[#FFC928] transition-colors duration-300">
                                     {step.headline}
                                 </h3>
 
-                                <p className="text-gray-500 text-sm leading-relaxed">
+                                <div className="w-12 h-1 bg-white/20 rounded-full mb-4 group-hover:w-20 group-hover:bg-[#FFC928] transition-all duration-500"></div>
+
+                                <p className="text-gray-300 text-sm leading-relaxed font-medium">
                                     {step.description}
                                 </p>
                             </div>

@@ -64,9 +64,47 @@ exports.getCampaigns = async (req, res) => {
 exports.deleteCampaign = async (req, res) => {
     try {
         const { id } = req.params;
-        await Campaign.findByIdAndDelete(id);
+        const campaign = await Campaign.findByIdAndDelete(id);
+        if (!campaign) {
+            return res.status(404).json({ success: false, message: "Campaign not found" });
+        }
         res.status(200).json({ success: true, message: "Campaign deleted successfully" });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }
 }
+
+exports.updateCampaign = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { title, targetUrl, description } = req.body;
+
+        const campaign = await Campaign.findById(id);
+
+        if (!campaign) {
+            return res.status(404).json({ success: false, message: "Campaign not found" });
+        }
+
+        campaign.title = title || campaign.title;
+        campaign.description = description || campaign.description;
+
+        if (targetUrl) {
+            // Check if the user is providing a strictly new base URL or the full URL.
+            // We want to ensure 'campaign=CODE' is present.
+            // Simplified logic: If existing code is not in new url, append it.
+            if (!targetUrl.includes(`campaign=${campaign.code}`)) {
+                const separator = targetUrl.includes('?') ? '&' : '?';
+                campaign.targetUrl = `${targetUrl}${separator}campaign=${campaign.code}`;
+            } else {
+                campaign.targetUrl = targetUrl;
+            }
+        }
+
+        await campaign.save();
+
+        res.status(200).json({ success: true, message: "Campaign updated successfully", data: campaign });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+

@@ -9,5 +9,6 @@ const campaignController = require('../controller/campaignController');
 router.post('/create', campaignController.createCampaign);
 router.get('/', campaignController.getCampaigns);
 router.delete('/:id', campaignController.deleteCampaign);
+router.put('/:id', campaignController.updateCampaign);
 
 module.exports = router;
