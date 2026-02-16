@@ -520,6 +520,17 @@ const Videos = () => {
                             videoId: currentVideoId
                         });
 
+                        // Track Facebook Pixel Purchase Event
+                        import('react-facebook-pixel').then((x) => x.default.track('Purchase', {
+                            value: 1499,
+                            currency: 'INR',
+                            content_name: 'Video Upload Fee',
+                            content_type: 'product',
+                            order_id: response.razorpay_order_id,
+                            payment_id: response.razorpay_payment_id,
+                            user_id: userProfile?._id || userProfile?.id
+                        }));
+
                         setVideos((prev) =>
                             prev.map((v) =>
                                 v.id === currentVideoId ? { ...v, status: "completed" } : v

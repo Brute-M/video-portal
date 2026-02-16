@@ -323,7 +323,10 @@ const Auth = ({ forceRegister }: AuthProps) => {
               value: 1499,
               currency: 'INR',
               content_name: 'Registration Fee',
-              content_type: 'product'
+              content_type: 'product',
+              order_id: response.razorpay_order_id,
+              payment_id: response.razorpay_payment_id,
+              user_id: userId
             }));
 
             toast({
@@ -576,7 +579,7 @@ const Auth = ({ forceRegister }: AuthProps) => {
 
           <div className="relative z-10 mt-12 lg:mt-32">
             {/* Buttons Section */}
-            <div className="flex flex-col sm:flex-row gap-4 mt-8 md:mt-[32rem] animate-fade-in-up md:ml-12">
+            {/* <div className="flex flex-col sm:flex-row gap-4 mt-8 md:mt-[32rem] animate-fade-in-up md:ml-12">
               <button
                 onClick={() => document.getElementById('auth-form-container')?.scrollIntoView({ behavior: 'smooth' })}
                 className="bg-[#FFC928] text-black font-extrabold text-lg px-8 py-3 rounded-xl shadow-[0_0_20px_rgba(255,201,40,0.4)] hover:scale-105 transition-transform uppercase tracking-wider skew-x-[-10deg]"
@@ -590,7 +593,7 @@ const Auth = ({ forceRegister }: AuthProps) => {
               >
                 <span className="block skew-x-[10deg] not-italic">📞 81309 55866</span>
               </a>
-            </div>
+            </div> */}
             {/* <div className="inline-flex items-center gap-3 bg-[#FFC928] backdrop-blur-sm px-6 py-2 rounded-full shadow-[0_0_15px_rgba(255,201,40,0.4)] border border-white/20">
               <p className="text-lg lg:text-xl font-bold text-black tracking-wide">
                 Limited Slots in your City
