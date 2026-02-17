@@ -31,7 +31,7 @@ const AboutSection: React.FC = () => {
                         </p>
 
                         <p>
-                            This is what we want to change with the <span className="font-bold text-black">Beyond Reach Premier League (BRPL)</span>. We bring you a fresh T10 format league that will transform how cricket is played and experienced. With nationwide trials in place, expect to see raw talent from every corner of the country. Guided by the vision "Bharat ki League, Bhartiyo ka Sapna," we have a strong focus on inclusivity, community, sustainability, and, of course, the entertainment factor.
+                            This is what we want to change with the <span className="font-bold text-black">Beyond Reach Premier League (BRPL)</span>. We bring you a fresh <b className="font-bold text-black">T10 tennis ball cricket league</b> format league that will transform how cricket is played and experienced. With nationwide trials in place, expect to see raw talent from every corner of the country. Guided by the vision "Bharat ki League, Bhartiyo ka Sapna," we have a strong focus on inclusivity, community, sustainability, and, of course, the entertainment factor.
                         </p>
 
                         <p>

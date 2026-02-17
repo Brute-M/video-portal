@@ -51,7 +51,7 @@ const MissionVisionSection: React.FC = () => {
                             ) : (
                                 <div className="space-y-6 text-gray-300 text-lg leading-relaxed font-sans">
                                     <p>
-                                        "If they can dream it, they can achieve it." This belief lies at the heart of the Beyond Reach Premier League (BRPL). Our vision is to make BRPL the most inclusive and sustainable T10 cricket platform in India.
+                                        "If they can dream it, they can achieve it." This belief lies at the heart of the Beyond Reach Premier League (BRPL). Our vision is to make BRPL the most inclusive and sustainable <b className="font-bold text-white">T10 tennis ball cricket league</b> platform in India.
                                     </p>
                                     <p>
                                         From a child playing in a village field, a youngster practicing under streetlights, to communities that live and breathe cricket, we want everyone to feel that this league belongs to them. By giving a professional platform to the underprivileged, we aim to revolutionize cricket at the grassroots. We want to see cricket thrive in local communities, schools, and small towns.
