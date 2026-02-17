@@ -17,7 +17,7 @@ const RegistrationHero = () => {
             <div
                 className="absolute inset-0 z-0 bg-[length:100%_100%] bg-center bg-no-repeat"
                 style={{
-                    backgroundImage: "url('/registration-bottom.png')",
+                    backgroundImage: "url('/banner.png')",
                 }}
             >
                 <div className="absolute inset-0 bg-black/60 md:bg-black/50" /> {/* Dark overlay for text readability */}

@@ -46,9 +46,8 @@ const TrustBar = () => {
     return (
         <>
             {/* <ImageSlider /> */}
-            <section className="w-full bg-white py-16 px-4 md:px-8 relative overflow-hidden">
-                {/* Background Pattern */}
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-blue-100/40 via-white to-white pointer-events-none" />
+            <section className="w-full bg-[#020617] py-16 px-4 md:px-8 relative overflow-hidden">
+                {/* Background Pattern - Removed light gradient for dark theme visibility */}
 
                 <div className="max-w-7xl mx-auto relative z-10">
                     <h2 className="text-center text-4xl md:text-5xl font-extrabold bg-gradient-to-r from-[#FFC928] to-amber-500 bg-clip-text text-transparent mb-12 uppercase tracking-wide font-display italic drop-shadow-sm">
@@ -59,10 +58,10 @@ const TrustBar = () => {
                         {trustItems.map((item, index) => (
                             <div
                                 key={index}
-                                className="group relative rounded-2xl p-[2px] shadow-xl hover:-translate-y-1 transition-transform duration-300 min-h-[160px] overflow-hidden"
+                                className="group relative rounded-2xl p-[2px] shadow-[0_0_20px_rgba(255,201,40,0.15)] hover:-translate-y-1 transition-transform duration-300 min-h-[160px] overflow-hidden"
                             >
                                 {/* Moving Gradient Border */}
-                                <div className="absolute inset-0 bg-gradient-to-r from-[#111a45] via-[#FFC928] to-[#111a45] animate-border-move"></div>
+                                <div className="absolute inset-0 bg-gradient-to-r from-gray-700 via-[#FFC928] to-gray-700 animate-border-move"></div>
 
                                 {/* Content Card */}
                                 <div className="relative bg-[#111a45] rounded-[14px] p-4 lg:p-6 flex flex-col items-center justify-center text-center w-full h-full">
