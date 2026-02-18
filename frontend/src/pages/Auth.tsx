@@ -564,7 +564,7 @@ const Auth = ({ forceRegister }: AuthProps) => {
       {/* Full Screen Background Image */}
       <div className="absolute inset-0 z-0 bg-[#0F172A]">
         {/* <div className="absolute inset-0 bg-black/50 z-10" /> Dark Overlay */}
-        <div className="absolute inset-0 bg-[length:100%_auto] bg-top bg-no-repeat" style={{ backgroundImage: "url('/auth-banner.png')" }} />
+        <div className="absolute inset-0 bg-[length:100%_auto] bg-top bg-no-repeat" style={{ backgroundImage: "url('/auth-banner.jpeg')" }} />
       </div>
 
       {isRegister && <FloatingRegisterButton />}
