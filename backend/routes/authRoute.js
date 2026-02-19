@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { login, register, upload, uploadProfileImage, uploadProfileImageHandler, sendOtp, verifyOtp, forgotPassword, resetPassword, registerCoach, loginCoach, resendWelcomeEmail, getPartnerProfile, getCoachMyPlayers, trackVisit, getVisits, saveStep1Data, storeSyncData, createSystemUser, updateSystemUser, deleteSystemUser } = require('../controller/authController');
+const { login, register, upload, uploadProfileImage, uploadProfileImageHandler, sendOtp, verifyOtp, forgotPassword, resetPassword, registerCoach, loginCoach, resendWelcomeEmail, getPartnerProfile, getCoachMyPlayers, trackVisit, getVisits, saveStep1Data, createSystemUser, updateSystemUser, deleteSystemUser } = require('../controller/authController');
 const authenticate = require('../middleware/authMiddleware');
 const User = require('../model/user.model');
 
@@ -53,6 +53,7 @@ router.get('/profile', authenticate, async (req, res) => {
     });
   } catch (err) {
     console.error(err);
+    console.log('error');
     res.status(500).json({ statusCode: 500, data: { message: 'Error fetching user profile' } });
   }
 });

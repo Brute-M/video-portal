@@ -1205,6 +1205,7 @@ const deleteSystemUser = async (req, res) => {
     });
   } catch (error) {
     console.error("Delete System User Error:", error);
+    console.log('error');
     res.status(500).json({ statusCode: 500, data: { message: 'Server error' } });
   }
 };
@@ -1231,7 +1232,7 @@ module.exports = {
   exportStep1Leads,
   updateProfile,
   updateProfile,
-  storeSyncData,
+  // storeSyncData,
   createSystemUser,
   updateSystemUser,
   deleteSystemUser
