@@ -82,7 +82,7 @@ const Dashboard = () => {
       const order = await createLandingOrder(1499);
 
       const options: any = {
-        key: import.meta.env.VITE_API_URL || "rzp_live_RsBsR05m5SGbtT",
+        key: import.meta.env.VITE_RAZORPAY_KEY_ID || "rzp_live_RsBsR05m5SGbtT",
         amount: order.amount,
         currency: order.currency,
         name: "Beyond Reach Premier League",

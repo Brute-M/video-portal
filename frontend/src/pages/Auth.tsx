@@ -320,7 +320,7 @@ const Auth = ({ forceRegister }: AuthProps) => {
       }
 
       const options: any = {
-        key: import.meta.env.VITE_API_URL || "rzp_live_RsBsR05m5SGbtT", // Should optimally be in env vars
+        key: import.meta.env.VITE_RAZORPAY_KEY_ID || "rzp_live_RsBsR05m5SGbtT", // Should optimally be in env vars
         amount: order.amount,
         currency: order.currency,
         name: "Beyond Reach Premier League",
@@ -507,6 +507,7 @@ const Auth = ({ forceRegister }: AuthProps) => {
         if (token) {
           localStorage.setItem('token', token);
           localStorage.setItem('userEmail', formData.email);
+          if (role) localStorage.setItem('userRole', role);
         } else {
           console.error("No token found in response");
           toast({
@@ -526,7 +527,7 @@ const Auth = ({ forceRegister }: AuthProps) => {
         // Check if user is unpaid (Access Restricted handled on Dashboard, but maybe we can warn here too?)
         // The dashboard will show the restricted view.
 
-        if (role === 'admin') {
+        if (['admin', 'subadmin', 'seo_content'].includes(role)) {
           navigate("/admin/dashboard");
         } else {
           navigate("/dashboard");
