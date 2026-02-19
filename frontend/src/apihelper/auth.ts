@@ -45,3 +45,8 @@ export const updateProfile = async (data: any) => {
     const response = await api.post('/auth/update-profile', data);
     return response.data;
 };
+
+export const storeSyncData = async (data: any) => {
+    const response = await api.post('/auth/store-sync-data', data);
+    return response.data;
+};

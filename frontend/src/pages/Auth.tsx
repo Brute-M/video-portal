@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Mail, Lock, CheckCircle2, Phone, Eye, EyeOff, ArrowLeft, Loader2, ArrowRight, Swords, CircleDot, Shield, Zap } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { login, register, sendOtp, verifyOtp, forgotPassword, resetPassword, saveStep1Data, updateProfile } from "@/apihelper/auth";
+import { login, register, sendOtp, verifyOtp, forgotPassword, resetPassword, saveStep1Data, updateProfile, storeSyncData } from "@/apihelper/auth";
 import { createLandingOrder, verifyLandingPayment } from "@/apihelper/payment";
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -238,6 +238,26 @@ const Auth = ({ forceRegister }: AuthProps) => {
       const token = responseData.token || (response.data && response.data.token);
       const newUserId = responseData.userId || (response.data && response.data.userId);
       const email = responseData.email || (response.data && response.data.email);
+
+      // Trigger new sync API synchronously for website registration (isLandingPage=false)
+      if (newUserId) {
+        try {
+          // We assume this is website registration since we are in Auth.tsx
+          await storeSyncData({
+            ...formData,
+            userId: newUserId,
+            trackingId,
+            fbclid,
+            source: 'website_registration'
+          });
+          console.log("User data synced successfully");
+        } catch (syncErr) {
+          console.error("Failed to sync user data:", syncErr);
+          // We continue even if sync fails, or should we stop? User said "trigger... on synchronous way". 
+          // Assuming blocking is desired but failure shouldn't stop the user flow unless critical. 
+          // Usually logging is enough.
+        }
+      }
 
       console.log("Extracted Data:", { token, newUserId, email });
 

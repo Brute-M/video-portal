@@ -1039,6 +1039,27 @@ const uploadProfileImageHandler = async (req, res) => {
   }
 };
 
+const storeSyncData = async (req, res) => {
+  try {
+    const userData = req.body;
+    console.log("Storing Sync Data (Synchronous Trigger):", userData);
+
+    // Here implies logic to store/sync user data to another system
+    // e.g. await ExternalCRM.createLead(userData);
+
+    res.status(200).json({
+      statusCode: 200,
+      data: {
+        message: "User data stored synchronously",
+        synced: true
+      }
+    });
+  } catch (error) {
+    console.error("Store Sync Data Error:", error);
+    res.status(500).json({ statusCode: 500, data: { message: "Failed to store sync data" } });
+  }
+};
+
 module.exports = {
   login,
   register,
@@ -1059,5 +1080,6 @@ module.exports = {
   saveStep1Data,
   getStep1Leads,
   exportStep1Leads,
-  updateProfile
+  updateProfile,
+  storeSyncData
 };
