@@ -133,7 +133,8 @@ const login = async (req, res) => {
     }
 
     // 5. Success
-    const token = jwt.sign({ userId: user._id, role: 'user' }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    const userRole = user.role || 'user';
+    const token = jwt.sign({ userId: user._id, role: userRole }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
     res.json({
       statusCode: 200,
@@ -141,7 +142,7 @@ const login = async (req, res) => {
         message: 'Login successful',
         userId: user._id,
         email: user.email,
-        role: 'user',
+        role: userRole,
         token
       }
     });
@@ -1039,24 +1040,172 @@ const uploadProfileImageHandler = async (req, res) => {
   }
 };
 
-const storeSyncData = async (req, res) => {
-  try {
-    const userData = req.body;
-    console.log("Storing Sync Data (Synchronous Trigger):", userData);
+// const storeSyncData = async (req, res) => {
+//   try {
+//     const userData = req.body;
+//     console.log("Storing Sync Data (Synchronous Trigger):", userData);
 
-    // Here implies logic to store/sync user data to another system
-    // e.g. await ExternalCRM.createLead(userData);
+//     // Here implies logic to store/sync user data to another system
+//     // e.g. await ExternalCRM.createLead(userData);
+
+//     res.status(200).json({
+//       statusCode: 200,
+//       data: {
+//         message: "User data stored synchronously",
+//         synced: true
+//       }
+//     });
+//   } catch (error) {
+//     console.error("Store Sync Data Error:", error);
+//     res.status(500).json({ statusCode: 500, data: { message: "Failed to store sync data" } });
+//   }
+// };
+
+const createSystemUser = async (req, res) => {
+  try {
+    const { fname, lname, email, password, mobile, role, city, state } = req.body;
+    const requesterRole = req.role; // From middleware
+
+    // Authorization Check
+    if (requesterRole !== 'admin' && requesterRole !== 'subadmin') {
+      return res.status(403).json({ statusCode: 403, data: { message: 'Permission denied' } });
+    }
+
+    // Role Creation Restrictions
+    if (requesterRole === 'subadmin') {
+      if (role !== 'seo_content') {
+        return res.status(403).json({ statusCode: 403, data: { message: 'Subadmins can only create SEO_CONTENT users' } });
+      }
+    }
+
+    // Basic Validation - Email, Password, Role essential
+    if (!email || !password || !role) {
+      return res.status(400).json({ statusCode: 400, data: { message: 'Email, Password and Role are required' } });
+    }
+
+    // Check Existence
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ statusCode: 400, data: { message: 'User already exists' } });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Generate dummy mobile if not provided (Format: 9 + 9 random digits to resemble valid mobile)
+    const generatedMobile = mobile || ('9' + Math.floor(100000000 + Math.random() * 900000000).toString());
+
+    const newUser = new User({
+      fname: fname || 'System',
+      lname: lname || 'User',
+      email,
+      password: hashedPassword,
+      mobile: generatedMobile,
+      role,
+      city: city || 'System',
+      state: state || 'System',
+      isPaid: false
+    });
+
+    await newUser.save();
+
+    res.status(201).json({
+      statusCode: 201,
+      data: {
+        message: 'System User created successfully',
+        userId: newUser._id,
+        role: newUser.role
+      }
+    });
+
+  } catch (error) {
+    console.error("Create System User Error:", error);
+    res.status(500).json({ statusCode: 500, data: { message: 'Server error' } });
+  }
+};
+
+const updateSystemUser = async (req, res) => {
+  try {
+    const { userId, email, password, role } = req.body;
+    const requesterRole = req.role;
+
+    if (requesterRole !== 'admin' && requesterRole !== 'subadmin') {
+      return res.status(403).json({ statusCode: 403, data: { message: 'Permission denied' } });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ statusCode: 404, data: { message: 'User not found' } });
+    }
+
+    // Role restrictions for subadmin
+    if (requesterRole === 'subadmin') {
+      // Cannot edit admins or subadmins
+      if (['admin', 'subadmin'].includes(user.role)) {
+        return res.status(403).json({ statusCode: 403, data: { message: 'Insufficient permissions to edit this user' } });
+      }
+      // Cannot set role to admin or subadmin
+      if (role && ['admin', 'subadmin'].includes(role)) {
+        return res.status(403).json({ statusCode: 403, data: { message: 'Insufficient permissions to assign this role' } });
+      }
+    }
+
+    if (email) user.email = email.toLowerCase();
+    if (role) user.role = role;
+    if (password) {
+      user.password = await bcrypt.hash(password, 10);
+    }
+
+    await user.save();
 
     res.status(200).json({
       statusCode: 200,
       data: {
-        message: "User data stored synchronously",
-        synced: true
+        message: 'User updated successfully',
+        user: {
+          id: user._id,
+          email: user.email,
+          role: user.role
+        }
+      }
+    });
+
+  } catch (error) {
+    console.error("Update System User Error:", error);
+    res.status(500).json({ statusCode: 500, data: { message: 'Server error' } });
+  }
+};
+
+const deleteSystemUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const requesterRole = req.role;
+
+    // Only Admin can delete system users
+    if (requesterRole !== 'admin') {
+      return res.status(403).json({ statusCode: 403, data: { message: 'Permission denied. Only Admins can delete users.' } });
+    }
+
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({ statusCode: 404, data: { message: 'User not found' } });
+    }
+
+    // Prevent deleting self or other main admins if specific
+    if (user.email === 'admin@brpl.com') {
+      return res.status(403).json({ statusCode: 403, data: { message: 'Cannot delete main admin account' } });
+    }
+
+    await User.findByIdAndDelete(id);
+
+    res.status(200).json({
+      statusCode: 200,
+      data: {
+        message: 'User deleted successfully'
       }
     });
   } catch (error) {
-    console.error("Store Sync Data Error:", error);
-    res.status(500).json({ statusCode: 500, data: { message: "Failed to store sync data" } });
+    console.error("Delete System User Error:", error);
+    res.status(500).json({ statusCode: 500, data: { message: 'Server error' } });
   }
 };
 
@@ -1081,5 +1230,9 @@ module.exports = {
   getStep1Leads,
   exportStep1Leads,
   updateProfile,
-  storeSyncData
+  updateProfile,
+  storeSyncData,
+  createSystemUser,
+  updateSystemUser,
+  deleteSystemUser
 };

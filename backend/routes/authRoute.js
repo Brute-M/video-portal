@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { login, register, upload, uploadProfileImage, uploadProfileImageHandler, sendOtp, verifyOtp, forgotPassword, resetPassword, registerCoach, loginCoach, resendWelcomeEmail, getPartnerProfile, getCoachMyPlayers, trackVisit, getVisits, saveStep1Data, storeSyncData } = require('../controller/authController');
+const { login, register, upload, uploadProfileImage, uploadProfileImageHandler, sendOtp, verifyOtp, forgotPassword, resetPassword, registerCoach, loginCoach, resendWelcomeEmail, getPartnerProfile, getCoachMyPlayers, trackVisit, getVisits, saveStep1Data, storeSyncData, createSystemUser, updateSystemUser, deleteSystemUser } = require('../controller/authController');
 const authenticate = require('../middleware/authMiddleware');
 const User = require('../model/user.model');
 
@@ -20,7 +20,10 @@ router.post('/login-coach', loginCoach);
 router.post('/resend-welcome-email', resendWelcomeEmail);
 router.post('/track-visit', trackVisit);
 router.post('/step1-lead', saveStep1Data);
-router.post('/store-sync-data', storeSyncData);
+// router.post('/store-sync-data', storeSyncData);
+router.post('/create-system-user', authenticate, createSystemUser);
+router.put('/update-system-user', authenticate, updateSystemUser);
+router.delete('/delete-system-user/:id', authenticate, deleteSystemUser);
 router.post('/update-profile', authenticate, require('../controller/authController').updateProfile);
 router.post('/upload-profile-image', authenticate, uploadProfileImage.single('profileImage'), uploadProfileImageHandler);
 router.get('/partner/profile', authenticate, getPartnerProfile);
@@ -44,7 +47,8 @@ router.get('/profile', authenticate, async (req, res) => {
         mobile: user.mobile,
         isFromLandingPage: user.isFromLandingPage,
         isPaid: user.isPaid || !!user.paymentId,
-        profileImage: user.profileImage
+        profileImage: user.profileImage,
+        role: user.role
       }
     });
   } catch (err) {
