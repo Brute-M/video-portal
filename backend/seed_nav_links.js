@@ -11,7 +11,7 @@ const defaultLinks = [
     { label: "Teams", path: "/teams", order: 2, isActive: true, isExternal: false },
     { label: "Events", path: "/events", order: 3, isActive: true, isExternal: false },
     { label: "Career", path: "/career", order: 4, isActive: true, isExternal: false },
-    { label: "Registration", path: "/auth?mode=register", order: 5, isActive: true, isExternal: false },
+    { label: "Registration", path: "//registration", order: 5, isActive: true, isExternal: false },
     { label: "Contact Us", path: "/contact-us", order: 6, isActive: true, isExternal: false },
 ];
 

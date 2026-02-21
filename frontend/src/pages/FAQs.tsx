@@ -36,7 +36,7 @@ const FAQs = () => {
 
     return (
         <div className="min-h-screen bg-slate-50 font-sans">
-            <PageBanner title="Frequently Asked Questions" currentPage="FAQs" />
+            <PageBanner pageKey="faqs" title="Frequently Asked Questions" currentPage="FAQs" />
 
             <div className="max-w-4xl mx-auto px-6 py-16">
                 <div className="bg-white rounded-2xl shadow-lg border border-slate-100 p-8 md:p-12">

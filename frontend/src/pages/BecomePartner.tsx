@@ -88,7 +88,7 @@ const BecomePartner = () => {
                 title="Become a Partner"
                 description="Join us as a partner and grow with Beyond Reach Premier League."
             />
-            <PageBanner title="Become a Partner" currentPage="Become a Partner" />
+            <PageBanner pageKey="becomePartner" title="Become a Partner" currentPage="Become a Partner" />
 
             <section className="container mx-auto px-4 py-16" data-aos="fade-up">
                 <div className="max-w-4xl mx-auto">

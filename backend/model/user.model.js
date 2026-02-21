@@ -11,6 +11,11 @@ const userSchema = new mongoose.Schema({
     unique: true,
     lowercase: true
   },
+  role: {
+    type: String,
+    enum: ['user', 'admin', 'subadmin', 'seo_content'],
+    default: 'user'
+  },
   password: {
     type: String,
     required: true
@@ -50,10 +55,9 @@ const userSchema = new mongoose.Schema({
   userAgent: { type: String },
   fbclid: { type: String },
   trackingId: { type: String },
-  conversionType: { type: String, enum: ['code', 'fallback', 'organic', 'none'], default: 'none' },
+  conversionType: { type: String, enum: ['code', 'fallback', 'organic', 'none', 'manual_admin'], default: 'none' },
   campaignCode: { type: String } // Code from the QR Campaign
 }, { timestamps: true });
-
 
 const User = mongoose.model('User', userSchema);
 

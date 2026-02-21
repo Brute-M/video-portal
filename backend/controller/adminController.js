@@ -4,6 +4,7 @@ const Influencer = require('../model/influencer.model');
 const Video = require('../model/video.model');
 const Payment = require('../model/payment.model');
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
 const { drawInvoice } = require('../utils/pdfGenerator');
 const PDFDocument = require('pdfkit');
 
@@ -51,7 +52,7 @@ const adminLandingLogin = async (req, res) => {
 // Fetch all records from all collections
 const getAllRecords = async (req, res) => {
     try {
-        if (req.role !== 'admin' && req.userId !== 'admin') {
+        if (!['admin', 'subadmin'].includes(req.role) && req.userId !== 'admin') {
             return res.status(403).json({ message: 'Forbidden' });
         }
 
@@ -80,7 +81,7 @@ const getAllRecords = async (req, res) => {
 
 const getPaginatedRecords = async (req, res) => {
     try {
-        if (req.role !== 'admin' && req.userId !== 'admin') {
+        if (!['admin', 'subadmin'].includes(req.role) && req.userId !== 'admin') {
             return res.status(403).json({ message: 'Forbidden' });
         }
 
@@ -134,6 +135,10 @@ const getPaginatedRecords = async (req, res) => {
                 { paymentAmount: { $exists: false } },
                 { paymentAmount: null }
             ];
+        } else if (type === 'seo_content') {
+            filter.role = 'seo_content';
+        } else if (type === 'system') {
+            filter.role = { $in: ['subadmin', 'seo_content'] };
         }
 
         if (['users', 'paid', 'unpaid'].includes(type)) {
@@ -242,7 +247,7 @@ const getPaginatedRecords = async (req, res) => {
 
 const getAdminStats = async (req, res) => {
     try {
-        if (req.role !== 'admin' && req.userId !== 'admin') {
+        if (!['admin', 'subadmin'].includes(req.role) && req.userId !== 'admin') {
             return res.status(403).json({ message: 'Forbidden' });
         }
 
@@ -278,7 +283,7 @@ const getAdminStats = async (req, res) => {
 
 const getDashboardChartData = async (req, res) => {
     try {
-        if (req.role !== 'admin' && req.userId !== 'admin') {
+        if (!['admin', 'subadmin'].includes(req.role) && req.userId !== 'admin') {
             return res.status(403).json({ message: 'Forbidden' });
         }
 
@@ -353,7 +358,7 @@ const getDashboardChartData = async (req, res) => {
 const downloadUserInvoice = async (req, res) => {
     try {
         // Admin check
-        if (req.role !== 'admin' && req.userId !== 'admin') {
+        if (!['admin', 'subadmin'].includes(req.role) && req.userId !== 'admin') {
             return res.status(403).json({ message: 'Forbidden' });
         }
 
@@ -416,7 +421,7 @@ const downloadUserInvoice = async (req, res) => {
 
 const getPayments = async (req, res) => {
     try {
-        if (req.role !== 'admin' && req.userId !== 'admin') {
+        if (!['admin', 'subadmin'].includes(req.role) && req.userId !== 'admin') {
             return res.status(403).json({ message: 'Forbidden' });
         }
 
@@ -463,7 +468,7 @@ const getPayments = async (req, res) => {
 
 const manualUserPaymentUpdate = async (req, res) => {
     try {
-        if (req.role !== 'admin' && req.userId !== 'admin') {
+        if (!['admin', 'subadmin'].includes(req.role) && req.userId !== 'admin') {
             return res.status(403).json({ message: 'Forbidden' });
         }
 
@@ -503,7 +508,7 @@ const manualUserPaymentUpdate = async (req, res) => {
 
 const getUnpaidUsers = async (req, res) => {
     try {
-        if (req.role !== 'admin' && req.userId !== 'admin') {
+        if (!['admin', 'subadmin'].includes(req.role) && req.userId !== 'admin') {
             return res.status(403).json({ message: 'Forbidden' });
         }
 
@@ -587,7 +592,8 @@ const getUnpaidUsers = async (req, res) => {
 
 const createUser = async (req, res) => {
     try {
-        if (req.role !== 'admin' && req.userId !== 'admin') {
+        // Updated permissions: admin OR subadmin (user creation page handles role restriction for subadmin)
+        if (!['admin', 'subadmin'].includes(req.role) && req.userId !== 'admin') {
             return res.status(403).json({ message: 'Forbidden' });
         }
 

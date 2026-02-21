@@ -31,6 +31,7 @@ const AdminJobsList = () => {
     const { toast } = useToast();
     const [jobs, setJobs] = useState<Job[]>([]);
     const [isLoading, setIsLoading] = useState(false);
+    const userRole = localStorage.getItem("userRole") || "user";
 
     const fetchJobs = async () => {
         setIsLoading(true);
@@ -137,14 +138,16 @@ const AdminJobsList = () => {
                                                         <Edit className="w-4 h-4 mr-1" /> Edit
                                                     </Button>
                                                 </Link>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    onClick={() => handleDelete(job._id)}
-                                                    className="text-red-500"
-                                                >
-                                                    <Trash2 className="w-4 h-4" />
-                                                </Button>
+                                                {userRole === 'admin' && (
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        onClick={() => handleDelete(job._id)}
+                                                        className="text-red-500"
+                                                    >
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </Button>
+                                                )}
                                             </div>
                                         </TableCell>
                                     </TableRow>

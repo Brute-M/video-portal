@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import {
     Card,
     CardContent,
+    CardDescription,
     CardHeader,
     CardTitle,
 } from "@/components/ui/card";
@@ -17,8 +18,9 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Trash2, Upload, X } from "lucide-react";
+import { Loader2, Trash2, Upload, X, ImageIcon, Video } from "lucide-react";
 import api from "@/apihelper/api";
+import { getImageUrl } from "@/utils/imageHelper";
 
 interface Team {
     _id: string;
@@ -51,12 +53,15 @@ const deleteTeam = async (id: string) => {
     return api.delete(`/api/teams/${id}`);
 };
 
+const DEFAULT_TEAMS_VIDEO = "https://brpl-public-uploads.s3.ap-south-1.amazonaws.com/teams-video.mp4";
+
 const AdminTeams = () => {
     const { toast } = useToast();
     const [teams, setTeams] = useState<Team[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [editId, setEditId] = useState<string | null>(null);
+    const userRole = localStorage.getItem("userRole") || "user";
 
     // Form State
     const [name, setName] = useState("");
@@ -66,8 +71,15 @@ const AdminTeams = () => {
     const [logoFile, setLogoFile] = useState<File | null>(null);
     const [logoPreview, setLogoPreview] = useState<string | null>(null);
 
+    // Teams page banner & video (from site settings)
+    const [teamsBannerImage, setTeamsBannerImage] = useState("");
+    const [teamsVideoUrl, setTeamsVideoUrl] = useState("");
+    const [teamsBannerSaving, setTeamsBannerSaving] = useState(false);
+    const [teamsBannerUploading, setTeamsBannerUploading] = useState(false);
+
     useEffect(() => {
         fetchTeams();
+        fetchTeamsBannerSettings();
         return () => {
             if (logoPreview && logoPreview.startsWith('blob:')) {
                 URL.revokeObjectURL(logoPreview);
@@ -90,6 +102,60 @@ const AdminTeams = () => {
         } finally {
             setIsLoading(false);
         }
+    };
+
+    const fetchTeamsBannerSettings = async () => {
+        try {
+            const res = await api.get("/api/cms/site-settings");
+            const data = res.data?.data;
+            if (data) {
+                setTeamsBannerImage(data.teamsBannerImage || "");
+                setTeamsVideoUrl(data.teamsVideoUrl ?? DEFAULT_TEAMS_VIDEO);
+            }
+        } catch (e) {
+            console.error("Error fetching teams banner settings:", e);
+        }
+    };
+
+    const handleTeamsBannerUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        setTeamsBannerUploading(true);
+        try {
+            const formData = new FormData();
+            formData.append("image", file);
+            const res = await api.post("/api/cms/site-settings/upload-teams-banner-image", formData, {
+                headers: { "Content-Type": undefined },
+            });
+            const path = res.data?.path;
+            if (path) {
+                setTeamsBannerImage(path);
+                toast({ title: "Success", description: "Teams banner image updated." });
+            }
+        } catch (err) {
+            toast({ variant: "destructive", title: "Error", description: "Failed to upload banner image." });
+        } finally {
+            setTeamsBannerUploading(false);
+        }
+    };
+
+    const handleSaveTeamsBannerVideo = async () => {
+        setTeamsBannerSaving(true);
+        try {
+            await api.put("/api/cms/site-settings", { teamsVideoUrl: teamsVideoUrl || "" });
+            toast({ title: "Success", description: "Teams banner & video saved." });
+        } catch (err) {
+            toast({ variant: "destructive", title: "Error", description: "Failed to save." });
+        } finally {
+            setTeamsBannerSaving(false);
+        }
+    };
+
+    const teamsBannerImageSrc = () => {
+        if (!teamsBannerImage) return "";
+        if (teamsBannerImage.startsWith("http") || teamsBannerImage.startsWith("blob:")) return teamsBannerImage;
+        if (teamsBannerImage.startsWith("uploads/")) return getImageUrl(teamsBannerImage);
+        return teamsBannerImage.startsWith("/") ? teamsBannerImage : "/" + teamsBannerImage;
     };
 
     const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -201,6 +267,51 @@ const AdminTeams = () => {
             <div className="flex justify-between items-center">
                 <h1 className="text-3xl font-bold font-display">Manage Teams</h1>
             </div>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                        <ImageIcon className="w-5 h-5" /> Teams Page Banner & Video
+                    </CardTitle>
+                    <CardDescription>
+                        Banner image and video shown at the top of the public Teams page. Video takes priority if both are set.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                        <Label>Banner Image</Label>
+                        <div className="border-2 border-dashed rounded-lg p-4 flex flex-col items-center justify-center min-h-[120px] bg-muted/30">
+                            {teamsBannerImage ? (
+                                <div className="relative w-full max-w-md">
+                                    <img src={teamsBannerImageSrc()} alt="Teams banner" className="w-full h-auto max-h-40 object-cover rounded" />
+                                </div>
+                            ) : (
+                                <p className="text-sm text-muted-foreground">No banner image. Upload to show an image when no video URL is set.</p>
+                            )}
+                            <Label className="mt-2 cursor-pointer flex items-center gap-2 text-primary hover:underline">
+                                <Upload className="w-4 h-4" />
+                                {teamsBannerUploading ? "Uploading..." : "Upload banner image"}
+                                <input type="file" accept="image/*" className="hidden" onChange={handleTeamsBannerUpload} disabled={teamsBannerUploading} />
+                            </Label>
+                        </div>
+                    </div>
+                    <div className="space-y-2">
+                        <Label className="flex items-center gap-2">
+                            <Video className="w-4 h-4" /> Video URL
+                        </Label>
+                        <Input
+                            value={teamsVideoUrl}
+                            onChange={(e) => setTeamsVideoUrl(e.target.value)}
+                            placeholder="https://example.com/teams-video.mp4"
+                        />
+                        <p className="text-xs text-muted-foreground">If set, the Teams page banner will show this video instead of the image.</p>
+                    </div>
+                    <Button type="button" onClick={handleSaveTeamsBannerVideo} disabled={teamsBannerSaving}>
+                        {teamsBannerSaving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                        Save Teams Banner & Video
+                    </Button>
+                </CardContent>
+            </Card>
 
             <Card>
                 <CardHeader>
@@ -329,14 +440,16 @@ const AdminTeams = () => {
                                                 >
                                                     Edit
                                                 </Button>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    onClick={() => handleDelete(team._id)}
-                                                    className="text-red-500 hover:text-red-700 hover:bg-red-50"
-                                                >
-                                                    <Trash2 className="w-4 h-4" />
-                                                </Button>
+                                                {userRole === 'admin' && (
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        onClick={() => handleDelete(team._id)}
+                                                        className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                                                    >
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </Button>
+                                                )}
                                             </div>
                                         </TableCell>
                                     </TableRow>

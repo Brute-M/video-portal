@@ -48,7 +48,6 @@ const getUsers = async (req, res) => {
       {
         $match: {
           isUserPaid: true,
-          isFromLandingPage: true,
           // If type is not provided, show all users (for recent registrations)
           ...(req.query.search && {
             $or: [

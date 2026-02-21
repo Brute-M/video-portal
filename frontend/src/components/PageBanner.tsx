@@ -1,15 +1,30 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { Home, ChevronDown } from "lucide-react";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
+import { getImageUrl } from "@/utils/imageHelper";
 
 interface PageBannerProps {
     title: string;
     currentPage: string;
     videoSrc?: string;
+    imageSrc?: string;
     scrollToId?: string;
+    /** Page key for dynamic title from admin (e.g. contactUs, aboutUs). If set and admin has a title for this key, it overrides `title`. */
+    pageKey?: string;
 }
 
-const PageBanner: React.FC<PageBannerProps> = ({ title, currentPage, videoSrc, scrollToId }) => {
+const PageBanner: React.FC<PageBannerProps> = ({ title, currentPage, videoSrc, imageSrc, scrollToId, pageKey }) => {
+    const { settings } = useSiteSettings();
+    const displayTitle = pageKey && settings.bannerTitles[pageKey]?.trim() ? settings.bannerTitles[pageKey] : title;
+    const resolveBannerImage = () => {
+        if (imageSrc) return imageSrc;
+        if (!settings.bannerImage) return "/tenis.png";
+        if (settings.bannerImage.startsWith("http") || settings.bannerImage.startsWith("blob:")) return settings.bannerImage;
+        if (settings.bannerImage.startsWith("uploads/")) return getImageUrl(settings.bannerImage);
+        return settings.bannerImage.startsWith("/") ? settings.bannerImage : "/" + settings.bannerImage;
+    };
+    const bannerImageSrc = resolveBannerImage();
     const handleScrollDown = () => {
         if (scrollToId) {
             const element = document.getElementById(scrollToId);
@@ -25,7 +40,7 @@ const PageBanner: React.FC<PageBannerProps> = ({ title, currentPage, videoSrc, s
     };
 
     return (
-        <div className={`relative w-full ${videoSrc ? 'h-[80vh]' : 'h-auto md:h-[350px] lg:h-[400px]'} bg-[#111a45] overflow-hidden`}>
+        <div className={`relative w-full ${videoSrc ? 'h-[80vh]' : 'h-[250px] md:h-[350px] lg:h-[400px]'} bg-[#111a45] overflow-hidden`}>
             {videoSrc ? (
                 <>
                     {/* Video Background */}
@@ -39,23 +54,19 @@ const PageBanner: React.FC<PageBannerProps> = ({ title, currentPage, videoSrc, s
                     />
 
                     {/* Scroll Down Arrow */}
-                    <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-20 animate-bounce cursor-pointer" onClick={handleScrollDown}>
-                        <ChevronDown className="w-10 h-10 text-[#FFD700] opacity-80 hover:opacity-100 transition-opacity" />
+                    <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-20 animate-bounce cursor-pointer items-center justify-center flex hover:scale-110 transition-transform" onClick={handleScrollDown}>
+                        <div className="bg-white/10 backdrop-blur-sm p-2 rounded-full border border-white/20">
+                            <ChevronDown className="w-8 h-8 text-[#FFD700]" />
+                        </div>
                     </div>
                 </>
             ) : (
                 <>
-                    {/* Mobile Background Image - Maintains Aspect Ratio */}
+                    {/* Background Image - common from admin or page override */}
                     <img
-                        src="/tenis.png"
+                        src={bannerImageSrc}
                         alt="Banner"
-                        className="block md:hidden w-full h-[150px] object-cover"
-                    />
-
-                    {/* Desktop Background Image - Full Opacity */}
-                    <div
-                        className="hidden md:block absolute inset-0 bg-cover bg-center"
-                        style={{ backgroundImage: "url('/tenis.png')" }}
+                        className="absolute inset-0 w-full h-full object-cover"
                     />
                 </>
             )}
@@ -70,7 +81,7 @@ const PageBanner: React.FC<PageBannerProps> = ({ title, currentPage, videoSrc, s
                         className="text-white text-3xl sm:text-4xl md:text-6xl lg:text-[64px] font-bold uppercase tracking-tight mb-3 mt-8"
                         style={{ fontFamily: "'Oswald', sans-serif" }}
                     >
-                        {title}
+                        {displayTitle}
                     </h1>
 
                     {/* Breadcrumb */}

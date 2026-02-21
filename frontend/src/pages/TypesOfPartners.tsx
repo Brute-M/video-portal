@@ -4,7 +4,7 @@ import PageBanner from '@/components/PageBanner';
 const TypesOfPartners = () => {
     return (
         <div className="min-h-screen bg-white font-sans text-slate-800">
-            <PageBanner title="Types of Partners" currentPage="Types of Partners" />
+            <PageBanner pageKey="typesOfPartners" title="Types of Partners" currentPage="Types of Partners" />
 
             <div className="max-w-7xl mx-auto px-6 py-16">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-12">

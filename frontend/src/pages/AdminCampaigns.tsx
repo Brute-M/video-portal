@@ -41,6 +41,7 @@ const AdminCampaigns = () => {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const userRole = localStorage.getItem("userRole") || "user";
 
     const [newItem, setNewItem] = useState({
         title: "",
@@ -320,13 +321,15 @@ const AdminCampaigns = () => {
                                                     <Pencil className="w-4 h-4 mr-2" />
                                                     Edit
                                                 </Button>
-                                                <Button
-                                                    variant="destructive"
-                                                    size="sm"
-                                                    onClick={() => handleDelete(campaign._id)}
-                                                >
-                                                    <Trash className="w-4 h-4" />
-                                                </Button>
+                                                {userRole === 'admin' && (
+                                                    <Button
+                                                        variant="destructive"
+                                                        size="sm"
+                                                        onClick={() => handleDelete(campaign._id)}
+                                                    >
+                                                        <Trash className="w-4 h-4" />
+                                                    </Button>
+                                                )}
                                             </div>
                                         </TableCell>
                                     </TableRow>

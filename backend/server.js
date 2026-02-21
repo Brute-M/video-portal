@@ -83,6 +83,11 @@ app.use("/api/partners", partnerRoutes);
 app.use("/api/campaigns", require("./routes/campaignRoutes"));
 app.use("/api/faqs", require("./routes/faqRoute"));
 app.use("/api/nav-links", require("./routes/navLinkRoute"));
+app.use("/api/cms/our-team", require("./routes/ourTeamRoute"));
+app.use("/api/cms/site-settings", require("./routes/siteSettingsRoute"));
+app.use("/api/cms/legal", require("./routes/legalRoute"));
+app.use("/api/cms", require("./routes/cmsRoute"));
+app.use("/api", require("./routes/seoRoute"));
 
 app.listen(port, () => {
   console.log(`server is running on port ${port}`);

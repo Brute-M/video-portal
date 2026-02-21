@@ -1,8 +1,17 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { Linkedin } from "lucide-react";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
+import { getImageUrl } from "@/utils/imageHelper";
 
 const Footer: React.FC = () => {
+  const { settings } = useSiteSettings();
+  const socialImageSrc = (image: string) => {
+    if (!image) return "";
+    if (image.startsWith("http") || image.startsWith("blob:")) return image;
+    if (image.startsWith("uploads/")) return getImageUrl(image);
+    return image.startsWith("/") ? image : "/" + image;
+  };
+
   return (
     <footer className="relative w-full bg-[#1e2042] text-white mt-0 overflow-hidden font-sans">
 
@@ -112,30 +121,18 @@ const Footer: React.FC = () => {
             <div className="mt-2">
               <h4 className="text-[#FFC928] text-sm font-semibold mb-3">Follow Us</h4>
               <div className="flex items-center gap-3">
-                <a
-                  href="https://www.instagram.com/brpl.t10?igsh=MXBvbWp4dnhoYWRrbQ%3D%3D"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-8 h-8 rounded-full border border-white/30 flex items-center justify-center hover:bg-white/10 transition-colors"
-                >
-                  <img src="/instagram.png" alt="Instagram" className="w-4 h-4 object-contain" />
-                </a>
-                <a
-                  href="https://www.facebook.com/profile.php?id=61584782136820"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-8 h-8 rounded-full border border-white/30 flex items-center justify-center hover:bg-white/10 transition-colors"
-                >
-                  <img src="/facebook.png" alt="Facebook" className="w-4 h-4 object-contain" />
-                </a>
-                <a
-                  href="https://x.com/BRPLOfficial"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-8 h-8 rounded-full border border-white/30 flex items-center justify-center hover:bg-white/10 transition-colors"
-                >
-                  <img src="/twiter.png" alt="Twitter" className="w-4 h-4 object-contain" />
-                </a>
+                {settings.socialLinks.filter((l) => l.url).map((link) => (
+                  <a
+                    key={link.name}
+                    href={link.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-8 h-8 rounded-full border border-white/30 flex items-center justify-center hover:bg-white/10 transition-colors"
+                    aria-label={link.name}
+                  >
+                    <img src={socialImageSrc(link.image)} alt={link.name} className="w-4 h-4 object-contain" />
+                  </a>
+                ))}
               </div>
             </div>
           </div>

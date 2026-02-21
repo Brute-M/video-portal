@@ -82,7 +82,7 @@ const Events = () => {
 
     return (
         <div className="min-h-screen bg-gray-50 font-sans">
-            <PageBanner title="Events" currentPage="Events" />
+            <PageBanner pageKey="events" title="Events" currentPage="Events" />
 
             {/* Gallery Section */}
             <section className="py-16 px-4 md:px-8 max-w-7xl mx-auto">

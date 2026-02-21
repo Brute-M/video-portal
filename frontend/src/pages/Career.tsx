@@ -75,7 +75,7 @@ const Career = () => {
                 title="Careers"
                 description="Join the Beyond Reach Premier League team. Explore career opportunities and help us shape the future."
             />
-            <PageBanner title="Careers" currentPage="Careers" />
+            <PageBanner pageKey="careers" title="Careers" currentPage="Careers" />
 
             <section className="py-16 px-4 md:px-8 max-w-7xl mx-auto">
                 {/* <div className="text-center mb-16">

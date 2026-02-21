@@ -188,19 +188,19 @@ export function CreateUserModal({ onUserCreated }: CreateUserModalProps) {
                     </div>
 
                     <div className="space-y-2">
-                        <Label htmlFor="playerRole">Player Role</Label>
+                        <Label htmlFor="playerRole">Select Your Role</Label>
                         <Select
                             onValueChange={(val) => handleSelectChange("playerRole", val)}
                             value={formData.playerRole}
                         >
                             <SelectTrigger>
-                                <SelectValue placeholder="Select Role" />
+                                <SelectValue placeholder="Choose your playing role" />
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="Batsman">Batsman</SelectItem>
                                 <SelectItem value="Bowler">Bowler</SelectItem>
-                                <SelectItem value="All Rounder">All Rounder</SelectItem>
                                 <SelectItem value="Wicket Keeper">Wicket Keeper</SelectItem>
+                                <SelectItem value="All-Rounder">All-Rounder</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>

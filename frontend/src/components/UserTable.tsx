@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Eye, ChevronLeft, ChevronRight, Video, Download, CreditCard, Loader2, Activity } from "lucide-react";
+import { Eye, ChevronLeft, ChevronRight, Video, Download, CreditCard, Loader2, Activity, Edit } from "lucide-react";
 import { downloadUserInvoice, updateUserPayment } from "@/apihelper/admin";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -53,6 +53,7 @@ interface UserTableProps {
 export const UserTable = ({ users, isLoading, type, page, totalPages, onPageChange, onRefresh }: UserTableProps) => {
     const { toast } = useToast();
     const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [paymentUser, setPaymentUser] = useState<User | null>(null);
     const [transactionId, setTransactionId] = useState("");
     const [paymentAmount, setPaymentAmount] = useState("1");
@@ -88,6 +89,13 @@ export const UserTable = ({ users, isLoading, type, page, totalPages, onPageChan
         setTransactionId("");
     };
 
+    const handleOpenEditModal = (user: User) => {
+        setPaymentUser(user);
+        setTransactionId(user.lastPaymentId !== 'N/A' && user.lastPaymentId ? user.lastPaymentId : (user.paymentId || ""));
+        setPaymentAmount(user.paymentAmount ? user.paymentAmount.toString() : "1499");
+        setIsEditModalOpen(true);
+    };
+
     const handleMarkAsPaid = async () => {
         if (!paymentUser || !transactionId || !paymentAmount) {
             toast({
@@ -113,6 +121,37 @@ export const UserTable = ({ users, isLoading, type, page, totalPages, onPageChan
                 variant: "destructive",
                 title: "Error",
                 description: "Failed to update payment status.",
+            });
+        } finally {
+            setIsUpdating(false);
+        }
+    };
+
+    const handleUpdateTransaction = async () => {
+        if (!paymentUser || !transactionId) {
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: "Transaction ID is required.",
+            });
+            return;
+        }
+
+        setIsUpdating(true);
+        try {
+            await updateUserPayment(paymentUser._id, transactionId, parseFloat(paymentAmount));
+            toast({
+                title: "Success",
+                description: "Transaction ID updated successfully.",
+            });
+            setIsEditModalOpen(false);
+            if (onRefresh) onRefresh();
+        } catch (error) {
+            console.error("Failed to update transaction", error);
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: "Failed to update Transaction ID.",
             });
         } finally {
             setIsUpdating(false);
@@ -207,6 +246,12 @@ export const UserTable = ({ users, isLoading, type, page, totalPages, onPageChan
                                             <Eye className="w-4 h-4 mr-1" />
                                             View
                                         </Button>
+                                        {type === 'paid' && (
+                                            <Button variant="ghost" size="sm" onClick={() => handleOpenEditModal(user)} className="text-blue-600 hover:text-blue-700 hover:bg-blue-50">
+                                                <Edit className="w-4 h-4 mr-1" />
+                                                Edit
+                                            </Button>
+                                        )}
                                         {/* {(user.videos && user.videos.length > 0) && (
                                             <Button
                                                 variant="ghost"
@@ -295,6 +340,52 @@ export const UserTable = ({ users, isLoading, type, page, totalPages, onPageChan
                         <Button onClick={handleMarkAsPaid} disabled={isUpdating} className="bg-green-600 hover:bg-green-700">
                             {isUpdating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                             Mark as Paid
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* Edit Transaction ID Modal */}
+            <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+                <DialogContent className="sm:max-w-[425px]">
+                    <DialogHeader>
+                        <DialogTitle>Edit Payment Details</DialogTitle>
+                    </DialogHeader>
+                    <div className="grid gap-4 py-4">
+                        <div className="grid gap-2">
+                            <Label htmlFor="editUserName">User Details (Disabled)</Label>
+                            <Input
+                                id="editUserName"
+                                value={`${paymentUser?.fname} ${paymentUser?.lname} (${paymentUser?.email})`}
+                                disabled
+                                className="bg-muted text-muted-foreground"
+                            />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label htmlFor="editAmount">Amount (INR) (Disabled)</Label>
+                            <Input
+                                id="editAmount"
+                                type="number"
+                                value={paymentAmount}
+                                disabled
+                                className="bg-muted text-muted-foreground"
+                            />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label htmlFor="editTransactionId">Transaction ID / Payment ID</Label>
+                            <Input
+                                id="editTransactionId"
+                                placeholder="Enter Transaction ID"
+                                value={transactionId}
+                                onChange={(e) => setTransactionId(e.target.value)}
+                            />
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setIsEditModalOpen(false)}>Cancel</Button>
+                        <Button onClick={handleUpdateTransaction} disabled={isUpdating} className="bg-blue-600 hover:bg-blue-700">
+                            {isUpdating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            Update Details
                         </Button>
                     </DialogFooter>
                 </DialogContent>

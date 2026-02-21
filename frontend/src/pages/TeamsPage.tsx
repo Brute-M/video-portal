@@ -1,13 +1,26 @@
 import PageBanner from "@/components/PageBanner";
 import SEO from "@/components/SEO";
-
 import { useEffect, useState } from "react";
 import apiClient from "@/apihelper/api";
 import { Loader2 } from "lucide-react";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
+import { getImageUrl } from "@/utils/imageHelper";
 
 const TeamsPage = () => {
+    const { settings } = useSiteSettings();
     const [teams, setTeams] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+
+    const teamsVideoSrc = settings.teamsVideoUrl?.trim() || undefined;
+    const teamsImageSrc = settings.teamsBannerImage
+        ? (settings.teamsBannerImage.startsWith("http")
+            ? settings.teamsBannerImage
+            : settings.teamsBannerImage.startsWith("uploads/")
+                ? getImageUrl(settings.teamsBannerImage)
+                : settings.teamsBannerImage.startsWith("/")
+                    ? settings.teamsBannerImage
+                    : getImageUrl(settings.teamsBannerImage))
+        : undefined;
 
     useEffect(() => {
         const fetchTeams = async () => {
@@ -30,9 +43,11 @@ const TeamsPage = () => {
                 description="Meet the teams competing in the Beyond Reach Premier League. Passion, skill, and dedication on full display."
             />
             <PageBanner
-                title=""
-                currentPage=""
-                videoSrc="https://brpl-public-uploads.s3.ap-south-1.amazonaws.com/teams-video.mp4"
+                pageKey="teams"
+                title="Teams"
+                currentPage="Teams"
+                videoSrc={teamsVideoSrc}
+                imageSrc={!teamsVideoSrc ? teamsImageSrc : undefined}
                 scrollToId="teams-content"
             />
 

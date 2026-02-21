@@ -1,12 +1,21 @@
-
 import { Link } from "react-router-dom";
-import { Phone, Mail, LogIn, Linkedin, Menu } from "lucide-react";
+import { Phone, Mail, LogIn, Menu } from "lucide-react";
 import { useState, useEffect } from "react";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
+import { getImageUrl } from "@/utils/imageHelper";
 
 const Header = () => {
+    const { settings } = useSiteSettings();
     const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 768);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [navLinks, setNavLinks] = useState<any[]>([]);
+
+    const socialImageSrc = (image: string) => {
+        if (!image) return "";
+        if (image.startsWith("http") || image.startsWith("blob:")) return image;
+        if (image.startsWith("uploads/")) return getImageUrl(image);
+        return image.startsWith("/") ? image : "/" + image;
+    };
 
     useEffect(() => {
         const handleResize = () => {
@@ -101,14 +110,12 @@ const Header = () => {
                     <div className="hidden md:flex items-center gap-6">
                         <div className="flex items-center gap-2">
                             <Phone className="w-4 h-4 fill-current" />
-                            <a href="tel:+918130955866" className="text-[13px] font-bold tracking-wide hover:text-blue-600 transition-colors">+(91) 81309 55866</a>
+                            <a href={`tel:${settings.contactPhone.replace(/\D/g, "").replace(/^/, "+")}`} className="text-[13px] font-bold tracking-wide hover:text-blue-600 transition-colors">{settings.contactPhone}</a>
                         </div>
                         <div className="h-4 w-px bg-slate-300" />
                         <div className="flex items-center gap-2">
                             <Mail className="w-4 h-4" />
-                            <span className="text-[13px] font-bold tracking-wide">
-                                info@brpl.net
-                            </span>
+                            <a href={`mailto:${settings.contactEmail}`} className="text-[13px] font-bold tracking-wide hover:text-blue-600">{settings.contactEmail}</a>
                         </div>
                     </div>
 
@@ -125,9 +132,11 @@ const Header = () => {
                         <div className="h-4 w-px bg-slate-300" />
 
                         <div className="flex items-center gap-3 md:gap-4">
-                            <a href="https://www.facebook.com/profile.php?id=61584782136820" target="_blank" rel="noopener noreferrer" className="hover:opacity-80 transition-opacity"><img src="/facebook.png" alt="Facebook" className="w-5 h-5 object-contain" /></a>
-                            <a href="https://x.com/BRPLOfficial" target="_blank" rel="noopener noreferrer" className="hover:opacity-80 transition-opacity"><img src="/twiter.png" alt="Twitter" className="w-5 h-5 object-contain" /></a>
-                            <a href="https://www.instagram.com/brpl.t10?igsh=MXBvbWp4dnhoYWRrbQ%3D%3D" target="_blank" rel="noopener noreferrer" className="hover:opacity-80 transition-opacity"><img src="/instagram.png" alt="Instagram" className="w-5 h-5 object-contain" /></a>
+                            {settings.socialLinks.filter((l) => l.url).map((link) => (
+                                <a key={link.name} href={link.url} target="_blank" rel="noopener noreferrer" className="hover:opacity-80 transition-opacity" aria-label={link.name}>
+                                    <img src={socialImageSrc(link.image)} alt={link.name} className="w-5 h-5 object-contain" />
+                                </a>
+                            ))}
                         </div>
                     </div>
                 </div>

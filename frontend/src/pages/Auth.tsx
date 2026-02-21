@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/input-otp";
 
 import SEO from "@/components/SEO";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
 import RegistrationFAQ from "@/components/RegistrationFAQ";
 import TrustBar from "@/components/TrustBar";
 import RoadmapSection from "@/components/RoadmapSection";
@@ -40,6 +41,7 @@ const Auth = ({ forceRegister }: AuthProps) => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { settings } = useSiteSettings();
 
   // Mode & Steps
   const [isRegister, setIsRegister] = useState(
@@ -609,10 +611,10 @@ const Auth = ({ forceRegister }: AuthProps) => {
               </button>
 
               <a
-                href="tel:8130955866"
+                href={`tel:${settings.contactPhone.replace(/\D/g, "").replace(/^/, "+")}`}
                 className="bg-black/40 backdrop-blur-md border border-white/20 text-white font-bold text-lg px-8 py-3 rounded-xl hover:bg-black/60 transition-all flex items-center justify-center gap-2 skew-x-[-10deg]"
               >
-                <span className="block skew-x-[10deg] not-italic">📞 81309 55866</span>
+                <span className="block skew-x-[10deg] not-italic">📞 {settings.contactPhone}</span>
               </a>
             </div> */}
             {/* <div className="inline-flex items-center gap-3 bg-[#FFC928] backdrop-blur-sm px-6 py-2 rounded-full shadow-[0_0_15px_rgba(255,201,40,0.4)] border border-white/20">
@@ -621,7 +623,7 @@ const Auth = ({ forceRegister }: AuthProps) => {
               </p>
             </div>
             <div className="mt-6 text-white text-lg font-semibold drop-shadow-md bg-black/40 px-4 py-2 rounded-lg inline-block backdrop-blur-sm border border-white/10">
-              📞 Call us: <a href="tel:8130955866" className="text-[#FFC928] hover:underline">81309 55866</a>
+              📞 Call us: <a href={`tel:${settings.contactPhone.replace(/\D/g, "").replace(/^/, "+")}`} className="text-[#FFC928] hover:underline">{settings.contactPhone}</a>
             </div> */}
           </div>
         </div>

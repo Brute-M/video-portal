@@ -37,6 +37,7 @@ const AdminNavLinks = () => {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [currentLink, setCurrentLink] = useState<Partial<NavLink>>({});
     const { toast } = useToast();
+    const userRole = localStorage.getItem("userRole") || "user";
 
     useEffect(() => {
         fetchNavLinks();
@@ -157,9 +158,11 @@ const AdminNavLinks = () => {
                                     <Button variant="ghost" size="icon" onClick={() => { setCurrentLink(link); setIsDialogOpen(true); }}>
                                         <Edit className="h-4 w-4" />
                                     </Button>
-                                    <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-700 hover:bg-red-50" onClick={() => handleDelete(link._id)}>
-                                        <Trash2 className="h-4 w-4" />
-                                    </Button>
+                                    {userRole === 'admin' && (
+                                        <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-700 hover:bg-red-50" onClick={() => handleDelete(link._id)}>
+                                            <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                    )}
                                 </TableCell>
                             </TableRow>
                         ))}

@@ -14,8 +14,10 @@ import {
 } from "@/components/ui/alert-dialog";
 import { CheckCircle2, Mail, MapPin, Phone } from "lucide-react";
 import SEO from "@/components/SEO";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
 
 const ContactUs = () => {
+    const { settings } = useSiteSettings();
     const [formData, setFormData] = useState({
         firstName: "",
         lastName: "",
@@ -69,7 +71,7 @@ const ContactUs = () => {
                 title="Contact Us"
                 description="Get in touch with Beyond Reach Premier League. We are here to help you with expert guidance and support."
             />
-            <PageBanner title="Contact us" currentPage="Contact us" />
+            <PageBanner pageKey="contactUs" title="Contact us" currentPage="Contact us" />
 
             <section className="container mx-auto px-4 py-16" data-aos="fade-up">
                 <div>
@@ -154,8 +156,10 @@ const ContactUs = () => {
                                             <Phone className="w-5 h-5 text-[#0b2a5b]" />
                                         </div>
                                         <div className="flex flex-col gap-1.5 text-gray-600">
-                                            <a href="tel:+918130955866" className="hover:text-[#0b2a5b] transition-colors font-medium">+(91) 81309 55866</a>
-                                            <a href="tel:+919821563585" className="hover:text-[#0b2a5b] transition-colors font-medium">+(91) 98215 63585</a>
+                                            <a href={`tel:${settings.contactPhone.replace(/\D/g, "").replace(/^/, "+")}`} className="hover:text-[#0b2a5b] transition-colors font-medium">{settings.contactPhone}</a>
+                                            {settings.contactPhoneSecondary && (
+                                                <a href={`tel:${settings.contactPhoneSecondary.replace(/\D/g, "").replace(/^/, "+")}`} className="hover:text-[#0b2a5b] transition-colors font-medium">{settings.contactPhoneSecondary}</a>
+                                            )}
                                             <span className="text-white text-sm font-semibold bg-[#0b2a5b] px-3 py-1.5 rounded-full border border-[#0b2a5b] inline-block w-fit mt-1 shadow-md">10 AM to 7 PM</span>
                                         </div>
                                     </div>
@@ -202,30 +206,29 @@ const ContactUs = () => {
 
                                     <div className="flex items-start gap-3">
                                         <Mail className="w-5 h-5 mt-0.5 flex-shrink-0" />
-                                        <span>info@brpl.net</span>
+                                        <a href={`mailto:${settings.contactEmail}`} className="hover:underline">{settings.contactEmail}</a>
                                     </div>
                                     <div className="flex items-start gap-3">
                                         <MapPin className="w-5 h-5 mt-0.5 flex-shrink-0" />
-                                        <span>
-                                            Ground Floor, Suite G-01, Procapitus Business Park, D-247/4A, D Block,
-                                            Sector 63, Noida, Uttar Pradesh 201309
-                                        </span>
+                                        <span>{settings.contactAddress}</span>
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="rounded-3xl overflow-hidden h-52 md:h-60 lg:h-64 bg-gray-200">
-                                <iframe
-                                    title="BRPL Office Location"
-                                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3503.519595657341!2d77.369!3d28.586!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2sWorld%20Trade%20Centre!5e0!3m2!1sen!2sin!4v1700000000000"
-                                    width="100%"
-                                    height="100%"
-                                    style={{ border: 0 }}
-                                    loading="lazy"
-                                    allowFullScreen
-                                    referrerPolicy="no-referrer-when-downgrade"
-                                ></iframe>
-                            </div>
+                            {settings.mapEmbedUrl && (
+                                <div className="rounded-3xl overflow-hidden h-52 md:h-60 lg:h-64 bg-gray-200">
+                                    <iframe
+                                        title="BRPL Office Location"
+                                        src={settings.mapEmbedUrl}
+                                        width="100%"
+                                        height="100%"
+                                        style={{ border: 0 }}
+                                        loading="lazy"
+                                        allowFullScreen
+                                        referrerPolicy="no-referrer-when-downgrade"
+                                    ></iframe>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>

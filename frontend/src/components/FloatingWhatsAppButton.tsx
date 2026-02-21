@@ -1,7 +1,11 @@
 import React from "react";
-import { MessageCircle } from "lucide-react"; // Fallback or alternative if FontAwesome fails, but sticking to user structure mostly.
+import { useSiteSettings } from "@/hooks/useSiteSettings";
 
 const FloatingWhatsAppButton = () => {
+    const { settings } = useSiteSettings();
+    const waNumber = settings.whatsappNumber?.replace(/\D/g, "") || "918130955866";
+    const waUrl = `https://wa.me/${waNumber}`;
+
     return (
         <>
             <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css" />
@@ -54,7 +58,7 @@ const FloatingWhatsAppButton = () => {
         `}
             </style>
             <div className="floating_btn">
-                <a target="_blank" href="https://wa.me/918130955866" rel="noreferrer">
+                <a target="_blank" href={waUrl} rel="noreferrer">
                     <div className="contact_icon">
                         <i className="fa fa-whatsapp my-float"></i>
                     </div>

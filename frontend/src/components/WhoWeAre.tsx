@@ -1,9 +1,60 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { MoveRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import api from "@/apihelper/api";
+import { getImageUrl } from "@/utils/imageHelper";
+
+interface WhoWeAreData {
+    title: string;
+    subtitle: string;
+    tagline?: string;
+    description: string;
+    image: string;
+    videoUrl?: string;
+}
 
 const WhoWeAre = () => {
+    const [data, setData] = useState<WhoWeAreData | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const response = await api.get('/api/cms/who-we-are');
+                if (response.data.data) {
+                    setData(response.data.data);
+                } else {
+                    useDefault();
+                }
+            } catch (error) {
+                console.error("Failed to fetch Who We Are data", error);
+                useDefault();
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        fetchData();
+    }, []);
+
+    const useDefault = () => {
+        setData({
+            title: "Who We Are",
+
+            subtitle: "BRPL (Beyond Reach Premier League)",
+            tagline: "\"BRPL – Bharat ki League, Bharatiyon ka Sapna\"",
+            description: `<p class="text-gray-400 leading-relaxed mb-4">
+                            <span class="text-white font-semibold">Beyond Reach Premier League (BRPL)</span> is a professional <span class="text-white font-semibold">Indian T10 tennis ball cricket league</span> created to democratize access to competitive cricket. Designed around grassroots participation, zonal representation, and innovation, BRPL offers aspiring players from across India a structured pathway to professional cricket without bias, privilege, or geographical limitation.
+                        </p>
+                        <p class="text-gray-400 leading-relaxed">
+                            BRPL blends <span class="text-white font-semibold">high-speed T10 action, nationwide talent discovery</span>, and <span class="text-white font-semibold">regional pride</span>, making it a league that is both competitive and deeply connected to India’s cricketing culture.
+                        </p>`,
+            image: "/home2.png"
+        });
+    }
+
+    if (isLoading) return null; // or spinner
+
     return (
         <section className="w-full py-16 md:py-24 bg-[#020617] text-white overflow-hidden relative">
             {/* Decorative Elements */}
@@ -23,25 +74,26 @@ const WhoWeAre = () => {
                             </span>
                         </div>
 
-                        <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold leading-tight">
-                            Who We Are <br />
-                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-amber-600">
-                                BRPL (Beyond Reach Premier League)
-                            </span>
-                        </h2>
+                        <div className="space-y-2">
+                            {/* Render Title & Subtitle */}
+                            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold leading-tight">
+                                {data?.title} <br />
+                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-amber-600 mb-5">
+                                    {data?.subtitle}
+                                </span>
+                            </h2>
+                            {data?.tagline && (
+                                <p className="text-lg text-white-300 leading-relaxed border-l-4 border-amber-500 pl-4 italic mt-4">
+                                    {data.tagline}
+                                </p>
+                            )}
+                        </div>
 
-                        <p className="text-lg text-gray-300 leading-relaxed border-l-4 border-amber-500 pl-4 italic">
-                            "BRPL – Bharat ki League, Bharatiyon ka Sapna"
-                        </p>
-
-                        <p className="text-gray-400 leading-relaxed">
-                            <span className="text-white font-semibold">Beyond Reach Premier League (BRPL)</span> is a professional  <span className="text-white font-semibold">Indian T10 tennis ball cricket league</span> created to democratize access to competitive cricket. Designed around grassroots participation, zonal representation, and innovation, BRPL offers aspiring players from across India a structured pathway to professional cricket without bias, privilege, or geographical limitation.
-                        </p>
-
-                        <p className="text-gray-400 leading-relaxed">
-                            BRPL blends <span className="text-white font-semibold">high-speed T10 action, nationwide talent discovery</span>, and <span className="text-white font-semibold">regional pride</span>, making it a league that is both competitive and deeply connected to India’s cricketing culture.
-
-                        </p>
+                        {/* Render Rich Text Description */}
+                        <div
+                            className="prose prose-invert max-w-none text-gray-400 prose-p:leading-relaxed prose-lg prose-blockquote:border-l-4 prose-blockquote:border-amber-500 prose-blockquote:pl-4 prose-blockquote:italic prose-blockquote:text-gray-300 prose-strong:text-white prose-strong:font-semibold text-white"
+                            dangerouslySetInnerHTML={{ __html: data?.description || "" }}
+                        />
 
                         <div className="pt-4 flex flex-wrap gap-4">
                             <Link to="/about-us">
@@ -57,7 +109,7 @@ const WhoWeAre = () => {
                     <div className="relative" data-aos="fade-left">
                         <div className="relative aspect-video rounded-2xl overflow-hidden border border-white/10 shadow-2xl bg-[#0f172a]">
                             <img
-                                src="/home2.png"
+                                src={data?.image ? getImageUrl(data.image) : "/home2.png"}
                                 alt="About BRPL"
                                 className="w-full h-full object-cover"
                             />

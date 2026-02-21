@@ -39,6 +39,7 @@ const AdminFAQs = () => {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [editingItem, setEditingItem] = useState<FAQ | null>(null);
+    const userRole = localStorage.getItem("userRole") || "user";
 
     const [newItem, setNewItem] = useState({
         question: "",
@@ -241,13 +242,15 @@ const AdminFAQs = () => {
                                                 >
                                                     <Edit className="w-4 h-4" />
                                                 </Button>
-                                                <Button
-                                                    variant="destructive"
-                                                    size="sm"
-                                                    onClick={() => handleDelete(faq._id)}
-                                                >
-                                                    <Trash className="w-4 h-4" />
-                                                </Button>
+                                                {userRole === 'admin' && (
+                                                    <Button
+                                                        variant="destructive"
+                                                        size="sm"
+                                                        onClick={() => handleDelete(faq._id)}
+                                                    >
+                                                        <Trash className="w-4 h-4" />
+                                                    </Button>
+                                                )}
                                             </div>
                                         </TableCell>
                                     </TableRow>

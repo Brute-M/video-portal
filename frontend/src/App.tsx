@@ -44,6 +44,18 @@ import AdminPartners from "./pages/AdminPartners";
 import TypesOfPartners from "./pages/TypesOfPartners";
 import FAQs from "./pages/FAQs";
 import AdminFAQs from "./pages/AdminFAQs";
+import AdminSettings from "./pages/AdminSettings";
+import AdminBanner from "./pages/AdminBanner";
+import AdminWhoWeAre from "./pages/AdminWhoWeAre";
+import AdminAboutUs from "./pages/AdminAboutUs";
+import AdminAboutBrpl from "@/pages/AdminAboutBrpl";
+import AdminMeetOurTeam from "@/pages/AdminMeetOurTeam";
+import AdminMissionVision from "./pages/AdminMissionVision";
+import AdminSocialContact from "./pages/AdminSocialContact";
+import AdminPageBanner from "./pages/AdminPageBanner";
+import AdminPrivacyPolicy from "./pages/AdminPrivacyPolicy";
+import AdminTermsConditions from "./pages/AdminTermsConditions";
+import AdminSeoMeta from "./pages/AdminSeoMeta";
 
 import AOS from "aos";
 import "aos/dist/aos.css";
@@ -94,7 +106,7 @@ const App = () => {
                 <Route path="/admin/dashboard" element={<AdminDashboard />} />
                 <Route path="/admin/paid-users" element={<PaidUsers />} />
                 <Route path="/admin/unpaid-users" element={<UnpaidUsers />} />
-                <Route path="/admin/coupon-usage" element={<CouponUsage />} />
+                {/* <Route path="/admin/coupon-usage" element={<CouponUsage />} /> */}
                 <Route path="/admin/registered-users" element={<RegisteredUsers />} />
                 <Route path="/admin/users/:userId" element={<UserDetails />} />
                 {/* <Route path="/admin/step1-leads" element={<Step1Leads />} /> */}
@@ -108,6 +120,18 @@ const App = () => {
                 <Route path="/admin/partners" element={<AdminPartners />} />
                 <Route path="/admin/campaigns" element={<AdminCampaigns />} />
                 <Route path="/admin/faqs" element={<AdminFAQs />} />
+                <Route path="/admin/settings" element={<AdminSettings />} />
+                <Route path="/admin/cms/banners" element={<AdminBanner />} />
+                <Route path="/admin/cms/who-we-are" element={<AdminWhoWeAre />} />
+                <Route path="/admin/about-us/banner" element={<AdminAboutUs />} />
+                <Route path="/admin/about-us/about-brpl" element={<AdminAboutBrpl />} />
+                <Route path="/admin/about-us/mission-vision" element={<AdminMissionVision />} />
+                <Route path="/admin/about-us/meet-our-team" element={<AdminMeetOurTeam />} />
+                <Route path="/admin/social-contact" element={<AdminSocialContact />} />
+                <Route path="/admin/page-banner" element={<AdminPageBanner />} />
+                <Route path="/admin/privacy-policy" element={<AdminPrivacyPolicy />} />
+                <Route path="/admin/terms-conditions" element={<AdminTermsConditions />} />
+                <Route path="/admin/meta-content" element={<AdminSeoMeta />} />
                 {/* <Route path="/admin/nav-links" element={<AdminNavLinks />} /> */}
               </Route>
 
