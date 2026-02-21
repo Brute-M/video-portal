@@ -315,6 +315,14 @@ const register = async (req, res) => {
       }
     }
 
+    // WATI: create/update contact and optional template only for website registration (isFromLandingPage false)
+    if (newUser.isFromLandingPage === false) {
+      try {
+        const { syncRegistrationToWati } = require('../utils/watiService');
+        syncRegistrationToWati(newUser).catch((err) => console.error('[WATI] Registration sync failed:', err.message));
+      } catch (_) { /* WATI not configured or missing */ }
+    }
+
     // Generate Token
     const token = jwt.sign({ userId: newUser._id, role: 'user' }, process.env.JWT_SECRET, { expiresIn: '1h' });
 

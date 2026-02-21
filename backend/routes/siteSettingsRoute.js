@@ -8,6 +8,7 @@ const uploadBanner = createS3Upload('site/banner', { limits: { fileSize: 5 * 102
 const uploadTeamsBanner = createS3Upload('site/teams-banner', { limits: { fileSize: 5 * 1024 * 1024 } });
 
 router.get('/', siteSettingsController.getSettings);
+router.get('/presign-url', siteSettingsController.getPresignedUrl);
 router.put('/', authenticate, siteSettingsController.updateSettings);
 router.post('/upload-social-icon', authenticate, uploadSocial.single('image'), siteSettingsController.uploadSocialIcon);
 router.post('/upload-banner-image', authenticate, uploadBanner.single('image'), siteSettingsController.uploadBannerImage);

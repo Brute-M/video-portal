@@ -1,5 +1,5 @@
 const SiteSettings = require('../model/siteSettings.model');
-const { resolveImageUrl } = require('../utils/s3Client');
+const { resolveImageUrl, getPresignedUrl } = require('../utils/s3Client');
 
 const DEFAULT_SETTINGS = {
     key: 'main',
@@ -18,6 +18,21 @@ const DEFAULT_SETTINGS = {
     bannerTitles: {},
     teamsBannerImage: '',
     teamsVideoUrl: ''
+};
+
+// GET presigned URL for an S3 key (for admin preview when key is stored)
+exports.getPresignedUrl = async (req, res) => {
+    try {
+        const key = req.query.key;
+        if (!key || typeof key !== 'string') {
+            return res.status(400).json({ success: false, message: 'Missing key' });
+        }
+        const url = await getPresignedUrl(key);
+        if (!url) return res.status(404).json({ success: false, message: 'Could not generate URL' });
+        res.status(200).json({ success: true, url });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
 };
 
 // GET (public) - returns current site settings or defaults; resolves S3 image keys to presigned URLs

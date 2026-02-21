@@ -88,6 +88,7 @@ app.use("/api/cms/site-settings", require("./routes/siteSettingsRoute"));
 app.use("/api/cms/legal", require("./routes/legalRoute"));
 app.use("/api/cms", require("./routes/cmsRoute"));
 app.use("/api", require("./routes/seoRoute"));
+app.use("/api/wati", require("./routes/watiRoute"));
 
 app.listen(port, () => {
   console.log(`server is running on port ${port}`);
