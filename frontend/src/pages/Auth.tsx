@@ -250,7 +250,8 @@ const Auth = ({ forceRegister }: AuthProps) => {
             userId: newUserId,
             trackingId,
             fbclid,
-            source: 'website_registration'
+            source: 'website_registration',
+            isPaid: false
           });
           console.log("User data synced successfully");
         } catch (syncErr) {

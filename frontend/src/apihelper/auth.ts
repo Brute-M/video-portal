@@ -47,6 +47,6 @@ export const updateProfile = async (data: any) => {
 };
 
 export const storeSyncData = async (data: any) => {
-    const response = await api.post('/auth/store-sync-data', data);
+    const response = await api.post(ENDPOINTS.AUTH.STORE_SYNC_DATA, data);
     return response.data;
 };

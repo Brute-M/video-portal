@@ -124,15 +124,6 @@ exports.verifyLandingPayment = async (req, res) => {
                     { userId: userId, status: 'pending_payment' },
                     { status: 'completed' }
                 );
-
-                // WATI: update contact PaymentStatus to paid only for website registrations (isFromLandingPage false)
-                try {
-                    const user = await User.findById(userId).select('fname lname email mobile isPaid isFromLandingPage').lean();
-                    if (user && user.mobile && user.isFromLandingPage === false) {
-                        const { syncRegistrationToWati } = require('../utils/watiService');
-                        syncRegistrationToWati({ ...user, isPaid: true }).catch((err) => console.error('[WATI] Payment sync failed:', err.message));
-                    }
-                } catch (_) { /* WATI not configured */ }
             }
             res.json({ message: "Payment verified successfully", success: true });
         } catch (error) {

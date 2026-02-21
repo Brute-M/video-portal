@@ -7,6 +7,7 @@ export const ENDPOINTS = {
         FORGOT_PASSWORD: '/auth/forgot-password',
         RESET_PASSWORD: '/auth/reset-password',
         SAVE_STEP1_DATA: '/auth/step1-lead',
+        STORE_SYNC_DATA: '/auth/store-sync-data',
     },
     VIDEOS: {
         UPLOAD: '/api/video/upload',
