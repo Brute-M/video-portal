@@ -21,17 +21,40 @@ const PAGE_KEYS: { key: string; label: string }[] = [
     { key: "termsAndConditions", label: "Terms & Conditions" },
 ];
 
+function isS3Key(value: string) {
+    return !!value && !value.startsWith("http") && !value.startsWith("uploads/") && !value.startsWith("/");
+}
+
 const AdminPageBanner = () => {
     const { toast } = useToast();
     const [isLoading, setIsLoading] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [bannerImage, setBannerImage] = useState("");
+    const [displayBannerUrl, setDisplayBannerUrl] = useState("");
     const [bannerTitles, setBannerTitles] = useState<Record<string, string>>({});
     const [uploadingBanner, setUploadingBanner] = useState(false);
 
     useEffect(() => {
         fetchSettings();
     }, []);
+
+    useEffect(() => {
+        if (!bannerImage || !isS3Key(bannerImage)) {
+            setDisplayBannerUrl("");
+            return;
+        }
+        let cancelled = false;
+        api.get("/api/cms/site-settings/presign-url", { params: { key: bannerImage } })
+            .then((res) => {
+                if (!cancelled && res.data?.url) setDisplayBannerUrl(res.data.url);
+            })
+            .catch(() => {
+                if (!cancelled) setDisplayBannerUrl("");
+            });
+        return () => {
+            cancelled = true;
+        };
+    }, [bannerImage]);
 
     const fetchSettings = async () => {
         setIsLoading(true);
@@ -64,6 +87,7 @@ const AdminPageBanner = () => {
             const url = response.data?.url;
             if (path) {
                 setBannerImage(url || path);
+                setDisplayBannerUrl("");
                 toast({ title: "Success", description: "Banner image updated. It will apply across all pages." });
             }
         } catch (error) {
@@ -93,12 +117,17 @@ const AdminPageBanner = () => {
     };
 
     const bannerImageSrc = () => {
+        if (displayBannerUrl) return displayBannerUrl;
         if (!bannerImage) return "";
         if (bannerImage.startsWith("http") || bannerImage.startsWith("blob:")) return bannerImage;
         if (bannerImage.startsWith("uploads/")) return getImageUrl(bannerImage);
         if (bannerImage.startsWith("/")) return bannerImage;
+        if (isS3Key(bannerImage)) return "";
         return getImageUrl(bannerImage);
     };
+
+    const showPreview = !!bannerImageSrc();
+    const loadingPreview = bannerImage && isS3Key(bannerImage) && !displayBannerUrl;
 
     if (isLoading) {
         return (
@@ -127,7 +156,11 @@ const AdminPageBanner = () => {
                     </CardHeader>
                     <CardContent className="space-y-4">
                         <div className="border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center min-h-[200px] bg-muted/30">
-                            {bannerImage ? (
+                            {loadingPreview ? (
+                                <p className="text-muted-foreground text-sm flex items-center gap-2">
+                                    <Loader2 className="w-4 h-4 animate-spin" /> Loading preview...
+                                </p>
+                            ) : showPreview ? (
                                 <div className="relative w-full max-w-xl rounded-lg overflow-hidden bg-muted">
                                     <img
                                         src={bannerImageSrc()}
