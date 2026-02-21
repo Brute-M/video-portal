@@ -1040,10 +1040,11 @@ const uploadProfileImageHandler = async (req, res) => {
   }
 };
 
+// Triggered when: website registration + user unpaid (after account creation, before payment)
 const storeSyncData = async (req, res) => {
   try {
     const userData = req.body;
-    console.log("Storing Sync Data (Synchronous Trigger):", userData);
+    console.log("Storing Sync Data (website registration, unpaid):", userData);
 
     // Here implies logic to store/sync user data to another system
     // e.g. await ExternalCRM.createLead(userData);

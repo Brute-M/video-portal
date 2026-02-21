@@ -241,10 +241,9 @@ const Auth = ({ forceRegister }: AuthProps) => {
       const newUserId = responseData.userId || (response.data && response.data.userId);
       const email = responseData.email || (response.data && response.data.email);
 
-      // Trigger new sync API synchronously for website registration (isLandingPage=false)
+      // Trigger sync API when: website registration + user unpaid (after account create, before payment)
       if (newUserId) {
         try {
-          // We assume this is website registration since we are in Auth.tsx
           await storeSyncData({
             ...formData,
             userId: newUserId,
@@ -253,7 +252,7 @@ const Auth = ({ forceRegister }: AuthProps) => {
             source: 'website_registration',
             isPaid: false
           });
-          console.log("User data synced successfully");
+          console.log("User data synced successfully (website registration, unpaid)");
         } catch (syncErr) {
           console.error("Failed to sync user data:", syncErr);
           // We continue even if sync fails, or should we stop? User said "trigger... on synchronous way". 
