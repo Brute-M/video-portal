@@ -143,7 +143,7 @@ const Footer: React.FC = () => {
       {/* Bottom copyright bar */}
       <div className="w-full bg-black text-center py-8 text-[13px] text-white">
         <span>
-          © Copyright {new Date().getFullYear()} | All Rights Reserved by Beyond Reach Premier League | Developed by <a href="https://metatech.co.in" target="_blank" rel="noopener noreferrer" className="text-yellow-400 hover:underline">Meta Tech</a>
+          © Copyright {new Date().getFullYear()} | All Rights Reserved by Beyond Reach Premier League
         </span>
       </div>
     </footer>
