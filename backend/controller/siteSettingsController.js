@@ -1,76 +1,5 @@
 const SiteSettings = require('../model/siteSettings.model');
-const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
-
-const uploadsDir = path.join(__dirname, '..', 'uploads');
-const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        if (!fs.existsSync(uploadsDir)) {
-            fs.mkdirSync(uploadsDir, { recursive: true });
-        }
-        cb(null, uploadsDir);
-    },
-    filename: function (req, file, cb) {
-        cb(null, 'social-' + Date.now() + path.extname(file.originalname));
-    }
-});
-const bannerStorage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        if (!fs.existsSync(uploadsDir)) {
-            fs.mkdirSync(uploadsDir, { recursive: true });
-        }
-        cb(null, uploadsDir);
-    },
-    filename: function (req, file, cb) {
-        cb(null, 'banner-' + Date.now() + path.extname(file.originalname));
-    }
-});
-const teamsBannerStorage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        if (!fs.existsSync(uploadsDir)) {
-            fs.mkdirSync(uploadsDir, { recursive: true });
-        }
-        cb(null, uploadsDir);
-    },
-    filename: function (req, file, cb) {
-        cb(null, 'teams-banner-' + Date.now() + path.extname(file.originalname));
-    }
-});
-
-const upload = multer({
-    storage,
-    limits: { fileSize: 2 * 1024 * 1024 },
-    fileFilter: (req, file, cb) => {
-        if (file.mimetype.startsWith('image/')) {
-            cb(null, true);
-        } else {
-            cb(new Error('Only images are allowed'));
-        }
-    }
-});
-const uploadBanner = multer({
-    storage: bannerStorage,
-    limits: { fileSize: 5 * 1024 * 1024 },
-    fileFilter: (req, file, cb) => {
-        if (file.mimetype.startsWith('image/')) {
-            cb(null, true);
-        } else {
-            cb(new Error('Only images are allowed'));
-        }
-    }
-});
-const uploadTeamsBanner = multer({
-    storage: teamsBannerStorage,
-    limits: { fileSize: 5 * 1024 * 1024 },
-    fileFilter: (req, file, cb) => {
-        if (file.mimetype.startsWith('image/')) {
-            cb(null, true);
-        } else {
-            cb(new Error('Only images are allowed'));
-        }
-    }
-});
+const { resolveImageUrl } = require('../utils/s3Client');
 
 const DEFAULT_SETTINGS = {
     key: 'main',
@@ -91,7 +20,7 @@ const DEFAULT_SETTINGS = {
     teamsVideoUrl: ''
 };
 
-// GET (public) - returns current site settings or defaults
+// GET (public) - returns current site settings or defaults; resolves S3 image keys to presigned URLs
 exports.getSettings = async (req, res) => {
     try {
         let settings = await SiteSettings.findOne({ key: 'main' });
@@ -99,6 +28,15 @@ exports.getSettings = async (req, res) => {
             settings = await SiteSettings.create(DEFAULT_SETTINGS);
         }
         const data = settings.toObject ? settings.toObject() : settings;
+        if (data.bannerImage) data.bannerImage = await resolveImageUrl(data.bannerImage);
+        if (data.teamsBannerImage) data.teamsBannerImage = await resolveImageUrl(data.teamsBannerImage);
+        if (Array.isArray(data.socialLinks)) {
+            for (let i = 0; i < data.socialLinks.length; i++) {
+                if (data.socialLinks[i].image) {
+                    data.socialLinks[i].image = await resolveImageUrl(data.socialLinks[i].image);
+                }
+            }
+        }
         res.status(200).json({ success: true, data });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
@@ -147,32 +85,32 @@ exports.updateSettings = async (req, res) => {
     }
 };
 
-// POST upload social icon (admin)
+// POST upload social icon (admin) - path is S3 key (save in socialLinks[].image); url for preview
 exports.uploadSocialIcon = async (req, res) => {
     try {
         if (!req.file) {
             return res.status(400).json({ success: false, message: 'No file uploaded' });
         }
-        const imagePath = 'uploads/' + req.file.filename;
-        res.status(200).json({ success: true, path: imagePath });
+        const url = await resolveImageUrl(req.file.key);
+        res.status(200).json({ success: true, path: req.file.key, url: url || req.file.key });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }
 };
 
-// POST upload banner image (admin) - use field name 'image' for consistency
+// POST upload banner image (admin)
 exports.uploadBannerImage = async (req, res) => {
     try {
         if (!req.file) {
             return res.status(400).json({ success: false, message: 'No file uploaded' });
         }
-        const imagePath = 'uploads/' + req.file.filename;
         await SiteSettings.findOneAndUpdate(
             { key: 'main' },
-            { $set: { bannerImage: imagePath } },
+            { $set: { bannerImage: req.file.key } },
             { new: true, upsert: true }
         );
-        res.status(200).json({ success: true, path: imagePath });
+        const url = await resolveImageUrl(req.file.key);
+        res.status(200).json({ success: true, path: req.file.key, url });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }
@@ -184,18 +122,14 @@ exports.uploadTeamsBannerImage = async (req, res) => {
         if (!req.file) {
             return res.status(400).json({ success: false, message: 'No file uploaded' });
         }
-        const imagePath = 'uploads/' + req.file.filename;
         await SiteSettings.findOneAndUpdate(
             { key: 'main' },
-            { $set: { teamsBannerImage: imagePath } },
+            { $set: { teamsBannerImage: req.file.key } },
             { new: true, upsert: true }
         );
-        res.status(200).json({ success: true, path: imagePath });
+        const url = await resolveImageUrl(req.file.key);
+        res.status(200).json({ success: true, path: req.file.key, url });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }
 };
-
-exports.upload = upload;
-exports.uploadBanner = uploadBanner;
-exports.uploadTeamsBanner = uploadTeamsBanner;

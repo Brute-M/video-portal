@@ -1,29 +1,11 @@
 const Banner = require('../model/banner.model');
 const AboutUs = require('../model/aboutus.model');
 const WhoWeAre = require('../model/whoweare.model');
-const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
+const { deleteFromS3, resolveImageUrl } = require('../utils/s3Client');
 
-// Configure multer for file uploads
-const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        const uploadDir = 'uploads/';
-        // Create directory if it doesn't exist
-        if (!fs.existsSync(uploadDir)) {
-            fs.mkdirSync(uploadDir);
-        }
-        cb(null, uploadDir);
-    },
-    filename: function (req, file, cb) {
-        cb(null, 'cms-' + Date.now() + path.extname(file.originalname));
-    }
-});
-
-const upload = multer({
-    storage: storage,
-    limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit
-});
+function isS3Key(value) {
+    return value && typeof value === 'string' && !value.startsWith('http') && !value.startsWith('uploads/');
+}
 
 // Helper to calculate file size string from bytes
 const formatFileSize = (bytes) => {
@@ -45,8 +27,7 @@ exports.createBanner = async (req, res) => {
             return res.status(400).json({ message: "Background image is required" });
         }
 
-        // Save relative path for portability
-        const background = `uploads/${file.filename}`;
+        const background = file.key;
         const backgroundSize = formatFileSize(file.size);
 
         const newBanner = new Banner({
@@ -59,7 +40,8 @@ exports.createBanner = async (req, res) => {
         });
 
         await newBanner.save();
-        res.status(201).json({ success: true, data: newBanner });
+        const backgroundUrl = await resolveImageUrl(background);
+        res.status(201).json({ success: true, data: { ...newBanner.toObject(), background: backgroundUrl } });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -68,7 +50,12 @@ exports.createBanner = async (req, res) => {
 exports.getBanners = async (req, res) => {
     try {
         const banners = await Banner.find().sort({ createdAt: -1 });
-        res.status(200).json({ success: true, data: banners });
+        const withUrls = await Promise.all(banners.map(async (b) => {
+            const obj = b.toObject ? b.toObject() : b;
+            obj.background = await resolveImageUrl(obj.background);
+            return obj;
+        }));
+        res.status(200).json({ success: true, data: withUrls });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -83,9 +70,9 @@ exports.deleteBanner = async (req, res) => {
             return res.status(404).json({ message: "Banner not found" });
         }
 
-        // Optional: Delete file from filesystem
-        // const filename = banner.background.split('/uploads/')[1];
-        // if (filename) fs.unlink(`uploads/${filename}`, (err) => { if(err) console.error(err); });
+        if (isS3Key(banner.background)) {
+            await deleteFromS3(banner.background).catch(err => console.error('S3 delete error:', err));
+        }
 
         await Banner.findByIdAndDelete(id);
         res.status(200).json({ success: true, message: "Banner deleted" });
@@ -100,17 +87,22 @@ exports.updateBanner = async (req, res) => {
         const { videoUrl, title, subtitle, isActive } = req.body;
         const file = req.file;
 
+        const banner = await Banner.findById(id);
+        if (!banner) return res.status(404).json({ message: "Banner not found" });
+
         const updateData = { videoUrl, title, subtitle, isActive: isActive === 'true' || isActive === true };
 
         if (file) {
-            updateData.background = `uploads/${file.filename}`;
+            if (isS3Key(banner.background)) {
+                await deleteFromS3(banner.background).catch(err => console.error('S3 delete error:', err));
+            }
+            updateData.background = file.key;
             updateData.backgroundSize = formatFileSize(file.size);
         }
 
-        const banner = await Banner.findByIdAndUpdate(id, updateData, { new: true });
-        if (!banner) return res.status(404).json({ message: "Banner not found" });
-
-        res.status(200).json({ success: true, data: banner });
+        const updated = await Banner.findByIdAndUpdate(id, updateData, { new: true });
+        const backgroundUrl = await resolveImageUrl(updated.background);
+        res.status(200).json({ success: true, data: { ...updated.toObject(), background: backgroundUrl } });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -120,10 +112,11 @@ exports.updateBanner = async (req, res) => {
 
 exports.getWhoWeAre = async (req, res) => {
     try {
-        // We assume there's only one "Who We Are" section. 
-        // If not exists, return empty or default code might handle it on frontend.
-        const data = await WhoWeAre.findOne().sort({ createdAt: -1 }); // Get latest
-        res.status(200).json({ success: true, data });
+        const data = await WhoWeAre.findOne().sort({ createdAt: -1 });
+        if (!data) return res.status(200).json({ success: true, data: null });
+        const obj = data.toObject ? data.toObject() : data;
+        if (obj.image) obj.image = await resolveImageUrl(obj.image);
+        res.status(200).json({ success: true, data: obj });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -146,19 +139,22 @@ exports.updateWhoWeAre = async (req, res) => {
         };
 
         if (file) {
-            updateData.image = `uploads/${file.filename}`;
+            if (data && isS3Key(data.image)) {
+                await deleteFromS3(data.image).catch(err => console.error('S3 delete error:', err));
+            }
+            updateData.image = file.key;
         }
 
         if (data) {
-            // Update existing
             data = await WhoWeAre.findByIdAndUpdate(data._id, updateData, { new: true });
         } else {
-            // Create new if doesn't exist
             data = new WhoWeAre(updateData);
             await data.save();
         }
 
-        res.status(200).json({ success: true, data });
+        const obj = data.toObject ? data.toObject() : data;
+        if (obj.image) obj.image = await resolveImageUrl(obj.image);
+        res.status(200).json({ success: true, data: obj });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -169,7 +165,13 @@ exports.updateWhoWeAre = async (req, res) => {
 exports.getAboutUs = async (req, res) => {
     try {
         const data = await AboutUs.findOne().sort({ createdAt: -1 });
-        res.status(200).json({ success: true, data });
+        if (!data) return res.status(200).json({ success: true, data: null });
+        const obj = data.toObject ? data.toObject() : data;
+        if (obj.bannerImage) obj.bannerImage = await resolveImageUrl(obj.bannerImage);
+        if (obj.aboutBrplImage) obj.aboutBrplImage = await resolveImageUrl(obj.aboutBrplImage);
+        if (obj.missionImage) obj.missionImage = await resolveImageUrl(obj.missionImage);
+        if (obj.visionImage) obj.visionImage = await resolveImageUrl(obj.visionImage);
+        res.status(200).json({ success: true, data: obj });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -188,9 +190,15 @@ exports.updateAboutUsBanner = async (req, res) => {
         }
 
         if (remove === 'true') {
-            updateData.bannerImage = ""; // or null, if schema allows. string is safer for now based on current schema usage (String)
+            if (data && isS3Key(data.bannerImage)) {
+                await deleteFromS3(data.bannerImage).catch(err => console.error('S3 delete error:', err));
+            }
+            updateData.bannerImage = "";
         } else if (file) {
-            updateData.bannerImage = `uploads/${file.filename}`;
+            if (data && isS3Key(data.bannerImage)) {
+                await deleteFromS3(data.bannerImage).catch(err => console.error('S3 delete error:', err));
+            }
+            updateData.bannerImage = file.key;
         }
 
         if (data) {
@@ -200,7 +208,9 @@ exports.updateAboutUsBanner = async (req, res) => {
             await data.save();
         }
 
-        res.status(200).json({ success: true, data });
+        const obj = data.toObject ? data.toObject() : data;
+        if (obj.bannerImage) obj.bannerImage = await resolveImageUrl(obj.bannerImage);
+        res.status(200).json({ success: true, data: obj });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -212,9 +222,7 @@ exports.updateAboutUsVideo = async (req, res) => {
 
         let data = await AboutUs.findOne().sort({ createdAt: -1 });
 
-        let updateData = {
-            updatedAt: Date.now()
-        };
+        let updateData = { updatedAt: Date.now() };
 
         if (remove === true || remove === 'true') {
             updateData.videoUrl = "";
@@ -233,7 +241,12 @@ exports.updateAboutUsVideo = async (req, res) => {
             await data.save();
         }
 
-        res.status(200).json({ success: true, data });
+        const obj = data.toObject ? data.toObject() : data;
+        if (obj.bannerImage) obj.bannerImage = await resolveImageUrl(obj.bannerImage);
+        if (obj.aboutBrplImage) obj.aboutBrplImage = await resolveImageUrl(obj.aboutBrplImage);
+        if (obj.missionImage) obj.missionImage = await resolveImageUrl(obj.missionImage);
+        if (obj.visionImage) obj.visionImage = await resolveImageUrl(obj.visionImage);
+        res.status(200).json({ success: true, data: obj });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -252,9 +265,15 @@ exports.updateAboutBrpl = async (req, res) => {
         };
 
         if (removeImage === 'true') {
+            if (data && isS3Key(data.aboutBrplImage)) {
+                await deleteFromS3(data.aboutBrplImage).catch(err => console.error('S3 delete error:', err));
+            }
             updateData.aboutBrplImage = "";
         } else if (file) {
-            updateData.aboutBrplImage = `uploads/${file.filename}`;
+            if (data && isS3Key(data.aboutBrplImage)) {
+                await deleteFromS3(data.aboutBrplImage).catch(err => console.error('S3 delete error:', err));
+            }
+            updateData.aboutBrplImage = file.key;
         }
 
         if (data) {
@@ -264,7 +283,12 @@ exports.updateAboutBrpl = async (req, res) => {
             await data.save();
         }
 
-        res.status(200).json({ success: true, data });
+        const obj = data.toObject ? data.toObject() : data;
+        if (obj.bannerImage) obj.bannerImage = await resolveImageUrl(obj.bannerImage);
+        if (obj.aboutBrplImage) obj.aboutBrplImage = await resolveImageUrl(obj.aboutBrplImage);
+        if (obj.missionImage) obj.missionImage = await resolveImageUrl(obj.missionImage);
+        if (obj.visionImage) obj.visionImage = await resolveImageUrl(obj.visionImage);
+        res.status(200).json({ success: true, data: obj });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -278,15 +302,12 @@ exports.updateMissionVision = async (req, res) => {
             removeMissionImage, removeVisionImage
         } = req.body;
 
-        // multer puts files in req.files['fieldname'][0]
-        const missionFile = req.files['missionImage'] ? req.files['missionImage'][0] : null;
-        const visionFile = req.files['visionImage'] ? req.files['visionImage'][0] : null;
+        const missionFile = req.files && req.files['missionImage'] ? req.files['missionImage'][0] : null;
+        const visionFile = req.files && req.files['visionImage'] ? req.files['visionImage'][0] : null;
 
         let data = await AboutUs.findOne().sort({ createdAt: -1 });
 
-        let updateData = {
-            updatedAt: Date.now()
-        };
+        let updateData = { updatedAt: Date.now() };
 
         if (missionTitle !== undefined) updateData.missionTitle = missionTitle;
         if (missionDescription !== undefined) updateData.missionDescription = missionDescription;
@@ -294,15 +315,27 @@ exports.updateMissionVision = async (req, res) => {
         if (visionDescription !== undefined) updateData.visionDescription = visionDescription;
 
         if (removeMissionImage === 'true') {
+            if (data && isS3Key(data.missionImage)) {
+                await deleteFromS3(data.missionImage).catch(err => console.error('S3 delete error:', err));
+            }
             updateData.missionImage = "";
         } else if (missionFile) {
-            updateData.missionImage = `uploads/${missionFile.filename}`;
+            if (data && isS3Key(data.missionImage)) {
+                await deleteFromS3(data.missionImage).catch(err => console.error('S3 delete error:', err));
+            }
+            updateData.missionImage = missionFile.key;
         }
 
         if (removeVisionImage === 'true') {
+            if (data && isS3Key(data.visionImage)) {
+                await deleteFromS3(data.visionImage).catch(err => console.error('S3 delete error:', err));
+            }
             updateData.visionImage = "";
         } else if (visionFile) {
-            updateData.visionImage = `uploads/${visionFile.filename}`;
+            if (data && isS3Key(data.visionImage)) {
+                await deleteFromS3(data.visionImage).catch(err => console.error('S3 delete error:', err));
+            }
+            updateData.visionImage = visionFile.key;
         }
 
         if (data) {
@@ -312,10 +345,14 @@ exports.updateMissionVision = async (req, res) => {
             await data.save();
         }
 
-        res.status(200).json({ success: true, data });
+        const obj = data.toObject ? data.toObject() : data;
+        if (obj.bannerImage) obj.bannerImage = await resolveImageUrl(obj.bannerImage);
+        if (obj.aboutBrplImage) obj.aboutBrplImage = await resolveImageUrl(obj.aboutBrplImage);
+        if (obj.missionImage) obj.missionImage = await resolveImageUrl(obj.missionImage);
+        if (obj.visionImage) obj.visionImage = await resolveImageUrl(obj.visionImage);
+        res.status(200).json({ success: true, data: obj });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
 };
 
-exports.upload = upload;

@@ -36,4 +36,18 @@ const getPresignedUrl = async (key, options = {}) => {
     }
 };
 
-module.exports = { s3Client, deleteFromS3, getPresignedUrl };
+/**
+ * Resolve image value from DB to URL for API response.
+ * - S3 key (e.g. cms/..., site/..., our-team/...) -> presigned URL
+ * - Already http(s) -> return as-is
+ * - uploads/... (legacy local) -> return as-is (frontend prepends API URL)
+ */
+const resolveImageUrl = async (value) => {
+    if (!value || typeof value !== 'string') return '';
+    if (value.startsWith('http://') || value.startsWith('https://')) return value;
+    if (value.startsWith('uploads/') || value.startsWith('/')) return value;
+    const url = await getPresignedUrl(value);
+    return url || value;
+};
+
+module.exports = { s3Client, deleteFromS3, getPresignedUrl, resolveImageUrl };

@@ -128,8 +128,9 @@ const AdminTeams = () => {
                 headers: { "Content-Type": undefined },
             });
             const path = res.data?.path;
+            const url = res.data?.url;
             if (path) {
-                setTeamsBannerImage(path);
+                setTeamsBannerImage(url || path);
                 toast({ title: "Success", description: "Teams banner image updated." });
             }
         } catch (err) {
@@ -155,7 +156,8 @@ const AdminTeams = () => {
         if (!teamsBannerImage) return "";
         if (teamsBannerImage.startsWith("http") || teamsBannerImage.startsWith("blob:")) return teamsBannerImage;
         if (teamsBannerImage.startsWith("uploads/")) return getImageUrl(teamsBannerImage);
-        return teamsBannerImage.startsWith("/") ? teamsBannerImage : "/" + teamsBannerImage;
+        if (teamsBannerImage.startsWith("/")) return teamsBannerImage;
+        return getImageUrl(teamsBannerImage);
     };
 
     const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {

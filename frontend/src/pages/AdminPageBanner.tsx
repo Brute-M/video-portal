@@ -61,8 +61,9 @@ const AdminPageBanner = () => {
                 headers: { "Content-Type": undefined },
             });
             const path = response.data?.path;
+            const url = response.data?.url;
             if (path) {
-                setBannerImage(path);
+                setBannerImage(url || path);
                 toast({ title: "Success", description: "Banner image updated. It will apply across all pages." });
             }
         } catch (error) {
@@ -95,7 +96,8 @@ const AdminPageBanner = () => {
         if (!bannerImage) return "";
         if (bannerImage.startsWith("http") || bannerImage.startsWith("blob:")) return bannerImage;
         if (bannerImage.startsWith("uploads/")) return getImageUrl(bannerImage);
-        return bannerImage.startsWith("/") ? bannerImage : "/" + bannerImage;
+        if (bannerImage.startsWith("/")) return bannerImage;
+        return getImageUrl(bannerImage);
     };
 
     if (isLoading) {

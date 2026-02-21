@@ -27,6 +27,7 @@ const AdminSocialContact = () => {
     const [mapEmbedUrl, setMapEmbedUrl] = useState("");
     const [socialLinks, setSocialLinks] = useState<SocialLink[]>([]);
     const [uploadingIndex, setUploadingIndex] = useState<number | null>(null);
+    const [imagePreviewByKey, setImagePreviewByKey] = useState<Record<string, string>>({});
 
     useEffect(() => {
         fetchSettings();
@@ -63,7 +64,9 @@ const AdminSocialContact = () => {
                 headers: { "Content-Type": undefined },
             });
             const path = response.data?.path;
+            const url = response.data?.url;
             if (path) {
+                if (url) setImagePreviewByKey((prev) => ({ ...prev, [path]: url }));
                 setSocialLinks((prev) => {
                     const next = [...prev];
                     if (!next[index]) next[index] = { name: "", url: "", image: "" };
@@ -98,9 +101,11 @@ const AdminSocialContact = () => {
 
     const getSocialImageSrc = (image: string) => {
         if (!image) return "";
+        if (imagePreviewByKey[image]) return imagePreviewByKey[image];
         if (image.startsWith("http") || image.startsWith("blob:")) return image;
         if (image.startsWith("uploads/")) return getImageUrl(image);
-        return image.startsWith("/") ? image : "/" + image;
+        if (image.startsWith("/")) return image;
+        return imagePreviewByKey[image] || "";
     };
 
     const handleSubmit = async (e: React.FormEvent) => {

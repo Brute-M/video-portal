@@ -1,33 +1,9 @@
 const OurTeam = require('../model/ourTeam.model');
-const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
+const { deleteFromS3, resolveImageUrl } = require('../utils/s3Client');
 
-// File Upload Configuration: save to same folder that server.js serves via express.static
-const uploadsDir = path.join(__dirname, '..', 'uploads');
-const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        if (!fs.existsSync(uploadsDir)) {
-            fs.mkdirSync(uploadsDir, { recursive: true });
-        }
-        cb(null, uploadsDir);
-    },
-    filename: function (req, file, cb) {
-        cb(null, 'team-' + Date.now() + path.extname(file.originalname));
-    }
-});
-
-const upload = multer({
-    storage: storage,
-    limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
-    fileFilter: (req, file, cb) => {
-        if (file.mimetype.startsWith('image/')) {
-            cb(null, true);
-        } else {
-            cb(new Error('Only images are allowed!'));
-        }
-    }
-});
+function isS3Key(value) {
+    return value && typeof value === 'string' && !value.startsWith('http') && !value.startsWith('uploads/');
+}
 
 // Create a new team member
 exports.createMember = async (req, res) => {
@@ -35,21 +11,20 @@ exports.createMember = async (req, res) => {
         const { name, role, bio, order } = req.body;
         const file = req.file;
 
-        let imagePath = "";
-        if (file) {
-            imagePath = "uploads/" + file.filename;
-        }
+        const image = file ? file.key : "";
 
         const newMember = new OurTeam({
             name,
             role,
             bio,
             order,
-            image: imagePath
+            image
         });
 
         await newMember.save();
-        res.status(201).json({ success: true, data: newMember });
+        const obj = newMember.toObject ? newMember.toObject() : newMember;
+        if (obj.image) obj.image = await resolveImageUrl(obj.image);
+        res.status(201).json({ success: true, data: obj });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -59,7 +34,12 @@ exports.createMember = async (req, res) => {
 exports.getAllMembers = async (req, res) => {
     try {
         const members = await OurTeam.find().sort({ order: 1, createdAt: 1 });
-        res.status(200).json({ success: true, data: members });
+        const withUrls = await Promise.all(members.map(async (m) => {
+            const obj = m.toObject ? m.toObject() : m;
+            if (obj.image) obj.image = await resolveImageUrl(obj.image);
+            return obj;
+        }));
+        res.status(200).json({ success: true, data: withUrls });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -72,7 +52,9 @@ exports.getMemberById = async (req, res) => {
         if (!member) {
             return res.status(404).json({ message: "Team member not found" });
         }
-        res.status(200).json({ success: true, data: member });
+        const obj = member.toObject ? member.toObject() : member;
+        if (obj.image) obj.image = await resolveImageUrl(obj.image);
+        res.status(200).json({ success: true, data: obj });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -89,7 +71,6 @@ exports.updateMember = async (req, res) => {
             return res.status(404).json({ message: "Team member not found" });
         }
 
-
         const updateData = {};
         if (name !== undefined) updateData.name = name;
         if (role !== undefined) updateData.role = role;
@@ -97,20 +78,16 @@ exports.updateMember = async (req, res) => {
         if (order !== undefined) updateData.order = order;
 
         if (file) {
-            // Optional: Delete old image
-            if (member.image) {
-                const oldPath = path.join(__dirname, '..', member.image);
-                if (fs.existsSync(oldPath)) {
-                    fs.unlink(oldPath, (err) => {
-                        if (err) console.error("Failed to delete old image:", err);
-                    });
-                }
+            if (member.image && isS3Key(member.image)) {
+                await deleteFromS3(member.image).catch(err => console.error("Failed to delete old image from S3:", err));
             }
-            updateData.image = `uploads/${file.filename}`;
+            updateData.image = file.key;
         }
 
         member = await OurTeam.findByIdAndUpdate(req.params.id, updateData, { new: true });
-        res.status(200).json({ success: true, data: member });
+        const obj = member.toObject ? member.toObject() : member;
+        if (obj.image) obj.image = await resolveImageUrl(obj.image);
+        res.status(200).json({ success: true, data: obj });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -124,14 +101,8 @@ exports.deleteMember = async (req, res) => {
             return res.status(404).json({ message: "Team member not found" });
         }
 
-        // Delete image file
-        if (member.image) {
-            const imagePath = path.join(__dirname, '..', member.image);
-            if (fs.existsSync(imagePath)) {
-                fs.unlink(imagePath, (err) => {
-                    if (err) console.error("Failed to delete image:", err);
-                });
-            }
+        if (member.image && isS3Key(member.image)) {
+            await deleteFromS3(member.image).catch(err => console.error("Failed to delete image from S3:", err));
         }
 
         await OurTeam.findByIdAndDelete(req.params.id);
@@ -140,5 +111,3 @@ exports.deleteMember = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
-
-exports.upload = upload;
