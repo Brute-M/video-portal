@@ -501,7 +501,13 @@ const Videos = () => {
             });
             return;
         }
-
+        // Meta Pixel: InitiateCheckout — fire once on button click, before payment completes
+        import('react-facebook-pixel').then((x) => x.default.track('InitiateCheckout', {
+            value: 1499,
+            currency: 'INR',
+            content_name: 'Video Upload Fee',
+            content_type: 'product',
+        }));
         setIsProcessingPayment(true);
         try {
             const order = await createRazorpayOrder(1499);

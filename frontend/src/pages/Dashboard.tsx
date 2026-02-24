@@ -77,6 +77,13 @@ const Dashboard = () => {
 
 
   const handleRegistrationPayment = async () => {
+    // Meta Pixel: InitiateCheckout — fire once on button click, before payment completes
+    import('react-facebook-pixel').then((x) => x.default.track('InitiateCheckout', {
+      value: 1499,
+      currency: 'INR',
+      content_name: 'Registration and Service Fee',
+      content_type: 'product',
+    }));
     setIsProcessingPayment(true);
     try {
       const order = await createLandingOrder(1499);
@@ -168,6 +175,8 @@ const Dashboard = () => {
             src="/assets/cricket-bg.png"
             alt="Stadium"
             className="w-full h-full object-cover opacity-50 contrast-125 saturate-150"
+            loading="lazy"
+            decoding="async"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-background via-background/90 to-transparent" />
         </div>
@@ -206,6 +215,8 @@ const Dashboard = () => {
               alt="Cricket Gear"
               className="w-full h-full object-contain drop-shadow-2xl hover:scale-110 transition-transform duration-500 relative z-10 mix-blend-normal"
               style={{ maskImage: 'linear-gradient(to bottom, black 80%, transparent 100%)' }}
+              loading="lazy"
+              decoding="async"
             />
           </div>
         </div>

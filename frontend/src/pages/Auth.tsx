@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Mail, Lock, CheckCircle2, Phone, Eye, EyeOff, ArrowLeft, Loader2, ArrowRight, Swords, CircleDot, Shield, Zap } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { login, register, sendOtp, verifyOtp, forgotPassword, resetPassword, saveStep1Data, updateProfile, storeSyncData } from "@/apihelper/auth";
+import { login, verifyAdminOtp, register, sendOtp, verifyOtp, forgotPassword, resetPassword, saveStep1Data, updateProfile, storeSyncData } from "@/apihelper/auth";
 import { createLandingOrder, verifyLandingPayment } from "@/apihelper/payment";
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -62,6 +62,13 @@ const Auth = ({ forceRegister }: AuthProps) => {
   const [paymentId, setPaymentId] = useState("");
   const [isPaymentProcessing, setIsPaymentProcessing] = useState(false);
   const [userId, setUserId] = useState("");
+
+  // Admin 2FA (Google Authenticator) state
+  const [requireAdminOtp, setRequireAdminOtp] = useState(false);
+  const [adminOtpToken, setAdminOtpToken] = useState("");
+  const [adminOtpInput, setAdminOtpInput] = useState("");
+  const [adminQrCodeUrl, setAdminQrCodeUrl] = useState<string | null>(null);
+  const [isVerifyingAdminOtp, setIsVerifyingAdminOtp] = useState(false);
 
 
   const [formData, setFormData] = useState({
@@ -303,6 +310,13 @@ const Auth = ({ forceRegister }: AuthProps) => {
 
   const handleStep2Submit = async (e: React.FormEvent) => {
     e.preventDefault();
+    // Meta Pixel: InitiateCheckout — fire once on button click, before payment completes
+    import('react-facebook-pixel').then((x) => x.default.track('InitiateCheckout', {
+      value: 1499,
+      currency: 'INR',
+      content_name: 'Registration Fee',
+      content_type: 'product',
+    }));
     // Razorpay Payment Logic
     setIsPaymentProcessing(true);
     try {
@@ -499,9 +513,29 @@ const Auth = ({ forceRegister }: AuthProps) => {
         const response = await login({ email: formData.email, password: formData.password });
         console.log("Login Response:", response);
 
+        const data = response.data || response;
+
+        // Admin 2FA: if OTP required, show OTP step instead of issuing token
+        if (data.requireOtp && data.otpToken) {
+          setRequireAdminOtp(true);
+          setAdminOtpToken(data.otpToken);
+          setAdminOtpInput("");
+          if (data.qrCodeUrl) {
+            setAdminQrCodeUrl(data.qrCodeUrl);
+          } else {
+            setAdminQrCodeUrl(null);
+          }
+          setIsLoading(false);
+          toast({
+            title: data.qrCodeUrl ? "MFA Setup Required" : "Two-Factor Authentication",
+            description: data.qrCodeUrl ? "Enrolling device. Scan the QR code." : "Enter the 6-digit code from your authenticator app.",
+          });
+          return;
+        }
+
         // Handle various potential token paths
-        const token = response.token || response.data?.token || response.accessToken;
-        const role = response.data?.role || response.role;
+        const token = response.token || data?.token || response.accessToken;
+        const role = data?.role || response.role;
 
         console.log("Extracted Token:", token);
         console.log("Extracted Role:", role);
@@ -526,9 +560,6 @@ const Auth = ({ forceRegister }: AuthProps) => {
           description: "You've successfully signed in.",
         });
 
-        // Check if user is unpaid (Access Restricted handled on Dashboard, but maybe we can warn here too?)
-        // The dashboard will show the restricted view.
-
         if (['admin', 'subadmin', 'seo_content'].includes(role)) {
           navigate("/admin/dashboard");
         } else {
@@ -544,6 +575,39 @@ const Auth = ({ forceRegister }: AuthProps) => {
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleVerifyAdminOtp = async (e: React.FormEvent) => {
+    debugger
+    if (!adminOtpToken || adminOtpInput.length !== 6) {
+      toast({ variant: "destructive", title: "Invalid OTP", description: "Enter the 6-digit code from your authenticator app." });
+      return;
+    }
+    setIsVerifyingAdminOtp(true);
+    try {
+      const response = await verifyAdminOtp(adminOtpToken, adminOtpInput);
+      const data = response.data || response;
+      const token = data.token || response.token;
+      const role = data.role || data.user?.role;
+      if (token) {
+        localStorage.setItem('token', token);
+        localStorage.setItem('userEmail', formData.email);
+        if (role) localStorage.setItem('userRole', role);
+        setRequireAdminOtp(false);
+        setAdminOtpToken("");
+        setAdminOtpInput("");
+        toast({ title: "Welcome Back!", description: "You've successfully signed in." });
+        navigate("/admin/dashboard");
+      } else {
+        toast({ variant: "destructive", title: "Login Error", description: "No token received." });
+      }
+    } catch (err: any) {
+      toast({
+        variant: "destructive",
+        title: "Verification Failed",
+        description: err.response?.data?.data?.message || err.response?.data?.message || "Invalid OTP. Please try again.",
+      });
     }
   };
 
@@ -1122,6 +1186,49 @@ const Auth = ({ forceRegister }: AuthProps) => {
             </div>
             <Button onClick={handleVerifyOtp} className="w-full" disabled={isVerifyingOtp || !otpInput || otpInput.length !== 4}>
               {isVerifyingOtp ? <Loader2 className="w-4 h-4 animate-spin" /> : "Verify OTP"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Admin 2FA (Google Authenticator) Modal */}
+      <Dialog open={requireAdminOtp} onOpenChange={(open) => { if (!open) { setRequireAdminOtp(false); setAdminOtpToken(""); setAdminOtpInput(""); setAdminQrCodeUrl(null); } }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{adminQrCodeUrl ? "Setup Two-Factor Authentication" : "Two-Factor Authentication"}</DialogTitle>
+            <DialogDescription>
+              {adminQrCodeUrl
+                ? "Scan the QR code below using your Google Authenticator app, then enter the generated 6-digit code to complete setup."
+                : "Enter the 6-digit code from your Google Authenticator app."}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            {adminQrCodeUrl && (
+              <div className="flex justify-center mb-4">
+                <img src={adminQrCodeUrl} alt="QR Code for Google Authenticator" className="w-48 h-48 border rounded-lg shadow-sm bg-white p-2" loading="lazy" decoding="async" />
+              </div>
+            )}
+            <div className="space-y-2">
+              <Label>Authenticator code</Label>
+              <div className="flex justify-center">
+                <InputOTP
+                  maxLength={6}
+                  value={adminOtpInput}
+                  onChange={(value) => setAdminOtpInput(value)}
+                >
+                  <InputOTPGroup>
+                    <InputOTPSlot index={0} />
+                    <InputOTPSlot index={1} />
+                    <InputOTPSlot index={2} />
+                    <InputOTPSlot index={3} />
+                    <InputOTPSlot index={4} />
+                    <InputOTPSlot index={5} />
+                  </InputOTPGroup>
+                </InputOTP>
+              </div>
+            </div>
+            <Button onClick={handleVerifyAdminOtp} className="w-full" disabled={isVerifyingAdminOtp || adminOtpInput.length !== 6}>
+              {isVerifyingAdminOtp ? <Loader2 className="w-4 h-4 animate-spin" /> : "Verify & Sign in"}
             </Button>
           </div>
         </DialogContent>
