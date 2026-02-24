@@ -107,16 +107,23 @@ exports.verifyLandingPayment = async (req, res) => {
     if (isAuthentic) {
         try {
             if (userId) {
-                // Update User status
-                await User.findByIdAndUpdate(userId, { isPaid: true });
+                const paidAmount = amount != null ? Number(amount) : TEST_AMOUNT_INR;
+                // Update User: isPaid, paymentAmount, and paymentId so admin/DB show correct data
+                await User.findByIdAndUpdate(userId, {
+                    isPaid: true,
+                    paymentAmount: paidAmount,
+                    paymentId: razorpay_payment_id,
+                    isFromLandingPage: true
+                });
 
                 // Create Payment record
                 await Payment.create({
                     userId,
                     transactionId: razorpay_payment_id,
-                    amount: amount || TEST_AMOUNT_INR,
+                    amount: paidAmount,
                     type: 'registration',
-                    status: 'completed'
+                    status: 'completed',
+                    paymentGateway: 'razorpay'
                 });
 
                 // Update any pending videos to completed since user is now paid
