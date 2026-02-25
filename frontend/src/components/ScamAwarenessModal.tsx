@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -9,27 +9,15 @@ import {
 import { Button } from "@/components/ui/button";
 import { ShieldAlert } from "lucide-react";
 
-const STORAGE_KEY = "brpl_scam_modal_dismissed";
-
 export const ScamAwarenessModal = () => {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(true);
 
-  useEffect(() => {
-    const dismissed = localStorage.getItem(STORAGE_KEY);
-    if (!dismissed) {
-      setOpen(true);
-    }
-  }, []);
-
-  const handleClose = () => {
-    localStorage.setItem(STORAGE_KEY, "true");
-    setOpen(false);
-  };
+  const handleClose = () => setOpen(false);
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && handleClose()}>
-      <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col gap-0 p-0">
-        <DialogHeader className="px-6 pt-6 pb-2 border-b bg-amber-50 dark:bg-amber-950/30">
+      <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col gap-0 p-0 rounded-t-xl rounded-b-lg overflow-hidden">
+        <DialogHeader className="px-6 pt-6 pb-2 border-b bg-amber-50 dark:bg-amber-950/30 rounded-t-xl">
           <DialogTitle className="flex items-center gap-2 text-amber-800 dark:text-amber-200 text-xl">
             <ShieldAlert className="h-6 w-6 shrink-0" />
             Stay Vigilant Against Scams
