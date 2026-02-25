@@ -104,41 +104,48 @@ exports.verifyLandingPayment = async (req, res) => {
 
     const isAuthentic = expectedSignature === razorpay_signature;
 
-    if (isAuthentic) {
-        try {
-            if (userId) {
-                const paidAmount = amount != null ? Number(amount) : TEST_AMOUNT_INR;
-                // Update User: isPaid, paymentAmount, and paymentId so admin/DB show correct data
-                await User.findByIdAndUpdate(userId, {
-                    isPaid: true,
-                    paymentAmount: paidAmount,
-                    paymentId: razorpay_payment_id,
-                    isFromLandingPage: true
-                });
+    if (!isAuthentic) {
+        return res.status(400).json({ message: "Invalid signature", success: false });
+    }
 
-                // Create Payment record
-                await Payment.create({
-                    userId,
-                    transactionId: razorpay_payment_id,
-                    amount: paidAmount,
-                    type: 'registration',
-                    status: 'completed',
-                    paymentGateway: 'razorpay'
-                });
+    if (!userId) {
+        console.error("verifyLandingPayment: signature valid but userId missing in request body");
+        return res.status(400).json({
+            message: "User ID is required to complete payment verification",
+            success: false
+        });
+    }
 
-                // Update any pending videos to completed since user is now paid
-                await Video.updateMany(
-                    { userId: userId, status: 'pending_payment' },
-                    { status: 'completed' }
-                );
-            }
-            res.json({ message: "Payment verified successfully", success: true });
-        } catch (error) {
-            console.error("Error updating status after payment:", error);
-            res.status(500).json({ message: "Payment verified but failed to update status", success: false });
-        }
-    } else {
-        res.status(400).json({ message: "Invalid signature", success: false });
+    try {
+        const paidAmount = amount != null ? Number(amount) : TEST_AMOUNT_INR;
+        // Update User: isPaid, paymentAmount, and paymentId so admin/DB show correct data
+        await User.findByIdAndUpdate(userId, {
+            isPaid: true,
+            paymentAmount: paidAmount,
+            paymentId: razorpay_payment_id,
+            isFromLandingPage: true
+        });
+
+        // Create Payment record
+        await Payment.create({
+            userId,
+            transactionId: razorpay_payment_id,
+            amount: paidAmount,
+            type: 'registration',
+            status: 'completed',
+            paymentGateway: 'razorpay'
+        });
+
+        // Update any pending videos to completed since user is now paid
+        await Video.updateMany(
+            { userId: userId, status: 'pending_payment' },
+            { status: 'completed' }
+        );
+
+        res.json({ message: "Payment verified successfully", success: true });
+    } catch (error) {
+        console.error("Error updating status after payment:", error);
+        res.status(500).json({ message: "Payment verified but failed to update status", success: false });
     }
 };
 
