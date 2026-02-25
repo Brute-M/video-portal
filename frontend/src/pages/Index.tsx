@@ -4,6 +4,7 @@ import Banner from "@/components/Banner";
 import SEO from "@/components/SEO";
 import AmbassadorsSection from "@/components/AmbassadorsSection";
 import { ScamAwarenessModal } from "@/components/ScamAwarenessModal";
+import BroadcastingPartners from "@/components/BroadcastingPartners";
 
 import WhoWeAre from "@/components/WhoWeAre";
 
@@ -29,6 +30,9 @@ const Index = () => {
 
       {/* Teams Section */}
       <Teams />
+
+      {/* Proposed Broadcasting Partners */}
+      <BroadcastingPartners />
     </div>
   );
 };
