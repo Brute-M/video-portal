@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { login, getStep1Leads, exportStep1Leads } = require('../controller/authController'); // Reuse existing login logic
+const { login, verifyAdminOtp, getStep1Leads, exportStep1Leads } = require('../controller/authController');
 const {
     adminLandingLogin, getAllRecords, getPaginatedRecords,
     getAdminStats, getDashboardChartData, downloadUserInvoice,
@@ -13,6 +13,9 @@ router.post('/login', login);
 
 // Admin Landing Login (fixed credentials)
 router.post('/landing/login', adminLandingLogin);
+
+// Admin 2FA: verify OTP (Google Authenticator) and issue JWT
+router.post('/verify-otp', verifyAdminOtp);
 
 // Fetch All Data (Protected)
 router.get('/users', authenticate, getAllRecords);

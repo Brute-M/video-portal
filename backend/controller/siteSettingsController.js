@@ -17,7 +17,8 @@ const DEFAULT_SETTINGS = {
     bannerImage: '',
     bannerTitles: {},
     teamsBannerImage: '',
-    teamsVideoUrl: ''
+    teamsVideoUrl: '',
+    customHeadScripts: ''
 };
 
 // GET presigned URL for an S3 key (for admin preview when key is stored)
@@ -35,7 +36,7 @@ exports.getPresignedUrl = async (req, res) => {
     }
 };
 
-// GET (public) - returns current site settings or defaults; resolves S3 image keys to presigned URLs
+// GET (public) - returns current site settings or defaults; resolves S3 image keys to presigned URLs for header/footer
 exports.getSettings = async (req, res) => {
     try {
         let settings = await SiteSettings.findOne({ key: 'main' });
@@ -45,11 +46,13 @@ exports.getSettings = async (req, res) => {
         const data = settings.toObject ? settings.toObject() : settings;
         if (data.bannerImage) data.bannerImage = await resolveImageUrl(data.bannerImage);
         if (data.teamsBannerImage) data.teamsBannerImage = await resolveImageUrl(data.teamsBannerImage);
-        if (Array.isArray(data.socialLinks)) {
-            for (let i = 0; i < data.socialLinks.length; i++) {
-                if (data.socialLinks[i].image) {
-                    data.socialLinks[i].image = await resolveImageUrl(data.socialLinks[i].image);
-                }
+        // Use default social links if none in DB so header/footer always have icons
+        if (!Array.isArray(data.socialLinks) || data.socialLinks.length === 0) {
+            data.socialLinks = DEFAULT_SETTINGS.socialLinks;
+        }
+        for (let i = 0; i < data.socialLinks.length; i++) {
+            if (data.socialLinks[i].image) {
+                data.socialLinks[i].image = await resolveImageUrl(data.socialLinks[i].image);
             }
         }
         res.status(200).json({ success: true, data });
@@ -61,7 +64,7 @@ exports.getSettings = async (req, res) => {
 // PUT (admin) - update settings
 exports.updateSettings = async (req, res) => {
     try {
-        const { contactAddress, contactPhone, contactPhoneSecondary, contactEmail, whatsappNumber, mapEmbedUrl, socialLinks, bannerImage, bannerTitles, teamsBannerImage, teamsVideoUrl } = req.body;
+        const { contactAddress, contactPhone, contactPhoneSecondary, contactEmail, whatsappNumber, mapEmbedUrl, socialLinks, bannerImage, bannerTitles, teamsBannerImage, teamsVideoUrl, customHeadScripts, customBodyScripts } = req.body;
         const update = {};
         if (contactAddress !== undefined) update.contactAddress = contactAddress;
         if (contactPhone !== undefined) update.contactPhone = contactPhone;
@@ -86,6 +89,8 @@ exports.updateSettings = async (req, res) => {
                 return res.status(400).json({ success: false, message: 'Invalid bannerTitles JSON' });
             }
         }
+        if (customHeadScripts !== undefined) update.customHeadScripts = String(customHeadScripts ?? '');
+        if (customBodyScripts !== undefined) update.customBodyScripts = String(customBodyScripts ?? '');
         let settings = await SiteSettings.findOneAndUpdate(
             { key: 'main' },
             { $set: update },

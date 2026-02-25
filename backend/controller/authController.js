@@ -7,12 +7,16 @@ const Step1Lead = require('../model/step1_lead.model');
 const Coupon = require('../model/coupon.model');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const speakeasy = require('speakeasy');
 require('dotenv').config();
+const qrcode = require('qrcode');
 const multer = require('multer');
 const path = require('path');
 const crypto = require('crypto');
 const { S3Client } = require('@aws-sdk/client-s3');
+const fs = require('fs');
 const multerS3 = require('multer-s3');
+const SiteSettings = require('../model/siteSettings.model');
 
 const s3 = new S3Client({
   region: process.env.AWS_REGION || 'ap-south-1'
@@ -79,15 +83,53 @@ const login = async (req, res) => {
       return res.status(400).json({ statusCode: 400, data: { message: 'Email or Mobile Number is required' } });
     }
 
-    // 2. Admin Check (Hardcoded)
-    if (identifier === 'admin@brpl.com' && password === 'admin123') {
-      const token = jwt.sign({ userId: 'admin', role: 'admin' }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    // 2. Admin Check (env or fallback credentials)
+    const adminEmail = (process.env.ADMIN_EMAIL || 'admin@brpl.com').toLowerCase();
+    const adminPassword = process.env.ADMIN_PASSWORD || 'admin123';
+    const legacyPassword = 'Admin@123';
+    const inputIdentifier = identifier.toLowerCase().trim();
+    const passwordMatch = (password === adminPassword || password === legacyPassword);
+
+    if (inputIdentifier === adminEmail && passwordMatch) {
+      let settings = await SiteSettings.findOne({ key: 'main' });
+      if (!settings) settings = await SiteSettings.create({ key: 'main' });
+
+      const twoFaSecret = settings.admin2FASecret;
+
+      if (settings.admin2FAEnabled && twoFaSecret && twoFaSecret.trim()) {
+        const isVerified = settings.admin2FAVerified;
+
+        // 2FA enabled: return OTP required (do not issue JWT yet)
+        const otpToken = jwt.sign(
+          { purpose: 'admin_otp', email: adminEmail, dbUserId: 'admin', role: 'admin' },
+          process.env.JWT_SECRET,
+          { expiresIn: '5m' }
+        );
+
+        const responseData = {
+          requireOtp: true,
+          message: isVerified ? 'OTP Required' : 'MFA setup required. Scan this QR code in Google Authenticator.',
+          otpToken
+        };
+
+        if (!isVerified) {
+          const otpAuthStr = `otpauth://totp/BRPL%20Admin?secret=${twoFaSecret.trim()}`;
+          responseData.qrCodeUrl = await qrcode.toDataURL(otpAuthStr);
+        }
+
+        return res.json({
+          statusCode: 200,
+          data: responseData
+        });
+      }
+
+      const token = jwt.sign({ userId: 'admin', role: 'admin', email: adminEmail }, process.env.JWT_SECRET, { expiresIn: '24h' });
       return res.json({
         statusCode: 200,
         data: {
           message: 'Admin Login successful',
           userId: 'admin',
-          email: 'admin@brpl.com',
+          email: adminEmail,
           role: 'admin',
           token
         }
@@ -134,7 +176,58 @@ const login = async (req, res) => {
 
     // 5. Success
     const userRole = user.role || 'user';
-    const token = jwt.sign({ userId: user._id, role: userRole }, process.env.JWT_SECRET, { expiresIn: '1h' });
+
+    // MFA required only for admin. Subadmin and seo_content log in with password only.
+    if (userRole === 'admin') {
+      if (user.twoFaEnabled) {
+        const otpToken = jwt.sign(
+          { purpose: 'admin_otp', email: user.email, dbUserId: user._id, role: userRole },
+          process.env.JWT_SECRET,
+          { expiresIn: '5m' }
+        );
+        return res.json({
+          statusCode: 200,
+          data: {
+            requireOtp: true,
+            message: 'OTP Required',
+            otpToken
+          }
+        });
+      } else {
+        // Not enabled yet, check if secret exists, else generate
+        let secretString = user.twoFaSecret;
+        if (!secretString) {
+          const secret = speakeasy.generateSecret({ name: `BRPL (${user.email})` });
+          secretString = secret.base32;
+          user.twoFaSecret = secretString;
+          await user.save();
+        }
+
+        const otpAuthStr = `otpauth://totp/BRPL%20%28${encodeURIComponent(user.email)}%29?secret=${secretString}`;
+        const qrCodeUrl = await qrcode.toDataURL(otpAuthStr);
+
+        const otpToken = jwt.sign(
+          { purpose: 'admin_otp', email: user.email, dbUserId: user._id, role: userRole },
+          process.env.JWT_SECRET,
+          { expiresIn: '15m' }
+        );
+        return res.json({
+          statusCode: 200,
+          data: {
+            requireOtp: true,
+            message: 'MFA setup required. Scan this QR code in Google Authenticator.',
+            otpToken,
+            qrCodeUrl
+          }
+        });
+      }
+    }
+
+    const token = jwt.sign(
+      { userId: user._id, role: userRole },
+      process.env.JWT_SECRET,
+      { expiresIn: userRole === 'admin' || userRole === 'subadmin' || userRole === 'seo_content' ? '24h' : '1h' }
+    );
 
     res.json({
       statusCode: 200,
@@ -1133,6 +1226,10 @@ const updateSystemUser = async (req, res) => {
       return res.status(403).json({ statusCode: 403, data: { message: 'Permission denied' } });
     }
 
+    if (userId === 'admin') {
+      return res.status(403).json({ statusCode: 403, data: { message: 'Cannot edit main admin account from here' } });
+    }
+
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({ statusCode: 404, data: { message: 'User not found' } });
@@ -1181,6 +1278,11 @@ const deleteSystemUser = async (req, res) => {
     const { id } = req.params;
     const requesterRole = req.role;
 
+    // Prevent deleting self or other main admins if specific
+    if (id === 'admin') {
+      return res.status(403).json({ statusCode: 403, data: { message: 'Cannot delete main admin account' } });
+    }
+
     // Only Admin can delete system users
     if (requesterRole !== 'admin') {
       return res.status(403).json({ statusCode: 403, data: { message: 'Permission denied. Only Admins can delete users.' } });
@@ -1191,7 +1293,6 @@ const deleteSystemUser = async (req, res) => {
       return res.status(404).json({ statusCode: 404, data: { message: 'User not found' } });
     }
 
-    // Prevent deleting self or other main admins if specific
     if (user.email === 'admin@brpl.com') {
       return res.status(403).json({ statusCode: 403, data: { message: 'Cannot delete main admin account' } });
     }
@@ -1211,8 +1312,163 @@ const deleteSystemUser = async (req, res) => {
   }
 };
 
+/**
+ * Verify admin 2FA OTP (Google Authenticator TOTP) and issue JWT.
+ * Body: { otpToken, otp }
+ */
+const verifyAdminOtp = async (req, res) => {
+  try {
+    const { otpToken, otp } = req.body;
+    if (!otpToken || !otp || !String(otp).trim()) {
+      return res.status(400).json({ statusCode: 400, data: { message: 'otpToken and otp are required' } });
+    }
+
+    let decoded;
+    try {
+      decoded = jwt.verify(otpToken, process.env.JWT_SECRET);
+    } catch (e) {
+      return res.status(401).json({ statusCode: 401, data: { message: 'Invalid or expired OTP session. Please log in again.' } });
+    }
+    if (decoded.purpose !== 'admin_otp' || !decoded.email) {
+      return res.status(401).json({ statusCode: 401, data: { message: 'Invalid OTP session' } });
+    }
+
+    const adminEmail = decoded.email;
+    const dbUserId = decoded.dbUserId || 'admin';
+    const userRole = decoded.role || 'admin';
+
+    let secret = null;
+    let dbUser = null;
+    let settings = null;
+
+    if (dbUserId === 'admin') {
+      settings = await SiteSettings.findOne({ key: 'main' });
+      if (settings && settings.admin2FAEnabled) {
+        secret = settings.admin2FASecret;
+      }
+    } else {
+      dbUser = await User.findById(dbUserId);
+      if (dbUser && dbUser.twoFaSecret) {
+        secret = dbUser.twoFaSecret;
+      }
+    }
+
+    if (!secret || !secret.trim()) {
+      return res.status(503).json({ statusCode: 503, data: { message: '2FA is not configured' } });
+    }
+
+    const valid = speakeasy.totp.verify({
+      secret: secret.trim(),
+      encoding: 'base32',
+      token: String(otp).trim(),
+      window: 1
+    });
+
+    if (!valid) {
+      return res.status(401).json({ statusCode: 401, data: { message: 'Invalid OTP' } });
+    }
+
+    if (dbUser && !dbUser.twoFaEnabled) {
+      dbUser.twoFaEnabled = true;
+      await dbUser.save();
+    }
+
+    if (dbUserId === 'admin' && settings && !settings.admin2FAVerified) {
+      settings.admin2FAVerified = true;
+      await settings.save();
+    }
+
+    const token = jwt.sign(
+      { userId: dbUserId, role: userRole, email: adminEmail },
+      process.env.JWT_SECRET,
+      { expiresIn: '24h' }
+    );
+
+    return res.json({
+      statusCode: 200,
+      data: {
+        message: 'Admin Login successful',
+        userId: dbUserId,
+        email: adminEmail,
+        role: userRole,
+        token,
+        user: { id: dbUserId, email: adminEmail, role: userRole }
+      }
+    });
+  } catch (error) {
+    console.error('Verify Admin OTP Error:', error);
+    res.status(500).json({ statusCode: 500, data: { message: 'Server error' } });
+  }
+};
+
+
+const toggle2FA = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { action } = req.body; // 'enable' or 'disable'
+    const requesterRole = req.role;
+
+    if (requesterRole !== 'admin' && requesterRole !== 'subadmin') {
+      return res.status(403).json({ statusCode: 403, data: { message: 'Permission denied' } });
+    }
+
+    if (userId === 'admin') {
+      let settings = await SiteSettings.findOne({ key: 'main' });
+      if (!settings) {
+        settings = await SiteSettings.create({ key: 'main' });
+      }
+
+      if (action === 'disable') {
+        settings.admin2FAEnabled = false;
+        settings.admin2FASecret = '';
+        settings.admin2FAVerified = false;
+      } else if (action === 'enable') {
+        const secret = speakeasy.generateSecret({ name: 'BRPL Admin' });
+        settings.admin2FAEnabled = true;
+        settings.admin2FASecret = secret.base32;
+        settings.admin2FAVerified = false;
+      }
+
+      await settings.save();
+
+      return res.status(200).json({
+        statusCode: 200,
+        data: {
+          message: `Master Admin 2FA ${action}d successfully`
+        }
+      });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ statusCode: 404, data: { message: 'User not found' } });
+    }
+
+    if (action === 'disable') {
+      user.twoFaEnabled = false;
+      user.twoFaSecret = null; // Clear secret to force re-enrollment if enabled again via login
+    } else if (action === 'enable') {
+      user.twoFaEnabled = true;
+    }
+
+    await user.save();
+
+    res.status(200).json({
+      statusCode: 200,
+      data: {
+        message: `2FA ${action}d successfully`
+      }
+    });
+
+  } catch (error) {
+    console.error("Toggle 2FA Error:", error);
+    res.status(500).json({ statusCode: 500, data: { message: 'Server error' } });
+  }
+};
+
 module.exports = {
   login,
+  verifyAdminOtp,
   register,
   upload,
   uploadProfileImage,
@@ -1235,5 +1491,6 @@ module.exports = {
   storeSyncData,
   createSystemUser,
   updateSystemUser,
-  deleteSystemUser
+  deleteSystemUser,
+  toggle2FA
 };

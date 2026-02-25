@@ -342,5 +342,88 @@ const sendPartnerEmail = async (partnerDetails) => {
     }
 };
 
-module.exports = { sendInvoiceEmail, sendPasswordResetEmail, sendContactEmail, sendRegistrationOtpEmail, sendWelcomeEmail, sendUserRegistrationSuccessEmail, sendPartnerEmail };
+const sendBulkRegistrationEmail = async (email, name, pdfBuffer, videoId) => {
+    try {
+        const logoPath = path.join(__dirname, '../../frontend/public/logo.png');
+
+        const attachments = [
+            {
+                filename: 'logo.png',
+                path: logoPath,
+                cid: 'logo'
+            }
+        ];
+
+        if (pdfBuffer) {
+            attachments.push({
+                filename: `Invoice-${videoId || 'BRPL'}.pdf`,
+                content: pdfBuffer,
+                contentType: 'application/pdf'
+            });
+        }
+
+        const mailOptions = {
+            from: `"Beyond Reach Premiere League" <${process.env.SMTP_USER}>`,
+            to: email,
+            subject: 'BRPL Registration Successful',
+            html: `
+            <div style="font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: 0 auto; border: 1px solid #ddd; padding: 20px;">
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <img src="cid:logo" alt="BRPL Logo" style="width: 80px;" />
+                    <h2 style="color: #444; margin-top: 10px;">Beyond Reach Premiere League</h2>
+                </div>
+                
+                <hr style="border: 0; border-top: 1px solid #eee;" />
+                
+                <p>Dear ${name},</p>
+                
+                <p>Congratulations on successfully registering for the BRPL – Beyond Reach Premier League.</p>
+                
+                <p>We are pleased to inform you that you are now officially enrolled for the BRPL Trials scheduled to take place between June 2026 and July 2026.</p>
+                
+                <p>Trial cities will be announced soon, stay tuned!</p>
+                
+                <p>This is an exciting opportunity to demonstrate your skills and take a step closer to becoming part of a premier cricket league designed to nurture emerging talent across India.</p>
+                
+                <p>To stay informed with real-time updates, announcements, and important trial information, we recommend following our official Social Media pages:</p>
+                
+                <ul style="list-style-type: none; padding: 0;">
+                    <li style="margin-bottom: 8px;"><strong>Insta:</strong> <a href="https://www.instagram.com/brpl.t10?igsh=eTY1aXVnN2tlb2pu" style="color: #008CBA;">@brpl.t10</a></li>
+                    <li style="margin-bottom: 8px;"><strong>Twitter:</strong> <a href="https://x.com/BRPLOfficial?t=-4fW1n7vpmumIID4pE0NQA&s=09" style="color: #008CBA;">@brplofficial</a></li>
+                    <li style="margin-bottom: 8px;"><strong>Facebook:</strong> <a href="https://www.facebook.com/share/1PdfXsD6d4/?mibextid=wwXIfr" style="color: #008CBA;">@Brplofficial</a></li>
+                    <li style="margin-bottom: 8px;"><strong>YouTube:</strong> <a href="https://youtube.com/@beyondreachpremierleague?si=WalwhqVbYOMOW6h0" style="color: #008CBA;">Beyond Reach Premier League</a></li>
+                </ul>
+                
+                <p>We look forward to seeing you at the trials and wish you the very best in your journey with BRPL.</p>
+                
+                <p>Warm regards,<br>
+                Team BRPL<br>
+                Beyond Reach Premier League</p>
+                
+                <p style="font-size: 12px; color: #777; margin-top: 30px; text-align: center;">
+                    &copy; ${new Date().getFullYear()} Beyond Reach Premiere League. All rights reserved.
+                </p>
+            </div>
+            `,
+            attachments: attachments
+        };
+
+        const info = await transporter.sendMail(mailOptions);
+        console.log('Bulk Registration email sent to %s: %s', email, info.messageId);
+        return info;
+    } catch (error) {
+        console.error('Error sending registration confirmation email to', email, error);
+    }
+};
+
+module.exports = {
+    sendInvoiceEmail,
+    sendPasswordResetEmail,
+    sendContactEmail,
+    sendRegistrationOtpEmail,
+    sendWelcomeEmail,
+    sendUserRegistrationSuccessEmail,
+    sendPartnerEmail,
+    sendBulkRegistrationEmail
+};
 

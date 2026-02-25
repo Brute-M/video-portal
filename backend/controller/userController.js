@@ -2,7 +2,9 @@ const User = require('../model/user.model');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const ExcelJS = require('exceljs');
-
+const { sendBulkRegistrationEmail } = require('../utils/emailService');
+const { createInvoiceBuffer } = require('../utils/pdfGenerator');
+const Video = require('../model/video.model');
 
 /**
  * Controller to get all users.
@@ -547,11 +549,51 @@ const exportUsers = async (req, res) => {
   }
 };
 
+
+
+const sendBulkRegistrationEmails = async (req, res) => {
+  try {
+    const paidUsers = await User.find({ isPaid: true });
+
+    let successCount = 0;
+    let failCount = 0;
+
+    for (const user of paidUsers) {
+      try {
+        const videoUser = await Video.findOne({ userId: user._id, status: 'completed' }).sort({ createdAt: -1 });
+
+        let pdfBuffer = null;
+        let videoIdForFilename = 'BRPL';
+
+        if (videoUser) {
+          pdfBuffer = await createInvoiceBuffer(videoUser, user);
+          videoIdForFilename = videoUser.paymentId || videoUser._id.toString();
+        }
+
+        await sendBulkRegistrationEmail(user.email, user.fname || 'Participant', pdfBuffer, videoIdForFilename);
+        successCount++;
+      } catch (err) {
+        console.error(`Failed to send email to ${user.email}:`, err);
+        failCount++;
+      }
+    }
+
+    res.status(200).json({
+      success: true,
+      message: `Bulk email process completed. Successful: ${successCount}, Failed: ${failCount}`
+    });
+  } catch (error) {
+    console.error('Error in sendBulkRegistrationEmails:', error);
+    res.status(500).json({ success: false, message: 'Server error processing bulk emails' });
+  }
+};
+
 module.exports = {
   getUsers,
   createUser,
   getUserById,
   updateUserById,
   deleteUserById,
-  exportUsers
+  exportUsers,
+  sendBulkRegistrationEmails
 };

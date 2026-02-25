@@ -16,12 +16,15 @@ const seoMetaSchema = new mongoose.Schema({
     keywords: { type: String, default: "" },
 }, { timestamps: true });
 
-// We remove the enum so any route can be assigned a meta title/desc dynamically.
+// Any route can have meta + OG tags (dynamic).
 const SeoMeta = mongoose.model('SeoMeta', new mongoose.Schema({
     pagePath: { type: String, required: true, unique: true },
     title: { type: String, required: true },
     description: { type: String, default: "" },
     keywords: { type: String, default: "" },
+    ogTitle: { type: String, default: "" },
+    ogDescription: { type: String, default: "" },
+    ogImage: { type: String, default: "" },
 }, { timestamps: true }));
 
 module.exports = SeoMeta;

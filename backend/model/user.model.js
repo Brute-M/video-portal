@@ -56,7 +56,9 @@ const userSchema = new mongoose.Schema({
   fbclid: { type: String },
   trackingId: { type: String },
   conversionType: { type: String, enum: ['code', 'fallback', 'organic', 'none', 'manual_admin'], default: 'none' },
-  campaignCode: { type: String } // Code from the QR Campaign
+  campaignCode: { type: String }, // Code from the QR Campaign
+  twoFaSecret: { type: String },
+  twoFaEnabled: { type: Boolean, default: false }
 }, { timestamps: true });
 
 const User = mongoose.model('User', userSchema);

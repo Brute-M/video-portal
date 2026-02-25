@@ -8,5 +8,6 @@ router.get('/users/export', userController.exportUsers);
 router.get('/users/:id', userController.getUserById);
 router.put('/users/:id', userController.updateUserById);
 router.delete('/users/:id', userController.deleteUserById);
+router.post('/send-bulk-registration-emails', userController.sendBulkRegistrationEmails);
 
 module.exports = router;

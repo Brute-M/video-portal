@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { login, register, upload, uploadProfileImage, uploadProfileImageHandler, sendOtp, verifyOtp, forgotPassword, resetPassword, registerCoach, loginCoach, resendWelcomeEmail, getPartnerProfile, getCoachMyPlayers, trackVisit, getVisits, saveStep1Data, storeSyncData, createSystemUser, updateSystemUser, deleteSystemUser } = require('../controller/authController');
+const { login, register, upload, uploadProfileImage, uploadProfileImageHandler, sendOtp, verifyOtp, forgotPassword, resetPassword, registerCoach, loginCoach, resendWelcomeEmail, getPartnerProfile, getCoachMyPlayers, trackVisit, getVisits, saveStep1Data, storeSyncData, createSystemUser, updateSystemUser, deleteSystemUser, toggle2FA } = require('../controller/authController');
 const authenticate = require('../middleware/authMiddleware');
 const User = require('../model/user.model');
 
@@ -24,6 +24,7 @@ router.post('/store-sync-data', storeSyncData);
 router.post('/create-system-user', authenticate, createSystemUser);
 router.put('/update-system-user', authenticate, updateSystemUser);
 router.delete('/delete-system-user/:id', authenticate, deleteSystemUser);
+router.put('/toggle-2fa/:userId', authenticate, toggle2FA);
 router.post('/update-profile', authenticate, require('../controller/authController').updateProfile);
 router.post('/upload-profile-image', authenticate, uploadProfileImage.single('profileImage'), uploadProfileImageHandler);
 router.get('/partner/profile', authenticate, getPartnerProfile);
@@ -32,8 +33,25 @@ router.get('/visits', getVisits);
 
 router.get('/profile', authenticate, async (req, res) => {
   try {
+    if (req.userId === 'admin') {
+      const email = process.env.ADMIN_EMAIL || 'admin@brpl.com';
+      const twoFaEnabled = !!(process.env.ADMIN_2FA_SECRET && process.env.ADMIN_2FA_SECRET.trim());
+
+      return res.json({
+        statusCode: 200,
+        data: {
+          userId: 'admin',
+          email: email,
+          fname: 'System',
+          lname: 'Admin',
+          role: 'admin',
+          isPaid: false,
+          twoFaEnabled: twoFaEnabled
+        }
+      });
+    }
+
     const user = await User.findById(req.userId);
-    console.log(user)
     if (!user) {
       return res.status(404).json({ statusCode: 404, data: { message: 'User not found' } });
     }
@@ -48,12 +66,12 @@ router.get('/profile', authenticate, async (req, res) => {
         isFromLandingPage: user.isFromLandingPage,
         isPaid: user.isPaid || !!user.paymentId,
         profileImage: user.profileImage,
-        role: user.role
+        role: user.role,
+        twoFaEnabled: user.twoFaEnabled || false
       }
     });
   } catch (err) {
     console.error(err);
-    console.log('error');
     res.status(500).json({ statusCode: 500, data: { message: 'Error fetching user profile' } });
   }
 });

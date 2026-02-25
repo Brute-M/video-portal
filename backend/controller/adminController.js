@@ -7,6 +7,7 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const { drawInvoice } = require('../utils/pdfGenerator');
 const PDFDocument = require('pdfkit');
+const SiteSettings = require('../model/siteSettings.model');
 
 const adminLandingLogin = async (req, res) => {
     try {
@@ -24,6 +25,26 @@ const adminLandingLogin = async (req, res) => {
 
         if (inputEmail !== adminEmail || (password !== adminPassword && password !== legacyPassword)) {
             return res.status(401).json({ message: 'Invalid credentials' });
+        }
+
+        let settings = await SiteSettings.findOne({ key: 'main' });
+        if (!settings) settings = await SiteSettings.create({ key: 'main' });
+
+        const twoFaSecret = settings.admin2FASecret;
+        if (settings.admin2FAEnabled && twoFaSecret && twoFaSecret.trim()) {
+            const otpToken = jwt.sign(
+                { purpose: 'admin_otp', email: adminEmail },
+                process.env.JWT_SECRET,
+                { expiresIn: '5m' }
+            );
+            return res.json({
+                statusCode: 200,
+                data: {
+                    requireOtp: true,
+                    message: 'OTP Required',
+                    otpToken
+                }
+            });
         }
 
         const token = jwt.sign(
@@ -224,6 +245,19 @@ const getPaginatedRecords = async (req, res) => {
                 .sort({ createdAt: -1 })
                 .skip(skip)
                 .limit(limit);
+
+            if (type === 'system' && page === 1 && !search) {
+                let settings = await SiteSettings.findOne({ key: 'main' });
+                if (!settings) settings = await SiteSettings.create({ key: 'main' });
+                const masterAdmin = {
+                    _id: 'admin',
+                    email: process.env.ADMIN_EMAIL || 'admin@brpl.com',
+                    role: 'admin',
+                    twoFaEnabled: settings.admin2FAEnabled,
+                    createdAt: settings.createdAt || new Date()
+                };
+                items.unshift(masterAdmin);
+            }
         }
 
         return res.json({
