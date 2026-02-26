@@ -101,7 +101,7 @@ app.use("/api/cms/site-settings", require("./routes/siteSettingsRoute"));
 app.use("/api/cms/legal", require("./routes/legalRoute"));
 app.use("/api/cms", require("./routes/cmsRoute"));
 app.use("/api", require("./routes/seoRoute"));
-app.use("/api/webhooks", webhookRoutes);
+app.use("/webhooks", webhookRoutes);
 app.use("/api", userRoutes);
 app.use("/admin", adminRoutes);
 app.use("/api/admin", adminRoutes); // Alias for consistency
