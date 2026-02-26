@@ -19,6 +19,7 @@ const jobRoutes = require("./routes/jobRoute");
 const ambassadorRoutes = require("./routes/ambassadorRoute");
 const teamRoutes = require("./routes/teamRoute");
 const partnerRoutes = require("./routes/partnerRoutes");
+const webhookRoutes = require("./routes/webhookRoute");
 
 const path = require("path");
 const app = express();
@@ -100,7 +101,7 @@ app.use("/api/cms/site-settings", require("./routes/siteSettingsRoute"));
 app.use("/api/cms/legal", require("./routes/legalRoute"));
 app.use("/api/cms", require("./routes/cmsRoute"));
 app.use("/api", require("./routes/seoRoute"));
-app.use("/api/webhooks", require("./routes/webhookRoute"));
+app.use("/api/webhooks", webhookRoutes);
 app.use("/api", userRoutes);
 app.use("/admin", adminRoutes);
 app.use("/api/admin", adminRoutes); // Alias for consistency
