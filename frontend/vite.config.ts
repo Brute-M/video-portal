@@ -29,7 +29,7 @@ export default defineConfig(({ mode }) => ({
             if (id.includes("recharts")) return "vendor-recharts";
             if (id.includes("embla-carousel")) return "vendor-embla";
             if (id.includes("slick-carousel") || id.includes("react-slick")) return "vendor-slick";
-            if (id.includes("i18next") || id.includes("i18n")) return "vendor-i18n";
+            // Don't chunk i18n separately - react-i18next needs React in scope (createContext)
             if (id.includes("react-helmet") || id.includes("aos")) return "vendor-misc";
           }
         },
