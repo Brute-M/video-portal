@@ -25,6 +25,7 @@ const SeoMeta = mongoose.model('SeoMeta', new mongoose.Schema({
     ogTitle: { type: String, default: "" },
     ogDescription: { type: String, default: "" },
     ogImage: { type: String, default: "" },
+    customBodyScripts: { type: String, default: "" },
 }, { timestamps: true }));
 
 module.exports = SeoMeta;

@@ -36,7 +36,7 @@ const RoadmapSection = () => {
                 {/* Background Image & Overlay */}
                 {/* Background Image & Overlay */}
                 <div className="absolute inset-0 z-0">
-                    <img src="/banner.png" alt="Stadium Background" className="w-full h-full object-cover opacity-100" />
+                    <img src="/banner.png" alt="Stadium Background" className="w-full h-full object-cover opacity-100" loading="lazy" decoding="async" />
                     <div className="absolute inset-0 bg-[#0f172a]/70 mix-blend-multiply" />
                     <div className="absolute inset-0 bg-gradient-to-t from-[#0f172a] via-transparent to-[#0f172a]/80" />
                 </div>

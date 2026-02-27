@@ -19,6 +19,27 @@ const STATIC_PATHS = [
     '/terms-and-conditions',
 ];
 
+/** Policy pages: changefreq yearly, priority 0.3 */
+const POLICY_PATHS = ['/privacy-policy', '/terms-and-conditions'];
+
+/** Blog/News listing pages: changefreq weekly, priority 0.6 */
+const LISTING_PATHS = ['/blog', '/news'];
+
+/** Optional: important landing pages (e.g. QR campaigns) → weekly, priority 0.7. Add paths here when needed. */
+const LANDING_PATHS = [];
+
+/**
+ * Get changefreq and priority for a static path.
+ * Rules: Home → daily/1.0; Main pages → weekly/0.8; Landing (QR etc.) → weekly/0.7; Blog|News listing → weekly/0.6; Policies → yearly/0.3.
+ */
+function getStaticMeta(path) {
+    if (path === '') return { changefreq: 'daily', priority: '1.0' };
+    if (POLICY_PATHS.includes(path)) return { changefreq: 'yearly', priority: '0.3' };
+    if (LISTING_PATHS.includes(path)) return { changefreq: 'weekly', priority: '0.6' };
+    if (LANDING_PATHS.includes(path)) return { changefreq: 'weekly', priority: '0.7' };
+    return { changefreq: 'weekly', priority: '0.8' }; // Main pages (About, Teams, Contact, etc.)
+}
+
 function getBaseUrl(req) {
     const envUrl = process.env.SITE_URL || process.env.FRONTEND_URL;
     if (envUrl) return envUrl.replace(/\/$/, '');
@@ -53,7 +74,8 @@ exports.getSitemap = async (req, res) => {
 
         for (const path of STATIC_PATHS) {
             const loc = path ? `${baseUrl}${path}` : baseUrl + '/';
-            urls.push({ loc, lastmod: new Date().toISOString().split('T')[0], changefreq: path === '' ? 'daily' : 'weekly', priority: path === '' ? '1.0' : '0.8' });
+            const { changefreq, priority } = getStaticMeta(path);
+            urls.push({ loc, lastmod: new Date().toISOString().split('T')[0], changefreq, priority });
         }
 
         for (const post of blogPosts) {
@@ -61,7 +83,7 @@ exports.getSitemap = async (req, res) => {
                 loc: `${baseUrl}/blog/${post.slug}`,
                 lastmod: post.updatedAt ? new Date(post.updatedAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
                 changefreq: 'monthly',
-                priority: '0.6',
+                priority: '0.5',
             });
         }
 
@@ -70,7 +92,7 @@ exports.getSitemap = async (req, res) => {
                 loc: `${baseUrl}/news/${post.slug}`,
                 lastmod: post.updatedAt ? new Date(post.updatedAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
                 changefreq: 'monthly',
-                priority: '0.6',
+                priority: '0.5',
             });
         }
 

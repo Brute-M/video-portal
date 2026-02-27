@@ -28,6 +28,19 @@ const AdminSocialContact = () => {
     const [socialLinks, setSocialLinks] = useState<SocialLink[]>([]);
     const [uploadingIndex, setUploadingIndex] = useState<number | null>(null);
     const [imagePreviewByKey, setImagePreviewByKey] = useState<Record<string, string>>({});
+    const [pendingPreviewByIndex, setPendingPreviewByIndex] = useState<Record<number, string>>({});
+
+    const isS3Key = (image: string) =>
+        image && typeof image === "string" && !image.startsWith("http") && !image.startsWith("/") && !image.startsWith("uploads/");
+
+    const fetchPresignedUrl = async (key: string): Promise<string | null> => {
+        try {
+            const res = await api.get("/api/cms/site-settings/presign-url", { params: { key } });
+            return res.data?.url || null;
+        } catch {
+            return null;
+        }
+    };
 
     useEffect(() => {
         fetchSettings();
@@ -45,7 +58,24 @@ const AdminSocialContact = () => {
                 setContactEmail(data.contactEmail || "");
                 setWhatsappNumber(data.whatsappNumber || "");
                 setMapEmbedUrl(data.mapEmbedUrl || "");
-                setSocialLinks(Array.isArray(data.socialLinks) ? data.socialLinks : []);
+                const links = Array.isArray(data.socialLinks) && data.socialLinks.length > 0
+                    ? data.socialLinks
+                    : [
+                        { name: "Facebook", url: "https://www.facebook.com/profile.php?id=61584782136820", image: "/facebook.png" },
+                        { name: "Twitter", url: "https://x.com/BRPLOfficial", image: "/twiter.png" },
+                        { name: "Instagram", url: "https://www.instagram.com/brpl.t10", image: "/instagram.png" },
+                    ];
+                setSocialLinks(links);
+                // Resolve S3 keys to display URLs so existing icons show in admin
+                const previews: Record<string, string> = {};
+                await Promise.all(
+                    links.map(async (link: SocialLink) => {
+                        if (!link.image || !isS3Key(link.image)) return;
+                        const url = await fetchPresignedUrl(link.image);
+                        if (url) previews[link.image] = url;
+                    })
+                );
+                if (Object.keys(previews).length > 0) setImagePreviewByKey((prev) => ({ ...prev, ...previews }));
             }
         } catch (error) {
             console.error("Error fetching site settings:", error);
@@ -56,6 +86,8 @@ const AdminSocialContact = () => {
     };
 
     const handleSocialImageUpload = async (index: number, file: File) => {
+        const blobUrl = URL.createObjectURL(file);
+        setPendingPreviewByIndex((prev) => ({ ...prev, [index]: blobUrl }));
         setUploadingIndex(index);
         try {
             const formData = new FormData();
@@ -64,20 +96,27 @@ const AdminSocialContact = () => {
                 headers: { "Content-Type": undefined },
             });
             const path = response.data?.path;
-            const url = response.data?.url;
+            let url = response.data?.url;
             if (path) {
-                if (url) setImagePreviewByKey((prev) => ({ ...prev, [path]: url }));
+                if (!url || !String(url).startsWith("http")) url = await fetchPresignedUrl(path) || url;
+                if (url && String(url).startsWith("http")) setImagePreviewByKey((prev) => ({ ...prev, [path]: url }));
                 setSocialLinks((prev) => {
                     const next = [...prev];
                     if (!next[index]) next[index] = { name: "", url: "", image: "" };
                     next[index] = { ...next[index], image: path };
                     return next;
                 });
-                toast({ title: "Success", description: "Image uploaded." });
+                toast({ title: "Success", description: "Image uploaded. Click Save All Settings to apply on the website." });
             }
         } catch (error) {
             toast({ variant: "destructive", title: "Error", description: "Failed to upload image." });
         } finally {
+            URL.revokeObjectURL(blobUrl);
+            setPendingPreviewByIndex((prev) => {
+                const next = { ...prev };
+                delete next[index];
+                return next;
+            });
             setUploadingIndex(null);
         }
     };
@@ -99,7 +138,8 @@ const AdminSocialContact = () => {
         });
     };
 
-    const getSocialImageSrc = (image: string) => {
+    const getSocialImageSrc = (image: string, index?: number) => {
+        if (index != null && pendingPreviewByIndex[index]) return pendingPreviewByIndex[index];
         if (!image) return "";
         if (imagePreviewByKey[image]) return imagePreviewByKey[image];
         if (image.startsWith("http") || image.startsWith("blob:")) return image;
@@ -121,7 +161,7 @@ const AdminSocialContact = () => {
                 mapEmbedUrl,
                 socialLinks,
             });
-            toast({ title: "Success", description: "Site settings saved. Changes will reflect across the website." });
+            toast({ title: "Success", description: "Settings saved. Header and footer social icons will update across the website (refresh the site to see changes)." });
         } catch (error) {
             console.error("Error saving settings:", error);
             toast({ variant: "destructive", title: "Error", description: "Failed to save settings." });
@@ -222,14 +262,14 @@ const AdminSocialContact = () => {
                         <CardTitle className="flex items-center gap-2">
                             <Share2 className="w-5 h-5" /> Social Media Links
                         </CardTitle>
-                        <CardDescription>Links and icons shown in header and footer. Upload an image or use default icon by leaving image empty.</CardDescription>
+                        <CardDescription>These social links and icons appear in the website header (top right) and footer (&quot;Follow Us&quot;). Add name, URL, and upload a custom icon per link—or leave image empty to use a default. After uploading a new icon, click &quot;Save All Settings&quot; below so it appears on the website; then refresh the site (or switch tabs and back) to see the update.</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-6">
                         {socialLinks.map((link, index) => (
                             <div key={index} className="flex flex-col sm:flex-row gap-4 p-4 border rounded-lg bg-muted/30">
                                 <div className="flex-shrink-0 w-20 h-20 rounded-lg border bg-background flex items-center justify-center overflow-hidden">
                                     {link.image ? (
-                                        <img src={getSocialImageSrc(link.image)} alt={link.name || "Social"} className="w-full h-full object-contain" />
+                                        <img src={getSocialImageSrc(link.image, index)} alt={link.name || "Social"} className="w-full h-full object-contain" loading="lazy" decoding="async" />
                                     ) : (
                                         <span className="text-xs text-muted-foreground">No img</span>
                                     )}

@@ -284,6 +284,8 @@ const AdminAmbassadors = () => {
                                         src={imagePreview}
                                         alt="Preview"
                                         className="w-full h-full object-cover"
+                                        loading="lazy"
+                                        decoding="async"
                                     />
                                     <button
                                         type="button"
@@ -351,6 +353,8 @@ const AdminAmbassadors = () => {
                                                 src={ambassador.image}
                                                 alt={ambassador.name}
                                                 className="w-10 h-10 object-cover rounded-full"
+                                                loading="lazy"
+                                                decoding="async"
                                             />
                                         </TableCell>
                                         <TableCell className="font-medium">{ambassador.name}</TableCell>

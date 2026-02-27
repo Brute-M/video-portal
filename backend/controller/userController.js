@@ -49,7 +49,9 @@ const getUsers = async (req, res) => {
       },
       {
         $match: {
-          isUserPaid: true,
+          ...(req.query.type === 'paid' && { isUserPaid: true }),
+          ...(req.query.type === 'unpaid' && { isUserPaid: false }),
+          ...(req.query.type === 'landing' && { isFromLandingPage: true }),
           // If type is not provided, show all users (for recent registrations)
           ...(req.query.search && {
             $or: [
@@ -372,7 +374,8 @@ const deleteUserById = async (req, res) => {
 };
 
 const exportUsers = async (req, res) => {
-  const { type, search, startDate, endDate } = req.query; // type: 'paid', 'unpaid', 'landing' or all if empty
+  const { type, search, startDate, endDate, source } = req.query; // type: 'paid', 'unpaid', 'landing'; source: 'website' | 'landing' | all
+  const sourceFilter = (source || '').toString().trim().toLowerCase();
 
   try {
     const pipeline = [
@@ -414,6 +417,9 @@ const exportUsers = async (req, res) => {
           ...(type === 'unpaid' && { isUserPaid: false }),
           // If type is 'landing', filter by isFromLandingPage
           ...(type === 'landing' && { isFromLandingPage: true }),
+          // Apply source filter so export matches admin list: Website vs Landing Page
+          ...(sourceFilter === 'landing' && { isFromLandingPage: true }),
+          ...(sourceFilter === 'website' && { isFromLandingPage: { $ne: true } }),
 
           ...(search && {
             $or: [

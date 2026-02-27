@@ -181,6 +181,8 @@ const AdminMeetOurTeam = () => {
                                                 src={preview || (existingImage ? getImageUrl(existingImage) : "") || ""}
                                                 alt="Preview"
                                                 className="h-full w-auto object-contain"
+                                                loading="lazy"
+                                                decoding="async"
                                             />
                                             {preview && (
                                                 <button
@@ -290,7 +292,7 @@ const AdminMeetOurTeam = () => {
                                     <TableCell>
                                         <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-100">
                                             {member.image ? (
-                                                <img src={getImageUrl(member.image)} alt={member.name} className="w-full h-full object-cover" />
+                                                <img src={getImageUrl(member.image)} alt={member.name} className="w-full h-full object-cover" loading="lazy" decoding="async" />
                                             ) : (
                                                 <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">No Img</div>
                                             )}

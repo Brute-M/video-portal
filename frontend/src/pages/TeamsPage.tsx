@@ -75,6 +75,8 @@ const TeamsPage = () => {
                                             src={team.logo}
                                             alt={team.name}
                                             className="h-44 w-44 sm:h-48 sm:w-48 md:h-56 md:w-56 lg:h-60 lg:w-60 object-contain p-2"
+                                            loading="lazy"
+                                            decoding="async"
                                         />
                                     </div>
                                 </div>

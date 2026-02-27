@@ -305,6 +305,8 @@ const AdminEvents = () => {
                                             src={bannerPreview}
                                             alt="Banner Preview"
                                             className="w-full h-full object-cover"
+                                            loading="lazy"
+                                            decoding="async"
                                         />
                                         <button
                                             type="button"
@@ -381,6 +383,8 @@ const AdminEvents = () => {
                                                     src={event.image}
                                                     alt={event.title}
                                                     className="w-16 h-10 object-cover rounded"
+                                                    loading="lazy"
+                                                    decoding="async"
                                                 />
                                             </TableCell>
                                             <TableCell className="font-medium">{event.title}</TableCell>

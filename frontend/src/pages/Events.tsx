@@ -135,6 +135,7 @@ const Events = () => {
                                                 src={event.image}
                                                 alt={event.title}
                                                 loading="lazy"
+                                                decoding="async"
                                                 className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700 opacity-90 group-hover:opacity-100"
                                             />
                                             {/* Gradient Overlay */}

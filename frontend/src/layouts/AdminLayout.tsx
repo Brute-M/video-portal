@@ -22,7 +22,8 @@ import {
     Info,
     Share2,
     ImageIcon,
-    FileText
+    FileText,
+    Newspaper
 } from "lucide-react";
 
 import { useToast } from "@/hooks/use-toast";
@@ -86,6 +87,8 @@ const AdminLayout = () => {
         { icon: Shield, label: "Privacy Policy", path: "/admin/privacy-policy" },
         { icon: FileText, label: "Terms & Conditions", path: "/admin/terms-conditions" },
         { icon: FileText, label: "Meta Content", path: "/admin/meta-content" },
+        { icon: Newspaper, label: "Blog / News", path: "/admin/blog" },
+        { icon: Newspaper, label: "News", path: "/admin/news" },
         { icon: Settings, label: "Settings", path: "/admin/settings" },
         // { icon: LinkIcon, label: "Nav Links", path: "/admin/nav-links" },
         // { icon: Users, label: "Step 1 Leads", path: "/admin/step1-leads" },
@@ -109,7 +112,7 @@ const AdminLayout = () => {
 
         if (userRole === 'seo_content') {
             return allNavItems.filter(item =>
-                commonAllowed.includes(item.path) || item.label === "Meta Content" || item.label === "Home Page" || item.label === "About Us" || item.label === "Social & Contact" || item.label === "Page Banner" || item.label === "Privacy Policy" || item.label === "Terms & Conditions"
+                commonAllowed.includes(item.path) || item.label === "Meta Content" || item.label === "Blog / News" || item.label === "News" || item.label === "Home Page" || item.label === "About Us" || item.label === "Social & Contact" || item.label === "Page Banner" || item.label === "Privacy Policy" || item.label === "Terms & Conditions"
             );
         }
 
@@ -218,14 +221,14 @@ const AdminLayout = () => {
 
                     <div className="flex items-center gap-4">
                         <ModeToggle />
-                        <div className="flex items-center gap-2">
+                        <Link to="/admin/profile" className="flex items-center gap-2 hover:bg-secondary/50 p-2 rounded-lg transition-colors cursor-pointer text-decoration-none">
                             <span className="text-sm text-foreground/80 hidden sm:block">
                                 {userEmail}
                             </span>
                             <div className="w-8 h-8 rounded-full bg-red-500/20 flex items-center justify-center text-red-500 font-medium">
-                                A
+                                {userEmail ? userEmail.charAt(0).toUpperCase() : 'A'}
                             </div>
-                        </div>
+                        </Link>
                         <Button variant="ghost" size="icon" onClick={handleLogout} title="Sign Out">
                             <LogOut className="w-5 h-5" />
                         </Button>

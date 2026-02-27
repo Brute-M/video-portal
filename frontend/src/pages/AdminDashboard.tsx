@@ -482,7 +482,7 @@ const AdminDashboard = () => {
             {/* Registered Users Table - Now visible for everyone since permission is fixed */}
             <Card className="shadow-lg border-0 hover:shadow-xl transition-all duration-300">
                 <CardHeader className="bg-gray-50 border-b border-gray-100 rounded-t-xl flex flex-row items-center justify-between pb-4">
-                    <CardTitle className="text-lg font-bold text-gray-800">Recent Registered Users (Landing Page)</CardTitle>
+                    <CardTitle className="text-lg font-bold text-gray-800">Recent Registered Users</CardTitle>
                     <Button variant="outline" size="sm" asChild className="hover:bg-blue-50 hover:text-blue-600 transition-colors">
                         <Link to="/admin/registered-users">View All</Link>
                     </Button>

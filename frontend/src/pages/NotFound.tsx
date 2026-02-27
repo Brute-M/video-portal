@@ -77,7 +77,7 @@ const NotFound = () => {
 
           {/* Ball */}
           <div className="absolute w-10 h-10 sm:w-12 sm:h-12 z-10 animate-bowl">
-            <img src="/tenis-ball.png" alt="Tennis Ball" className="w-full h-full object-contain drop-shadow-xl" style={{ mixBlendMode: 'multiply' }} />
+            <img src="/tenis-ball.png" alt="Tennis Ball" className="w-full h-full object-contain drop-shadow-xl" style={{ mixBlendMode: 'multiply' }} loading="lazy" decoding="async" />
           </div>
         </div>
 

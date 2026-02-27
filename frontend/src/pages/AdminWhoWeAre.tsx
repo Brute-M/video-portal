@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Upload, X } from "lucide-react";
 import api from "@/apihelper/api";
@@ -25,6 +26,8 @@ const AdminWhoWeAre = () => {
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const [title, setTitle] = useState("");
+    const [titleHeadingLevel, setTitleHeadingLevel] = useState<"h1" | "h2" | "h3">("h1");
+    const [titleColor, setTitleColor] = useState<string>("");
     const [subtitle, setSubtitle] = useState("");
     const [tagline, setTagline] = useState("");
     const [description, setDescription] = useState("");
@@ -51,6 +54,8 @@ const AdminWhoWeAre = () => {
             const data = response.data.data;
             if (data) {
                 setTitle(data.title || "");
+                setTitleHeadingLevel((data.titleHeadingLevel === "h2" || data.titleHeadingLevel === "h3") ? data.titleHeadingLevel : "h1");
+                setTitleColor(data.titleColor || "");
                 setSubtitle(data.subtitle || "");
                 setTagline(data.tagline || "");
                 setDescription(data.description || "");
@@ -91,6 +96,8 @@ const AdminWhoWeAre = () => {
 
         const formData = new FormData();
         formData.append("title", title);
+        formData.append("titleHeadingLevel", titleHeadingLevel);
+        formData.append("titleColor", titleColor);
         formData.append("subtitle", subtitle);
         formData.append("tagline", tagline);
         formData.append("description", description);
@@ -148,6 +155,44 @@ const AdminWhoWeAre = () => {
                                 />
                             </div>
                             <div className="space-y-2">
+                                <Label>Main Title Heading (SEO)</Label>
+                                <Select value={titleHeadingLevel} onValueChange={(v: "h1" | "h2" | "h3") => setTitleHeadingLevel(v)}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Choose H1, H2 or H3" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="h1">H1 (recommended for home page)</SelectItem>
+                                        <SelectItem value="h2">H2</SelectItem>
+                                        <SelectItem value="h3">H3</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                <p className="text-xs text-muted-foreground">This section’s main title will render as this heading on the website.</p>
+                            </div>
+                            <div className="space-y-2">
+                                <Label>Main title color</Label>
+                                <div className="flex items-center gap-2 flex-wrap">
+                                    <input
+                                        type="color"
+                                        value={titleColor && /^#[0-9A-Fa-f]{6}$/.test(titleColor) ? titleColor : "#000000"}
+                                        onChange={(e) => setTitleColor(e.target.value)}
+                                        className="h-10 w-14 cursor-pointer rounded border border-input bg-background p-1"
+                                    />
+                                    <Input
+                                        placeholder="e.g. #000000 (black)"
+                                        value={titleColor}
+                                        onChange={(e) => setTitleColor(e.target.value)}
+                                        className="flex-1 min-w-[120px] max-w-[140px] font-mono text-sm"
+                                    />
+                                </div>
+                                <p className="text-xs text-muted-foreground">Choose a color for the main title. Leave empty for default (white + amber gradient).</p>
+                                {titleColor && /^#[0-9A-Fa-f]{6}$/.test(titleColor) && (
+                                    <p className="text-xs flex items-center gap-1.5 mt-1">
+                                        <span>Preview:</span>
+                                        <span style={{ color: titleColor }} className="font-semibold">Main title text</span>
+                                    </p>
+                                )}
+                            </div>
+                            <div className="space-y-2">
                                 <Label htmlFor="subtitle">Subtitle / Badge</Label>
                                 <Input
                                     id="subtitle"
@@ -192,6 +237,8 @@ const AdminWhoWeAre = () => {
                                                 src={preview || getImageUrl(existingImage) || ""}
                                                 alt="Preview"
                                                 className="w-full h-full object-cover"
+                                                loading="lazy"
+                                                decoding="async"
                                             />
                                             {preview && (
                                                 <button

@@ -96,6 +96,7 @@ const MissionVisionSection: React.FC<MissionVisionSectionProps> = ({
                                 alt="Target and Mission"
                                 className="w-full h-auto object-cover"
                                 loading="lazy"
+                                decoding="async"
                             />
                         </div>
                     </div>

@@ -5,8 +5,13 @@ import { Button } from "@/components/ui/button";
 import api from "@/apihelper/api";
 import { getImageUrl } from "@/utils/imageHelper";
 
+type HeadingLevel = "h1" | "h2" | "h3";
+
 interface WhoWeAreData {
     title: string;
+    titleHeadingLevel?: HeadingLevel;
+    /** Hex color for main title (e.g. #000000). When set, entire heading uses this color. */
+    titleColor?: string;
     subtitle: string;
     tagline?: string;
     description: string;
@@ -75,13 +80,22 @@ const WhoWeAre = () => {
                         </div>
 
                         <div className="space-y-2">
-                            {/* Render Title & Subtitle */}
-                            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold leading-tight">
-                                {data?.title} <br />
-                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-amber-600 mb-5">
-                                    {data?.subtitle}
-                                </span>
-                            </h2>
+                            {/* Main title: admin heading level + optional color. Subtitle: always yellow gradient. */}
+                            {(() => {
+                                const Tag = (data?.titleHeadingLevel && ["h1", "h2", "h3"].includes(data.titleHeadingLevel))
+                                    ? data.titleHeadingLevel
+                                    : "h1";
+                                const useCustomColor = data?.titleColor && /^#[0-9A-Fa-f]{6}$/.test(data.titleColor);
+                                return (
+                                    <Tag className="text-3xl md:text-4xl lg:text-5xl font-bold leading-tight font-display">
+                                        <span style={useCustomColor ? { color: data.titleColor } : undefined}>{data?.title}</span>
+                                        <br />
+                                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-amber-600 mb-5">
+                                            {data?.subtitle}
+                                        </span>
+                                    </Tag>
+                                );
+                            })()}
                             {data?.tagline && (
                                 <p className="text-lg text-white-300 leading-relaxed border-l-4 border-amber-500 pl-4 italic mt-4">
                                     {data.tagline}

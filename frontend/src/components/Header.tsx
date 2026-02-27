@@ -26,62 +26,58 @@ const Header = () => {
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
+    const blogDropdownLink = {
+        label: "Blog",
+        path: "/blog",
+        isActive: true,
+        isExternal: false,
+        subLinks: [
+            { label: "Blog", path: "/blog" },
+            { label: "News", path: "/news" },
+        ],
+    };
+
+    const defaultNavLinks = [
+        { label: "Home", path: "/", isActive: true, isExternal: false },
+        { label: "About Us", path: "/about-us", isActive: true, isExternal: false },
+        { label: "Teams", path: "/teams", isActive: true, isExternal: false },
+        { label: "Events", path: "/events", isActive: true, isExternal: false },
+        blogDropdownLink,
+        { label: "Career", path: "/career", isActive: true, isExternal: false },
+        {
+            label: "Partners",
+            path: "/partners",
+            isActive: true,
+            isExternal: false,
+            subLinks: [
+                { label: "BRPL Partner", path: "/partners" },
+                { label: "BRPL Sponsors", path: "/types-of-partners" },
+            ],
+        },
+        { label: "FAQs", path: "/faqs", isActive: true, isExternal: false },
+        { label: "Registration", path: "/registration", isActive: true, isExternal: false },
+        { label: "Contact Us", path: "/contact-us", isActive: true, isExternal: false },
+    ];
+
     useEffect(() => {
         const fetchNavLinks = async () => {
             try {
-                // Dynamic import to avoid circular dependency issues if any, though api helper is safe
                 const api = (await import("@/apihelper/api")).default;
                 const response = await api.get('/nav-links');
                 if (response.data && response.data.length > 0) {
-                    setNavLinks(response.data);
+                    const links = response.data.map((link: any) => {
+                        if ((link.path === "/blog" || link.label === "Blog") && !link.subLinks) {
+                            return { ...blogDropdownLink, _id: link._id };
+                        }
+                        return link;
+                    });
+                    setNavLinks(links);
                 } else {
-                    // Fallback to default links if no dynamic links exist
-                    setNavLinks([
-                        { label: "Home", path: "/", isActive: true, isExternal: false },
-                        { label: "About Us", path: "/about-us", isActive: true, isExternal: false },
-                        { label: "Teams", path: "/teams", isActive: true, isExternal: false },
-                        { label: "Events", path: "/events", isActive: true, isExternal: false },
-                        { label: "Career", path: "/career", isActive: true, isExternal: false },
-                        {
-                            label: "Partners",
-                            path: "/partners",
-                            isActive: true,
-                            isExternal: false,
-                            subLinks: [
-                                { label: "BRPL Partner", path: "/partners" },
-                                { label: "BRPL Sponsors", path: "/types-of-partners" }
-                            ]
-                        },
-                        { label: "FAQs", path: "/faqs", isActive: true, isExternal: false },
-                        { label: "Registration", path: "//registration", isActive: true, isExternal: false },
-                        { label: "Contact Us", path: "/contact-us", isActive: true, isExternal: false },
-                    ]);
+                    setNavLinks(defaultNavLinks);
                 }
             } catch (error) {
                 console.error("Failed to fetch nav links", error);
-                // Fallback on error
-                setNavLinks([
-                    { label: "Home", path: "/", isActive: true, isExternal: false },
-                    { label: "About Us", path: "/about-us", isActive: true, isExternal: false },
-                    { label: "Teams", path: "/teams", isActive: true, isExternal: false },
-                    { label: "Events", path: "/events", isActive: true, isExternal: false },
-                    { label: "Career", path: "/career", isActive: true, isExternal: false },
-                    {
-                        label: "Partners",
-                        path: "/partners",
-                        isActive: true,
-                        isExternal: false,
-
-                        subLinks: [
-                            { label: "BRPL Partner", path: "/partners" },
-                            { label: "BRPL Sponsors", path: "" }
-                            // { label: "BRPL Sponsors", path: "/types-of-partners" }
-                        ]
-                    },
-                    { label: "FAQs", path: "/faqs", isActive: true, isExternal: false },
-                    { label: "Registration", path: "/registration", isActive: true, isExternal: false },
-                    { label: "Contact Us", path: "/contact-us", isActive: true, isExternal: false },
-                ]);
+                setNavLinks(defaultNavLinks);
             }
         };
         fetchNavLinks();
@@ -134,7 +130,7 @@ const Header = () => {
                         <div className="flex items-center gap-3 md:gap-4">
                             {settings.socialLinks.filter((l) => l.url).map((link) => (
                                 <a key={link.name} href={link.url} target="_blank" rel="noopener noreferrer" className="hover:opacity-80 transition-opacity" aria-label={link.name}>
-                                    <img src={socialImageSrc(link.image)} alt={link.name} className="w-5 h-5 object-contain" />
+                                    <img src={socialImageSrc(link.image)} alt={link.name} className="w-5 h-5 object-contain" loading="lazy" decoding="async" />
                                 </a>
                             ))}
                         </div>

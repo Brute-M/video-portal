@@ -192,6 +192,8 @@ const AdminBanner = () => {
                                             src={preview}
                                             alt="Preview"
                                             className="w-full h-full object-cover"
+                                            loading="lazy"
+                                            decoding="async"
                                         />
                                         <button
                                             type="button"
@@ -266,6 +268,8 @@ const AdminBanner = () => {
                                                     src={getImageUrl(banner.background)}
                                                     alt="Banner"
                                                     className="w-20 h-12 object-cover rounded border"
+                                                    loading="lazy"
+                                                    decoding="async"
                                                 />
                                             </TableCell>
                                             <TableCell className="font-mono text-xs">{banner.backgroundSize}</TableCell>

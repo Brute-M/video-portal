@@ -9,7 +9,8 @@ import {
     Settings,
     Menu,
     X,
-    Activity
+    Activity,
+    User
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { ModeToggle } from "@/components/mode-toggle";
@@ -39,6 +40,7 @@ const DashboardLayout = () => {
     const navItems = [
         { icon: LayoutDashboard, label: t("dashboard"), path: "/dashboard" },
         { icon: Video, label: t("my_videos"), path: "/dashboard/videos" },
+        { icon: User, label: "My Profile", path: "/dashboard/profile" },
         { icon: Settings, label: t("settings"), path: "/dashboard/settings" },
     ];
 
@@ -59,7 +61,7 @@ const DashboardLayout = () => {
             >
                 <div className="p-6 flex items-center justify-between border-b border-border/50">
                     <div className="flex items-center gap-2">
-                        <img src="/logo.png" alt="BRPL Logo" className="w-16 h-16 object-contain" />
+                        <img src="/logo.png" alt="BRPL Logo" className="w-16 h-16 object-contain" loading="lazy" decoding="async" />
                         {isSidebarOpen && (
                             <span className="text-lg font-display font-bold text-foreground">
                                 BRPL
@@ -117,14 +119,14 @@ const DashboardLayout = () => {
                             <LanguageSwitcher />
                         </div>
                         <ModeToggle />
-                        <div className="flex items-center gap-2">
+                        <Link to="/dashboard/profile" className="flex items-center gap-2 hover:bg-secondary/50 p-2 rounded-lg transition-colors cursor-pointer text-decoration-none">
                             <span className="text-sm text-foreground/80 hidden sm:block">
                                 {userEmail || "user@example.com"}
                             </span>
                             <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-medium">
                                 {(userEmail ? userEmail[0].toUpperCase() : "U")}
                             </div>
-                        </div>
+                        </Link>
                         <Button variant="ghost" size="icon" onClick={handleLogout} title={t("sign_out")}>
                             <LogOut className="w-5 h-5" />
                         </Button>

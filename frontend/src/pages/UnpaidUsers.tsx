@@ -14,7 +14,7 @@ const UnpaidUsers = () => {
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [totalRecords, setTotalRecords] = useState(0);
-    const [currentFilters, setCurrentFilters] = useState<{ search?: string; startDate?: Date; endDate?: Date }>({});
+    const [currentFilters, setCurrentFilters] = useState<{ search?: string; startDate?: Date; endDate?: Date; source?: string }>({});
     const limit = 10;
 
     useEffect(() => {
@@ -57,7 +57,7 @@ const UnpaidUsers = () => {
     const handleExport = async () => {
         try {
             toast({ description: "Generating export..." });
-            const blob = await exportUsersExcel(currentFilters.search, 'unpaid', currentFilters.startDate, currentFilters.endDate);
+            const blob = await exportUsersExcel(currentFilters.search, 'unpaid', currentFilters.startDate, currentFilters.endDate, currentFilters.source);
             const url = window.URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;

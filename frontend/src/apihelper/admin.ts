@@ -34,7 +34,7 @@ export interface PaginatedResponse<T> {
     }
 }
 
-export const getAdminRecords = async (page: number = 1, limit: number = 10, search: string = '', type: 'users' | 'coaches' | 'influencers' = 'users', startDate?: Date, endDate?: Date) => {
+export const getAdminRecords = async (page: number = 1, limit: number = 10, search: string = '', type: 'users' | 'coaches' | 'influencers' = 'users', startDate?: Date, endDate?: Date, source?: string) => {
     const params = new URLSearchParams();
     params.append('page', page.toString());
     params.append('limit', limit.toString());
@@ -42,6 +42,7 @@ export const getAdminRecords = async (page: number = 1, limit: number = 10, sear
     if (search) params.append('search', search);
     if (startDate) params.append('startDate', startDate.toISOString());
     if (endDate) params.append('endDate', endDate.toISOString());
+    if (source) params.append('source', source);
 
     const response = await api.get<PaginatedResponse<AdminRecord>>(`${ENDPOINTS.ADMIN.RECORDS}?${params.toString()}`);
     return response.data;
@@ -64,12 +65,13 @@ export const downloadUserInvoice = async (userId: string) => {
     return response.data; // This returns the Blob
 };
 
-export const exportUsersExcel = async (search: string = '', type: string = '', startDate?: Date, endDate?: Date) => {
+export const exportUsersExcel = async (search: string = '', type: string = '', startDate?: Date, endDate?: Date, source?: string) => {
     const params = new URLSearchParams();
     if (search) params.append('search', search);
     if (type) params.append('type', type);
     if (startDate) params.append('startDate', startDate.toISOString());
     if (endDate) params.append('endDate', endDate.toISOString());
+    if (source) params.append('source', source);
 
     const response = await api.get(`${ENDPOINTS.USERS.LIST}/export?${params.toString()}`, {
         responseType: 'blob'
@@ -85,8 +87,7 @@ export const createUser = async (userData: any) => {
 export const updateUserPayment = async (userId: string, paymentId: string, paymentAmount: number) => {
     const response = await api.patch(ENDPOINTS.ADMIN.MANUAL_PAYMENT(userId), {
         paymentId,
-        paymentAmount,
-        isFromLandingPage: true // Assuming they are from landing page if admin is marking them paid manually for registration
+        paymentAmount
     });
     return response.data;
 };

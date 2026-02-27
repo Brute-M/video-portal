@@ -14,6 +14,7 @@ const PAGE_KEYS: { key: string; label: string }[] = [
     { key: "teams", label: "Teams" },
     { key: "careers", label: "Careers" },
     { key: "events", label: "Events" },
+    { key: "blog", label: "Blog & News" },
     { key: "becomePartner", label: "Become a Partner" },
     { key: "typesOfPartners", label: "Types of Partners" },
     { key: "faqs", label: "FAQs" },
@@ -166,6 +167,8 @@ const AdminPageBanner = () => {
                                         src={bannerImageSrc()}
                                         alt="Banner preview"
                                         className="w-full h-auto max-h-[280px] object-cover"
+                                        loading="lazy"
+                                        decoding="async"
                                     />
                                 </div>
                             ) : (

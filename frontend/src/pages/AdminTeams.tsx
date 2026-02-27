@@ -285,7 +285,7 @@ const AdminTeams = () => {
                         <div className="border-2 border-dashed rounded-lg p-4 flex flex-col items-center justify-center min-h-[120px] bg-muted/30">
                             {teamsBannerImage ? (
                                 <div className="relative w-full max-w-md">
-                                    <img src={teamsBannerImageSrc()} alt="Teams banner" className="w-full h-auto max-h-40 object-cover rounded" />
+                                    <img src={teamsBannerImageSrc()} alt="Teams banner" className="w-full h-auto max-h-40 object-cover rounded" loading="lazy" decoding="async" />
                                 </div>
                             ) : (
                                 <p className="text-sm text-muted-foreground">No banner image. Upload to show an image when no video URL is set.</p>
@@ -362,6 +362,8 @@ const AdminTeams = () => {
                                         src={logoPreview}
                                         alt="Preview"
                                         className="max-w-full max-h-full object-contain"
+                                        loading="lazy"
+                                        decoding="async"
                                     />
                                     <button
                                         type="button"
@@ -428,6 +430,8 @@ const AdminTeams = () => {
                                                 src={team.logo}
                                                 alt={team.name}
                                                 className="w-10 h-10 object-contain"
+                                                loading="lazy"
+                                                decoding="async"
                                             />
                                         </TableCell>
                                         <TableCell className="font-medium">{team.name}</TableCell>

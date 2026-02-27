@@ -59,7 +59,8 @@ const Footer: React.FC = () => {
               {[
                 { name: "About Us", path: "/about-us" },
                 { name: "Videos", path: "#" },
-                { name: "News & Events", path: "#" }
+                { name: "Blog", path: "/blog" },
+                { name: "News & Events", path: "/events" }
               ].map((item) => (
                 <li key={item.name} className="flex items-center gap-2 group cursor-pointer hover:translate-x-1 transition-transform">
                   <span className="text-[#FFC928] text-[8px]">●</span>
@@ -130,7 +131,7 @@ const Footer: React.FC = () => {
                     className="w-8 h-8 rounded-full border border-white/30 flex items-center justify-center hover:bg-white/10 transition-colors"
                     aria-label={link.name}
                   >
-                    <img src={socialImageSrc(link.image)} alt={link.name} className="w-4 h-4 object-contain" />
+                    <img src={socialImageSrc(link.image)} alt={link.name} className="w-4 h-4 object-contain" loading="lazy" decoding="async" />
                   </a>
                 ))}
               </div>

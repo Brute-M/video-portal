@@ -25,7 +25,7 @@ const RegisteredUsers = () => {
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [totalRecords, setTotalRecords] = useState(0);
-    const [filters, setFilters] = useState<{ search: string, startDate?: Date, endDate?: Date }>({ search: '' });
+    const [filters, setFilters] = useState<{ search: string, startDate?: Date, endDate?: Date, source?: string }>({ search: '' });
     const limit = 10;
 
     useEffect(() => {
@@ -35,7 +35,7 @@ const RegisteredUsers = () => {
     const fetchUsers = async () => {
         setIsLoading(true);
         try {
-            const response = await getAdminRecords(page, limit, filters.search, 'users', filters.startDate, filters.endDate);
+            const response = await getAdminRecords(page, limit, filters.search, 'users', filters.startDate, filters.endDate, filters.source);
             if (response && response.data) {
                 setUsers(response.data.items);
                 setTotalPages(response.data.pagination.pages);
@@ -58,7 +58,7 @@ const RegisteredUsers = () => {
         }
     };
 
-    const handleFilterChange = (newFilters: { search: string; startDate?: Date; endDate?: Date }) => {
+    const handleFilterChange = (newFilters: { search: string; startDate?: Date; endDate?: Date; source?: string }) => {
         setFilters(prev => ({ ...prev, ...newFilters }));
         setPage(1); // Reset to first page on filter change
     };
@@ -90,7 +90,7 @@ const RegisteredUsers = () => {
             // But exportTypes supports 'paid'|'unpaid'|'landing'.
             // If the user hasn't selected a specific filter in UI (UI doesn't show type filter explicitly other than implicit 'users' list), we export all matches of search.
 
-            const blob = await exportUsersExcel(filters.search, 'landing', filters.startDate, filters.endDate);
+            const blob = await exportUsersExcel(filters.search, 'users', filters.startDate, filters.endDate, filters.source);
             const url = window.URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
@@ -141,7 +141,7 @@ const RegisteredUsers = () => {
             <Card className="glass-card">
                 <CardHeader>
                     <CardTitle className="text-lg flex justify-between items-center">
-                        <span>All Registered Users (Landing Page)</span>
+                        <span>All Registered Users {filters.source ? `(${filters.source === 'landing' ? 'Landing Page' : filters.source === 'website' ? 'Website' : 'All'})` : ''}</span>
                     </CardTitle>
                 </CardHeader>
                 <CardContent>

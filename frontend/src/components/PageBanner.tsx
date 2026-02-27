@@ -52,7 +52,21 @@ const PageBanner: React.FC<PageBannerProps> = ({ title, currentPage, videoSrc, i
                         playsInline
                         className="absolute inset-0 w-full h-full object-cover"
                     />
-
+                    {/* Overlay so H1 and breadcrumb are readable on video */}
+                    <div className="absolute inset-0 bg-[#0b2a5b]/50 z-10" />
+                    {/* H1 and breadcrumb when video banner – inner page content has proper heading */}
+                    <div className="absolute inset-0 z-10 container mx-auto px-4 md:px-8 lg:px-12 flex flex-col justify-center h-full">
+                        <h1 className="text-white text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold uppercase tracking-tight mb-3 mt-8 font-display drop-shadow-lg">
+                            {displayTitle}
+                        </h1>
+                        <div className="flex items-center gap-3 text-white text-base md:text-lg font-medium tracking-wide">
+                            <Link to="/" className="hover:text-yellow-400 transition-colors flex items-center">
+                                <Home className="w-5 h-5 mb-0.5" fill="currentColor" />
+                            </Link>
+                            <span className="opacity-80">/</span>
+                            <span className="text-white">{currentPage}</span>
+                        </div>
+                    </div>
                     {/* Scroll Down Arrow */}
                     <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-20 animate-bounce cursor-pointer items-center justify-center flex hover:scale-110 transition-transform" onClick={handleScrollDown}>
                         <div className="bg-white/10 backdrop-blur-sm p-2 rounded-full border border-white/20">
@@ -66,6 +80,8 @@ const PageBanner: React.FC<PageBannerProps> = ({ title, currentPage, videoSrc, i
                     <img
                         src={bannerImageSrc}
                         alt="Banner"
+                        loading="lazy"
+                        decoding="async"
                         className="absolute inset-0 w-full h-full object-cover"
                     />
                 </>
@@ -77,10 +93,7 @@ const PageBanner: React.FC<PageBannerProps> = ({ title, currentPage, videoSrc, i
             {/* Content Overlay - Only show if NO video */}
             {!videoSrc && (
                 <div className="absolute inset-0 z-10 container mx-auto px-4 md:px-8 lg:px-12 flex flex-col justify-center h-full">
-                    <h1
-                        className="text-white text-3xl sm:text-4xl md:text-6xl lg:text-[64px] font-bold uppercase tracking-tight mb-3 mt-8"
-                        style={{ fontFamily: "'Oswald', sans-serif" }}
-                    >
+                    <h1 className="text-white text-3xl sm:text-4xl md:text-6xl lg:text-[64px] font-bold uppercase tracking-tight mb-3 mt-8 font-display">
                         {displayTitle}
                     </h1>
 

@@ -35,5 +35,6 @@ export const ENDPOINTS = {
         INVOICE: (id: string) => `/admin/invoice/${id}`,
         MANUAL_PAYMENT: (id: string) => `/admin/users/${id}/payment`,
         CREATE_USER: '/admin/users',
+        VERIFY_OTP: '/admin/verify-otp',
     }
 };

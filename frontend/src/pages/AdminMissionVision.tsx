@@ -212,6 +212,8 @@ const AdminMissionVision = () => {
                                                     src={missionPreview || getImageUrl(existingMissionImage) || ""}
                                                     alt="Preview"
                                                     className="w-full h-full object-cover"
+                                                    loading="lazy"
+                                                    decoding="async"
                                                 />
                                                 {missionPreview && (
                                                     <button type="button" onClick={removeMissionFile} className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full hover:bg-red-600">
@@ -279,6 +281,8 @@ const AdminMissionVision = () => {
                                                     src={visionPreview || getImageUrl(existingVisionImage) || ""}
                                                     alt="Preview"
                                                     className="w-full h-full object-cover"
+                                                    loading="lazy"
+                                                    decoding="async"
                                                 />
                                                 {visionPreview && (
                                                     <button type="button" onClick={removeVisionFile} className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full hover:bg-red-600">

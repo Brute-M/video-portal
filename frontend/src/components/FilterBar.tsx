@@ -10,25 +10,28 @@ import {
 import { CalendarIcon, Search, X } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface FilterBarProps {
-    onFilterChange: (filters: { search: string; startDate?: Date; endDate?: Date }) => void;
+    onFilterChange: (filters: { search: string; startDate?: Date; endDate?: Date; source?: string }) => void;
 }
 
 export const FilterBar = ({ onFilterChange }: FilterBarProps) => {
     const [search, setSearch] = useState("");
     const [startDate, setStartDate] = useState<Date>();
     const [endDate, setEndDate] = useState<Date>();
+    const [source, setSource] = useState<string>("all");
 
     const handleApply = () => {
-        onFilterChange({ search, startDate, endDate });
+        onFilterChange({ search, startDate, endDate, source: source === "all" ? undefined : source });
     };
 
     const handleClear = () => {
         setSearch("");
         setStartDate(undefined);
         setEndDate(undefined);
-        onFilterChange({ search: "" });
+        setSource("all");
+        onFilterChange({ search: "", source: undefined });
     };
 
     return (
@@ -44,7 +47,18 @@ export const FilterBar = ({ onFilterChange }: FilterBarProps) => {
                 />
             </div>
 
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-wrap">
+                <Select value={source} onValueChange={(val) => setSource(val)}>
+                    <SelectTrigger className="w-[160px]">
+                        <SelectValue placeholder="Source" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="all">All Sources</SelectItem>
+                        <SelectItem value="landing">Landing Page</SelectItem>
+                        <SelectItem value="website">Website</SelectItem>
+                    </SelectContent>
+                </Select>
+
                 <Popover>
                     <PopoverTrigger asChild>
                         <Button

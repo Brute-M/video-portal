@@ -5,6 +5,17 @@ const whoWeAreSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    /** Main title heading level for SEO: 'h1' | 'h2' | 'h3'. Default h1 so home has one H1. */
+    titleHeadingLevel: {
+        type: String,
+        enum: ['h1', 'h2', 'h3'],
+        default: 'h1'
+    },
+    /** Main title text color (hex e.g. #000000). When set, overrides default styling. */
+    titleColor: {
+        type: String,
+        required: false
+    },
     subtitle: {
         type: String,
         required: true

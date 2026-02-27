@@ -33,7 +33,7 @@ const updateSeoMeta = async (req, res) => {
             return res.status(403).json({ message: 'Forbidden' });
         }
 
-        const { pagePath, title, description, keywords, ogTitle, ogDescription, ogImage } = req.body;
+        const { pagePath, title, description, keywords, ogTitle, ogDescription, ogImage, customBodyScripts } = req.body;
 
         if (!pagePath || !title) {
             return res.status(400).json({ message: 'Page path and title are required' });
@@ -43,6 +43,7 @@ const updateSeoMeta = async (req, res) => {
         if (ogTitle !== undefined) update.ogTitle = ogTitle ?? "";
         if (ogDescription !== undefined) update.ogDescription = ogDescription ?? "";
         if (ogImage !== undefined) update.ogImage = ogImage ?? "";
+        if (customBodyScripts !== undefined) update.customBodyScripts = customBodyScripts ?? "";
 
         const updated = await SeoMeta.findOneAndUpdate(
             { pagePath },

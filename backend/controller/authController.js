@@ -37,6 +37,7 @@ const upload = multer({ storage: storage });
 const profileImageStorage = multerS3({
   s3: s3,
   bucket: process.env.AWS_BUCKET_NAME,
+  acl: 'public-read',
   metadata: function (_, file, cb) {
     cb(null, { fieldName: file.fieldname });
   },

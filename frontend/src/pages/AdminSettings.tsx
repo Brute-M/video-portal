@@ -19,7 +19,7 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import { Loader2, Pencil, Trash2, X } from "lucide-react";
+import { Loader2, Pencil, Trash2, X, ShieldCheck, ShieldX } from "lucide-react";
 import {
     Dialog,
     DialogContent,
@@ -232,6 +232,28 @@ const AdminSettings = () => {
         }
     };
 
+    const handleToggle2FA = async (userId: string, action: 'enable' | 'disable') => {
+        setLoading(true);
+        try {
+            const response = await api.put(`/auth/toggle-2fa/${userId}`, { action });
+            if (response.data?.statusCode === 200) {
+                toast({
+                    title: `MFA ${action === 'enable' ? 'Enabled' : 'Disabled'}`,
+                    description: `Successfully ${action}d MFA for user.`,
+                });
+                fetchUsers();
+            }
+        } catch (error: any) {
+            toast({
+                variant: "destructive",
+                title: "Failed",
+                description: error.response?.data?.data?.message || `Failed to ${action} MFA.`,
+            });
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
         <div className="container mx-auto py-8 max-w-5xl animate-fade-in">
             <h1 className="text-3xl font-display font-bold mb-6">System Settings & User Management</h1>
@@ -288,6 +310,7 @@ const AdminSettings = () => {
                                     <TableRow>
                                         <TableHead>Email</TableHead>
                                         <TableHead>Role</TableHead>
+                                        <TableHead>MFA</TableHead>
                                         <TableHead>Created</TableHead>
                                         <TableHead className="text-right">Actions</TableHead>
                                     </TableRow>
@@ -295,13 +318,13 @@ const AdminSettings = () => {
                                 <TableBody>
                                     {loadingUsers ? (
                                         <TableRow>
-                                            <TableCell colSpan={4} className="h-24 text-center">
+                                            <TableCell colSpan={5} className="h-24 text-center">
                                                 <Loader2 className="h-6 w-6 animate-spin mx-auto text-primary" />
                                             </TableCell>
                                         </TableRow>
                                     ) : users.length === 0 ? (
                                         <TableRow>
-                                            <TableCell colSpan={4} className="h-24 text-center text-muted-foreground">
+                                            <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
                                                 No system users found.
                                             </TableCell>
                                         </TableRow>
@@ -315,15 +338,30 @@ const AdminSettings = () => {
                                                         {user.role === 'seo_content' ? 'SEO CONTENT' : user.role.toUpperCase()}
                                                     </span>
                                                 </TableCell>
+                                                <TableCell>
+                                                    <span className={`px-2 py-1 rounded-full text-xs font-bold ${user.twoFaEnabled ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-500'}`}>
+                                                        {user.twoFaEnabled ? 'Enabled' : 'Disabled'}
+                                                    </span>
+                                                </TableCell>
                                                 <TableCell className="text-xs text-muted-foreground">
                                                     {new Date(user.createdAt).toLocaleDateString()}
                                                 </TableCell>
                                                 <TableCell className="text-right">
                                                     <div className="flex justify-end gap-2">
                                                         {(userRole === 'admin' || (userRole === 'subadmin' && user.role === 'seo_content')) && (
-                                                            <Button variant="ghost" size="sm" onClick={() => handleEditClick(user)}>
-                                                                <Pencil className="h-4 w-4 text-blue-500" />
-                                                            </Button>
+                                                            <>
+                                                                <Button
+                                                                    variant="ghost"
+                                                                    size="sm"
+                                                                    onClick={() => handleToggle2FA(user._id, user.twoFaEnabled ? 'disable' : 'enable')}
+                                                                    title={user.twoFaEnabled ? "Disable MFA" : "Enable MFA"}
+                                                                >
+                                                                    {user.twoFaEnabled ? <ShieldCheck className="h-4 w-4 text-green-500" /> : <ShieldX className="h-4 w-4 text-red-400" />}
+                                                                </Button>
+                                                                <Button variant="ghost" size="sm" onClick={() => handleEditClick(user)} title="Edit">
+                                                                    <Pencil className="h-4 w-4 text-blue-500" />
+                                                                </Button>
+                                                            </>
                                                         )}
                                                         {userRole === 'admin' && (
                                                             <Button variant="ghost" size="sm" onClick={() => confirmDelete(user._id)}>

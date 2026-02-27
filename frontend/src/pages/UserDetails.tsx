@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AnalysisResult } from "@/components/AnalysisResult";
+import TrialPass from "@/components/TrialPass";
 
 const UserDetails = () => {
     const { userId } = useParams();
@@ -125,6 +126,14 @@ const UserDetails = () => {
                                 {(displayUser.lastPaymentId && displayUser.lastPaymentId !== 'N/A') ? displayUser.lastPaymentId : (displayUser.paymentId || 'N/A')}
                             </p>
                         </div>
+                    </div>
+                </div>
+
+                {/* Trial Pass Section added for Admin to view User's ID Pass */}
+                <div className="mt-8 pt-6 border-t border-border">
+                    <h4 className="text-xl font-display font-bold mb-4">Trial Pass</h4>
+                    <div className="bg-black/5 dark:bg-white/5 rounded-3xl p-8 border border-border flex items-center justify-center">
+                        <TrialPass user={displayUser} />
                     </div>
                 </div>
 

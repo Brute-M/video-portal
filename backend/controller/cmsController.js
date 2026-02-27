@@ -124,7 +124,7 @@ exports.getWhoWeAre = async (req, res) => {
 
 exports.updateWhoWeAre = async (req, res) => {
     try {
-        const { title, subtitle, tagline, description, videoUrl } = req.body;
+        const { title, titleHeadingLevel, titleColor, subtitle, tagline, description, videoUrl } = req.body;
         const file = req.file;
 
         let data = await WhoWeAre.findOne().sort({ createdAt: -1 });
@@ -137,6 +137,12 @@ exports.updateWhoWeAre = async (req, res) => {
             videoUrl,
             updatedAt: Date.now()
         };
+        if (['h1', 'h2', 'h3'].includes(titleHeadingLevel)) {
+            updateData.titleHeadingLevel = titleHeadingLevel;
+        }
+        if (titleColor !== undefined) {
+            updateData.titleColor = titleColor && /^#[0-9A-Fa-f]{6}$/.test(titleColor) ? titleColor : '';
+        }
 
         if (file) {
             if (data && isS3Key(data.image)) {

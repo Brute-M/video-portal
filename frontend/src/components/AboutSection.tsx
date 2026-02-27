@@ -21,6 +21,7 @@ const AboutSection: React.FC<AboutSectionProps> = ({ imageSrc, title, descriptio
                             alt="Cricket Action"
                             className="w-full h-[700px] object-cover rounded-xl"
                             loading="lazy"
+                            decoding="async"
                         />
                     </div>
                 </div>

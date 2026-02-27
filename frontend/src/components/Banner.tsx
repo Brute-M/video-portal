@@ -6,6 +6,7 @@ import { Play } from "lucide-react";
 import VideoModal from "./VideoModal";
 import api from "@/apihelper/api";
 import { getImageUrl } from "@/utils/imageHelper";
+import OptimizedImage from "./OptimizedImage";
 
 interface BannerItem {
   _id: string;
@@ -99,10 +100,11 @@ const Banner = () => {
           {banners.map((slide, index) => (
             <CarouselItem key={slide._id} className="h-full">
               <div className="relative w-full h-auto md:h-full overflow-hidden">
-                {/* Image - Maintains Aspect Ratio on all devices */}
-                <img
+                {/* Image - Maintains Aspect Ratio on all devices; first slide priority for LCP */}
+                <OptimizedImage
                   src={getImageUrl(slide.background)}
                   alt="Banner"
+                  priority={index === 0}
                   className={`w-full h-auto object-cover transition-transform duration-[10000ms] ease-out ${index === current ? 'scale-110' : 'scale-100'}`}
                 />
 
