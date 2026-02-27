@@ -7,6 +7,7 @@ import { Mail, Lock, CheckCircle2, Phone, Eye, EyeOff, ArrowLeft, Loader2, Arrow
 import { useToast } from "@/hooks/use-toast";
 import { login, verifyAdminOtp, register, sendOtp, verifyOtp, forgotPassword, resetPassword, saveStep1Data, updateProfile, storeSyncData } from "@/apihelper/auth";
 import { createLandingOrder, verifyLandingPayment } from "@/apihelper/payment";
+import { loadRazorpay } from "@/utils/loadRazorpay";
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
@@ -325,16 +326,7 @@ const Auth = ({ forceRegister }: AuthProps) => {
       const order = await createLandingOrder(1499);
       console.log("Order created:", order);
 
-      if (!(window as any).Razorpay) {
-        console.error("Razorpay SDK not loaded");
-        toast({
-          variant: "destructive",
-          title: "System Error",
-          description: "Payment gateway not loaded. Please refresh the page.",
-        });
-        setIsPaymentProcessing(false);
-        return;
-      }
+      const Razorpay = await loadRazorpay();
 
       const options: any = {
         key: import.meta.env.VITE_RAZORPAY_KEY_ID || "rzp_live_RsBsR05m5SGbtT", // Should optimally be in env vars
@@ -396,7 +388,7 @@ const Auth = ({ forceRegister }: AuthProps) => {
       };
 
       console.log("Opening Razorpay with options:", options);
-      const rzp = new (window as any).Razorpay(options);
+      const rzp = new Razorpay(options);
       rzp.open();
     } catch (error: any) {
       console.error("Payment initiation failed", error);

@@ -5,8 +5,6 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider } from "@/components/theme-provider";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import AOS from "aos";
-import "aos/dist/aos.css";
 import PixelTracker from "@/components/PixelTracker";
 
 const Index = lazy(() => import("./pages/Index"));
@@ -79,11 +77,25 @@ const RouteFallback = () => (
 );
 
 const App = () => {
+  // Lazy-load AOS after first paint to improve LCP/FCP
   useEffect(() => {
-    AOS.init({
-      once: true, // Animation happens only once - while scrolling down
-      duration: 1000, // Duration of animation
-    });
+    let cancelled = false;
+    const run = () => {
+      if (cancelled) return;
+      import("aos").then((AOS) => {
+        if (cancelled) return;
+        import("aos/dist/aos.css");
+        AOS.default.init({ once: true, duration: 1000 });
+      });
+    };
+    const id = typeof requestIdleCallback !== "undefined"
+      ? requestIdleCallback(run, { timeout: 2000 })
+      : window.setTimeout(run, 500);
+    return () => {
+      cancelled = true;
+      if (typeof cancelIdleCallback !== "undefined") cancelIdleCallback(id as number);
+      else clearTimeout(id);
+    };
   }, []);
 
   return (

@@ -44,7 +44,7 @@ import { verifyPayment, downloadInvoiceAPI, createRazorpayOrder, verifyRazorpayP
 import { getProfile } from "@/apihelper/auth";
 import { analyzeVideo } from "@/apihelper/analysis";
 import { v4 as uuidv4 } from "uuid";
-import { useRazorpay } from "react-razorpay";
+import { loadRazorpay } from "@/utils/loadRazorpay";
 import { AnalysisResult } from "@/components/AnalysisResult";
 import { useTranslation } from "react-i18next";
 
@@ -73,7 +73,6 @@ const Videos = () => {
     const [role, setRole] = useState<string>("");
 
     const navigate = useNavigate();
-    const { Razorpay } = useRazorpay();
 
     const changeVideoInputRef = useRef<HTMLInputElement>(null);
     const analysisRef = useRef<HTMLDivElement>(null);
@@ -510,7 +509,7 @@ const Videos = () => {
         }));
         setIsProcessingPayment(true);
         try {
-            const order = await createRazorpayOrder(1499);
+            const [order, Razorpay] = await Promise.all([createRazorpayOrder(1499), loadRazorpay()]);
 
             const options: any = {
                 key: import.meta.env.VITE_RAZORPAY_KEY_ID || "rzp_live_RsBsR05m5SGbtT",
