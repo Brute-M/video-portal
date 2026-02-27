@@ -3,6 +3,8 @@ const crypto = require('crypto');
 const Video = require('../model/video.model');
 const User = require('../model/user.model');
 const Payment = require('../model/payment.model');
+const { createInvoiceBuffer } = require('../utils/pdfGenerator');
+const { sendRegistrationInvoiceEmail } = require('../utils/emailService');
 
 const razorpay = new Razorpay({
     key_id: process.env.RAZORPAY_KEY_ID || 'rzp_live_RsBsR05m5SGbtT',
@@ -119,12 +121,17 @@ exports.verifyLandingPayment = async (req, res) => {
     try {
         const paidAmount = amount != null ? Number(amount) : TEST_AMOUNT_INR;
         // Update User: isPaid, paymentAmount, and paymentId so admin/DB show correct data
-        await User.findByIdAndUpdate(userId, {
+        const updateData = {
             isPaid: true,
             paymentAmount: paidAmount,
-            paymentId: razorpay_payment_id,
-            isFromLandingPage: true
-        });
+            paymentId: razorpay_payment_id
+        };
+
+        if (req.body.isFromLandingPage !== undefined) {
+            updateData.isFromLandingPage = String(req.body.isFromLandingPage).toLowerCase() === 'true';
+        }
+
+        await User.findByIdAndUpdate(userId, updateData);
 
         // Create Payment record
         await Payment.create({
@@ -141,6 +148,24 @@ exports.verifyLandingPayment = async (req, res) => {
             { userId: userId, status: 'pending_payment' },
             { status: 'completed' }
         );
+
+        // Send invoice to user email (website/landing registration)
+        try {
+            const user = await User.findById(userId).select('-password');
+            if (user && user.email) {
+                const invoiceData = {
+                    paymentId: razorpay_payment_id,
+                    amount: paidAmount,
+                    originalName: 'Registration / Service Fee',
+                    createdAt: new Date()
+                };
+                const pdfBuffer = await createInvoiceBuffer(invoiceData, user);
+                await sendRegistrationInvoiceEmail(user, razorpay_payment_id, paidAmount, pdfBuffer);
+            }
+        } catch (emailErr) {
+            console.error('Failed to send registration invoice email:', emailErr);
+            // Do not fail the payment response; user is already paid
+        }
 
         res.json({ message: "Payment verified successfully", success: true });
     } catch (error) {
