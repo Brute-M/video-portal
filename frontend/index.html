@@ -21,6 +21,9 @@
 
   <link rel="icon" type="image/png" href="/logo.png" />
 
+  <!-- Preload LCP image (hero banner) for faster First Contentful Paint / LCP -->
+  <link rel="preload" href="/banner-brpl.jpeg" as="image" />
+
   <!-- GTM and Clarity deferred to after first paint (run after load) -->
   <script>
     window.addEventListener('load', function () {

@@ -19,8 +19,22 @@ interface WhoWeAreData {
     videoUrl?: string;
 }
 
+const DEFAULT_WHO_WE_ARE: WhoWeAreData = {
+    title: "Who We Are",
+    subtitle: "BRPL (Beyond Reach Premier League)",
+    tagline: "\"BRPL – Bharat ki League, Bharatiyon ka Sapna\"",
+    description: `<p class="text-gray-400 leading-relaxed mb-4">
+                            <span class="text-white font-semibold">Beyond Reach Premier League (BRPL)</span> is a professional <span class="text-white font-semibold">Indian T10 tennis ball cricket league</span> created to democratize access to competitive cricket. Designed around grassroots participation, zonal representation, and innovation, BRPL offers aspiring players from across India a structured pathway to professional cricket without bias, privilege, or geographical limitation.
+                        </p>
+                        <p class="text-gray-400 leading-relaxed">
+                            BRPL blends <span class="text-white font-semibold">high-speed T10 action, nationwide talent discovery</span>, and <span class="text-white font-semibold">regional pride</span>, making it a league that is both competitive and deeply connected to India’s cricketing culture.
+                        </p>`,
+    image: "/home2.png",
+};
+
 const WhoWeAre = () => {
-    const [data, setData] = useState<WhoWeAreData | null>(null);
+    // Start with default data so section renders immediately (avoids CLS and improves LCP)
+    const [data, setData] = useState<WhoWeAreData>(DEFAULT_WHO_WE_ARE);
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
@@ -29,12 +43,9 @@ const WhoWeAre = () => {
                 const response = await api.get('/api/cms/who-we-are');
                 if (response.data.data) {
                     setData(response.data.data);
-                } else {
-                    useDefault();
                 }
             } catch (error) {
                 console.error("Failed to fetch Who We Are data", error);
-                useDefault();
             } finally {
                 setIsLoading(false);
             }
@@ -42,23 +53,7 @@ const WhoWeAre = () => {
         fetchData();
     }, []);
 
-    const useDefault = () => {
-        setData({
-            title: "Who We Are",
-
-            subtitle: "BRPL (Beyond Reach Premier League)",
-            tagline: "\"BRPL – Bharat ki League, Bharatiyon ka Sapna\"",
-            description: `<p class="text-gray-400 leading-relaxed mb-4">
-                            <span class="text-white font-semibold">Beyond Reach Premier League (BRPL)</span> is a professional <span class="text-white font-semibold">Indian T10 tennis ball cricket league</span> created to democratize access to competitive cricket. Designed around grassroots participation, zonal representation, and innovation, BRPL offers aspiring players from across India a structured pathway to professional cricket without bias, privilege, or geographical limitation.
-                        </p>
-                        <p class="text-gray-400 leading-relaxed">
-                            BRPL blends <span class="text-white font-semibold">high-speed T10 action, nationwide talent discovery</span>, and <span class="text-white font-semibold">regional pride</span>, making it a league that is both competitive and deeply connected to India’s cricketing culture.
-                        </p>`,
-            image: "/home2.png"
-        });
-    }
-
-    if (isLoading) return null; // or spinner
+    // Always render with current data (default or from API)
 
     return (
         <section className="w-full py-16 md:py-24 bg-[#020617] text-white overflow-hidden relative">

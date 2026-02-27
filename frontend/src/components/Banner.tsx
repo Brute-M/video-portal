@@ -15,13 +15,21 @@ interface BannerItem {
   isActive: boolean;
 }
 
+const DEFAULT_BANNER: BannerItem = {
+  _id: "default",
+  background: "/banner-brpl.jpeg",
+  videoUrl: "https://brpl-public-uploads.s3.ap-south-1.amazonaws.com/BRPL_Launch_Film.mp4",
+  isActive: true,
+};
+
 const Banner = () => {
   const [apiCarousel, setApiCarousel] = React.useState<CarouselApi | null>(null);
   const [current, setCurrent] = React.useState(0);
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
-  const [banners, setBanners] = useState<BannerItem[]>([]);
+  // Start with default banner so LCP image is in DOM immediately (no blank state)
+  const [banners, setBanners] = useState<BannerItem[]>([DEFAULT_BANNER]);
   const [isLoading, setIsLoading] = useState(true);
-  const [currentVideoUrl, setCurrentVideoUrl] = useState("");
+  const [currentVideoUrl, setCurrentVideoUrl] = useState(DEFAULT_BANNER.videoUrl || "");
 
   useEffect(() => {
     const fetchBanners = async () => {
@@ -35,25 +43,13 @@ const Banner = () => {
             setCurrentVideoUrl(activeBanners[0].videoUrl);
           }
         } else {
-          // Fallback to default if no banners in DB
-          setBanners([{
-            _id: "default",
-            background: "/banner-brpl.jpeg",
-            videoUrl: "https://brpl-public-uploads.s3.ap-south-1.amazonaws.com/BRPL_Launch_Film.mp4",
-            isActive: true
-          }]);
-          setCurrentVideoUrl("https://brpl-public-uploads.s3.ap-south-1.amazonaws.com/BRPL_Launch_Film.mp4");
+          setBanners([DEFAULT_BANNER]);
+          setCurrentVideoUrl(DEFAULT_BANNER.videoUrl || "");
         }
       } catch (error) {
         console.error("Failed to fetch banners", error);
-        // Fallback
-        setBanners([{
-          _id: "default",
-          background: "/banner-brpl.jpeg",
-          videoUrl: "https://brpl-public-uploads.s3.ap-south-1.amazonaws.com/BRPL_Launch_Film.mp4",
-          isActive: true
-        }]);
-        setCurrentVideoUrl("https://brpl-public-uploads.s3.ap-south-1.amazonaws.com/BRPL_Launch_Film.mp4");
+        setBanners([DEFAULT_BANNER]);
+        setCurrentVideoUrl(DEFAULT_BANNER.videoUrl || "");
       } finally {
         setIsLoading(false);
       }
@@ -91,8 +87,7 @@ const Banner = () => {
     return () => clearInterval(interval);
   }, [apiCarousel]);
 
-  if (isLoading) return null; // Or a skeleton
-
+  // Always render banner (with default so LCP image shows immediately)
   return (
     <div className="relative w-full h-auto overflow-hidden font-sans bg-[#020617]">
       <Carousel setApi={setApiCarousel} className="h-full">

@@ -1,11 +1,12 @@
-import { useEffect, lazy, Suspense } from "react";
+import { useEffect, lazy, Suspense, useState } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider } from "@/components/theme-provider";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import PixelTracker from "@/components/PixelTracker";
+
+const PixelTracker = lazy(() => import("@/components/PixelTracker"));
 
 const Index = lazy(() => import("./pages/Index"));
 const Auth = lazy(() => import("./pages/Auth"));
@@ -68,7 +69,11 @@ const AdminNews = lazy(() => import("./pages/AdminNews"));
 const AdminProfile = lazy(() => import("./pages/AdminProfile"));
 const UserProfile = lazy(() => import("./pages/UserProfile"));
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: { refetchOnWindowFocus: false, staleTime: 60 * 1000 },
+  },
+});
 
 const RouteFallback = () => (
   <div className="flex h-screen w-full items-center justify-center bg-[#111a45]" aria-label="Loading">
@@ -77,6 +82,8 @@ const RouteFallback = () => (
 );
 
 const App = () => {
+  const [deferAnalytics, setDeferAnalytics] = useState(false);
+
   // Lazy-load AOS after first paint to improve LCP/FCP
   useEffect(() => {
     let cancelled = false;
@@ -98,6 +105,14 @@ const App = () => {
     };
   }, []);
 
+  // Defer analytics (Pixel) until after load so they don't block main thread
+  useEffect(() => {
+    const onLoad = () => setDeferAnalytics(true);
+    if (document.readyState === "complete") onLoad();
+    else window.addEventListener("load", onLoad);
+    return () => window.removeEventListener("load", onLoad);
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
@@ -105,7 +120,11 @@ const App = () => {
           <Toaster />
           <Sonner />
           <BrowserRouter>
-            <PixelTracker />
+            {deferAnalytics && (
+              <Suspense fallback={null}>
+                <PixelTracker />
+              </Suspense>
+            )}
             <Suspense fallback={<RouteFallback />}>
               <Routes>
                 <Route element={<PublicLayout />}>
