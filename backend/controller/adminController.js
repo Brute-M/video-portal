@@ -23,12 +23,25 @@ const adminLandingLogin = async (req, res) => {
 
         const inputEmail = String(email).toLowerCase().trim();
 
-        if (inputEmail !== adminEmail || (password !== adminPassword && password !== legacyPassword)) {
+        if (inputEmail !== adminEmail) {
             return res.status(401).json({ message: 'Invalid credentials' });
         }
 
         let settings = await SiteSettings.findOne({ key: 'main' });
         if (!settings) settings = await SiteSettings.create({ key: 'main' });
+
+        let isAdminPasswordMatch = false;
+        // Check if custom hashed password exists
+        if (settings.adminPasswordHash) {
+            isAdminPasswordMatch = await bcrypt.compare(password, settings.adminPasswordHash);
+        } else {
+            // Fallback to env passwords only if no custom hash exists
+            isAdminPasswordMatch = (password === adminPassword || password === legacyPassword);
+        }
+
+        if (!isAdminPasswordMatch) {
+            return res.status(401).json({ message: 'Invalid credentials' });
+        }
 
         const twoFaSecret = settings.admin2FASecret;
         if (settings.admin2FAEnabled && twoFaSecret && twoFaSecret.trim()) {

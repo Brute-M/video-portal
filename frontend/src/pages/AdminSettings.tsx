@@ -19,7 +19,7 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import { Loader2, Pencil, Trash2, X, ShieldCheck, ShieldX } from "lucide-react";
+import { Loader2, Pencil, Trash2, X, ShieldCheck, ShieldX, Eye, EyeOff } from "lucide-react";
 import {
     Dialog,
     DialogContent,
@@ -43,9 +43,11 @@ const AdminSettings = () => {
         password: "",
         role: "subadmin",
     });
+    const [showCreatePassword, setShowCreatePassword] = useState(false);
 
     // Edit State
     const [isEditOpen, setIsEditOpen] = useState(false);
+    const [showEditPassword, setShowEditPassword] = useState(false);
     const [editData, setEditData] = useState({
         userId: "",
         email: "",
@@ -270,7 +272,27 @@ const AdminSettings = () => {
 
                         <div className="space-y-2">
                             <Label htmlFor="password">Password</Label>
-                            <Input id="password" type="password" value={formData.password} onChange={handleChange} required placeholder="••••••••" />
+                            <div className="relative">
+                                <Input
+                                    id="password"
+                                    type={showCreatePassword ? "text" : "password"}
+                                    value={formData.password}
+                                    onChange={handleChange}
+                                    required
+                                    placeholder="••••••••"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowCreatePassword(!showCreatePassword)}
+                                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-muted-foreground hover:text-foreground"
+                                >
+                                    {showCreatePassword ? (
+                                        <EyeOff className="h-4 w-4" />
+                                    ) : (
+                                        <Eye className="h-4 w-4" />
+                                    )}
+                                </button>
+                            </div>
                         </div>
 
                         {userRole === 'admin' ? (
@@ -302,7 +324,7 @@ const AdminSettings = () => {
 
                 {/* Users List */}
                 <div className="lg:col-span-2 bg-card border rounded-xl p-6 shadow-sm flex flex-col h-[600px]">
-                    <h2 className="text-xl font-semibold mb-4">System Users (Subadmin & SEO Content)</h2>
+                    <h2 className="text-xl font-semibold mb-4">System Users (Admin, Subadmin & SEO Content)</h2>
                     <div className="border rounded-md flex-1 overflow-hidden flex flex-col">
                         <div className="overflow-auto">
                             <Table>
@@ -339,9 +361,13 @@ const AdminSettings = () => {
                                                     </span>
                                                 </TableCell>
                                                 <TableCell>
-                                                    <span className={`px-2 py-1 rounded-full text-xs font-bold ${user.twoFaEnabled ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-500'}`}>
-                                                        {user.twoFaEnabled ? 'Enabled' : 'Disabled'}
-                                                    </span>
+                                                    {user.role === 'admin' ? (
+                                                        <span className={`px-2 py-1 rounded-full text-xs font-bold ${user.twoFaEnabled ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-500'}`}>
+                                                            {user.twoFaEnabled ? 'Enabled' : 'Disabled'}
+                                                        </span>
+                                                    ) : (
+                                                        <span className="text-muted-foreground">-</span>
+                                                    )}
                                                 </TableCell>
                                                 <TableCell className="text-xs text-muted-foreground">
                                                     {new Date(user.createdAt).toLocaleDateString()}
@@ -350,14 +376,16 @@ const AdminSettings = () => {
                                                     <div className="flex justify-end gap-2">
                                                         {(userRole === 'admin' || (userRole === 'subadmin' && user.role === 'seo_content')) && (
                                                             <>
-                                                                <Button
-                                                                    variant="ghost"
-                                                                    size="sm"
-                                                                    onClick={() => handleToggle2FA(user._id, user.twoFaEnabled ? 'disable' : 'enable')}
-                                                                    title={user.twoFaEnabled ? "Disable MFA" : "Enable MFA"}
-                                                                >
-                                                                    {user.twoFaEnabled ? <ShieldCheck className="h-4 w-4 text-green-500" /> : <ShieldX className="h-4 w-4 text-red-400" />}
-                                                                </Button>
+                                                                {user.role === 'admin' && (
+                                                                    <Button
+                                                                        variant="ghost"
+                                                                        size="sm"
+                                                                        onClick={() => handleToggle2FA(user._id, user.twoFaEnabled ? 'disable' : 'enable')}
+                                                                        title={user.twoFaEnabled ? "Disable MFA" : "Enable MFA"}
+                                                                    >
+                                                                        {user.twoFaEnabled ? <ShieldCheck className="h-4 w-4 text-green-500" /> : <ShieldX className="h-4 w-4 text-red-400" />}
+                                                                    </Button>
+                                                                )}
                                                                 <Button variant="ghost" size="sm" onClick={() => handleEditClick(user)} title="Edit">
                                                                     <Pencil className="h-4 w-4 text-blue-500" />
                                                                 </Button>
@@ -414,29 +442,47 @@ const AdminSettings = () => {
                                 value={editData.email}
                                 onChange={handleEditChange}
                                 required
+                                disabled={editData.role === 'admin'}
                             />
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="role">Role</Label>
-                            <Select value={editData.role} onValueChange={handleEditRoleChange}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select Role" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="subadmin">Sub Admin</SelectItem>
-                                    <SelectItem value="seo_content">SEO Content</SelectItem>
-                                </SelectContent>
-                            </Select>
+                            {editData.role === 'admin' ? (
+                                <Input value="Admin" disabled />
+                            ) : (
+                                <Select value={editData.role} onValueChange={handleEditRoleChange}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select Role" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="subadmin">Sub Admin</SelectItem>
+                                        <SelectItem value="seo_content">SEO Content</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            )}
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="password">New Password (Optional)</Label>
-                            <Input
-                                id="password"
-                                type="password"
-                                value={editData.password}
-                                onChange={handleEditChange}
-                                placeholder="Leave blank to keep current"
-                            />
+                            <div className="relative">
+                                <Input
+                                    id="password"
+                                    type={showEditPassword ? "text" : "password"}
+                                    value={editData.password}
+                                    onChange={handleEditChange}
+                                    placeholder="Leave blank to keep current"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowEditPassword(!showEditPassword)}
+                                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-muted-foreground hover:text-foreground"
+                                >
+                                    {showEditPassword ? (
+                                        <EyeOff className="h-4 w-4" />
+                                    ) : (
+                                        <Eye className="h-4 w-4" />
+                                    )}
+                                </button>
+                            </div>
                         </div>
                         <div className="flex justify-end gap-2 pt-2">
                             <Button type="button" variant="outline" onClick={() => setIsEditOpen(false)}>Cancel</Button>

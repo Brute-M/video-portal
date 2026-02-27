@@ -89,52 +89,62 @@ const login = async (req, res) => {
     const adminPassword = process.env.ADMIN_PASSWORD || 'admin123';
     const legacyPassword = 'Admin@123';
     const inputIdentifier = identifier.toLowerCase().trim();
-    const passwordMatch = (password === adminPassword || password === legacyPassword);
-
-    if (inputIdentifier === adminEmail && passwordMatch) {
+    if (inputIdentifier === adminEmail) {
       let settings = await SiteSettings.findOne({ key: 'main' });
       if (!settings) settings = await SiteSettings.create({ key: 'main' });
 
-      const twoFaSecret = settings.admin2FASecret;
+      let isAdminPasswordMatch = false;
 
-      if (settings.admin2FAEnabled && twoFaSecret && twoFaSecret.trim()) {
-        const isVerified = settings.admin2FAVerified;
-
-        // 2FA enabled: return OTP required (do not issue JWT yet)
-        const otpToken = jwt.sign(
-          { purpose: 'admin_otp', email: adminEmail, dbUserId: 'admin', role: 'admin' },
-          process.env.JWT_SECRET,
-          { expiresIn: '5m' }
-        );
-
-        const responseData = {
-          requireOtp: true,
-          message: isVerified ? 'OTP Required' : 'MFA setup required. Scan this QR code in Google Authenticator.',
-          otpToken
-        };
-
-        if (!isVerified) {
-          const otpAuthStr = `otpauth://totp/BRPL%20Admin?secret=${twoFaSecret.trim()}`;
-          responseData.qrCodeUrl = await qrcode.toDataURL(otpAuthStr);
-        }
-
-        return res.json({
-          statusCode: 200,
-          data: responseData
-        });
+      // Check if custom hashed password exists
+      if (settings.adminPasswordHash) {
+        isAdminPasswordMatch = await bcrypt.compare(password, settings.adminPasswordHash);
+      } else {
+        // Fallback to env passwords only if no custom hash exists
+        isAdminPasswordMatch = (password === adminPassword || password === legacyPassword);
       }
 
-      const token = jwt.sign({ userId: 'admin', role: 'admin', email: adminEmail }, process.env.JWT_SECRET, { expiresIn: '24h' });
-      return res.json({
-        statusCode: 200,
-        data: {
-          message: 'Admin Login successful',
-          userId: 'admin',
-          email: adminEmail,
-          role: 'admin',
-          token
+      if (isAdminPasswordMatch) {
+        const twoFaSecret = settings.admin2FASecret;
+
+        if (settings.admin2FAEnabled && twoFaSecret && twoFaSecret.trim()) {
+          const isVerified = settings.admin2FAVerified;
+
+          // 2FA enabled: return OTP required (do not issue JWT yet)
+          const otpToken = jwt.sign(
+            { purpose: 'admin_otp', email: adminEmail, dbUserId: 'admin', role: 'admin' },
+            process.env.JWT_SECRET,
+            { expiresIn: '5m' }
+          );
+
+          const responseData = {
+            requireOtp: true,
+            message: isVerified ? 'OTP Required' : 'MFA setup required. Scan this QR code in Google Authenticator.',
+            otpToken
+          };
+
+          if (!isVerified) {
+            const otpAuthStr = `otpauth://totp/BRPL%20Admin?secret=${twoFaSecret.trim()}`;
+            responseData.qrCodeUrl = await qrcode.toDataURL(otpAuthStr);
+          }
+
+          return res.json({
+            statusCode: 200,
+            data: responseData
+          });
         }
-      });
+
+        const token = jwt.sign({ userId: 'admin', role: 'admin', email: adminEmail }, process.env.JWT_SECRET, { expiresIn: '24h' });
+        return res.json({
+          statusCode: 200,
+          data: {
+            message: 'Admin Login successful',
+            userId: 'admin',
+            email: adminEmail,
+            role: 'admin',
+            token
+          }
+        });
+      }
     }
 
     // 3. Build Query Conditions
@@ -1228,7 +1238,29 @@ const updateSystemUser = async (req, res) => {
     }
 
     if (userId === 'admin') {
-      return res.status(403).json({ statusCode: 403, data: { message: 'Cannot edit main admin account from here' } });
+      if (!password) {
+        return res.status(400).json({ statusCode: 400, data: { message: 'Only password updates are allowed for the main admin account' } });
+      }
+
+      let settings = await SiteSettings.findOne({ key: 'main' });
+      if (!settings) {
+        settings = await SiteSettings.create({ key: 'main' });
+      }
+
+      settings.adminPasswordHash = await bcrypt.hash(password, 10);
+      await settings.save();
+
+      return res.status(200).json({
+        statusCode: 200,
+        data: {
+          message: 'Admin password updated successfully',
+          user: {
+            id: 'admin',
+            email: 'admin@brpl.com',
+            role: 'admin'
+          }
+        }
+      });
     }
 
     const user = await User.findById(userId);

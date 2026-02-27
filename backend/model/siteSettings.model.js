@@ -22,6 +22,7 @@ const siteSettingsSchema = new mongoose.Schema({
     admin2FASecret: { type: String, default: '' },
     admin2FAVerified: { type: Boolean, default: false },
     admin2FAEnabled: { type: Boolean, default: false },
+    adminPasswordHash: { type: String, default: '' },
     /** Google Analytics / Search Console: script tags to inject in <head> (paste from GSC/GA) */
     customHeadScripts: { type: String, default: '' },
     /** Global script tags to inject just before closing </body> tag */
