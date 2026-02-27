@@ -239,6 +239,7 @@ const Auth = ({ forceRegister }: AuthProps) => {
         trackingId,
         fbclid,
         isPaid: false, // Not paid yet
+        isFromLandingPage: false, // Website registration (not landing page)
       });
 
       console.log("Step 1 Response:", response);
@@ -349,7 +350,8 @@ const Auth = ({ forceRegister }: AuthProps) => {
               razorpay_payment_id: response.razorpay_payment_id,
               razorpay_signature: response.razorpay_signature,
               userId, // From state
-              amount: 1499
+              amount: 1499,
+              isFromLandingPage: false, // Website payment (not landing page)
             });
 
             setPaymentId(response.razorpay_payment_id);

@@ -46,7 +46,7 @@ export function CreateUserModal({ onUserCreated }: CreateUserModalProps) {
         isPaid: false,
         paymentAmount: 1499,
         paymentId: "",
-        isFromLandingPage: true,
+        isFromLandingPage: false, // Default to website; check for landing-page users
     });
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -87,7 +87,7 @@ export function CreateUserModal({ onUserCreated }: CreateUserModalProps) {
                 isPaid: false,
                 paymentAmount: 1499,
                 paymentId: "",
-                isFromLandingPage: true,
+                isFromLandingPage: false,
             });
             if (onUserCreated) onUserCreated();
         } catch (error: any) {
