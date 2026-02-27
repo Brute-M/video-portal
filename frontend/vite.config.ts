@@ -26,7 +26,9 @@ export default defineConfig(({ mode }) => ({
             if (id.includes("@radix-ui")) return "vendor-radix";
             if (id.includes("react-hook-form") || id.includes("@hookform") || id.includes("zod")) return "vendor-forms";
             if (id.includes("lucide-react")) return "vendor-lucide";
-            if (id.includes("recharts") || id.includes("embla-carousel") || id.includes("slick")) return "vendor-charts";
+            if (id.includes("recharts")) return "vendor-recharts";
+            if (id.includes("embla-carousel")) return "vendor-embla";
+            if (id.includes("slick-carousel") || id.includes("react-slick")) return "vendor-slick";
             if (id.includes("i18next") || id.includes("i18n")) return "vendor-i18n";
             if (id.includes("react-helmet") || id.includes("aos")) return "vendor-misc";
           }
