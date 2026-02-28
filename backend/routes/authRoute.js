@@ -25,6 +25,7 @@ router.post('/create-system-user', authenticate, createSystemUser);
 router.put('/update-system-user', authenticate, updateSystemUser);
 router.delete('/delete-system-user/:id', authenticate, deleteSystemUser);
 router.put('/toggle-2fa/:userId', authenticate, toggle2FA);
+/* #swagger.consumes = ['application/json'] */
 router.post('/update-profile', authenticate, require('../controller/authController').updateProfile);
 router.post('/upload-profile-image', authenticate, uploadProfileImage.single('profileImage'), uploadProfileImageHandler);
 router.get('/partner/profile', authenticate, getPartnerProfile);
