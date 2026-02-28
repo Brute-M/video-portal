@@ -14,8 +14,8 @@ export function CustomHeadScripts() {
     useEffect(() => {
         const raw = settings.customHeadScripts?.trim() || "";
 
-        // Remove any previously injected scripts (same cleanup every time)
-        const existing = document.head.querySelectorAll(`script[${DATA_ATTR}="true"]`);
+        // Remove any previously injected scripts/elements
+        const existing = document.head.querySelectorAll(`[${DATA_ATTR}="true"]`);
         existing.forEach((el) => el.remove());
         injectedRef.current = "";
 
@@ -27,21 +27,24 @@ export function CustomHeadScripts() {
 
         const container = document.createElement("div");
         container.innerHTML = raw;
-        const scriptNodes = container.querySelectorAll("script");
-        const added: HTMLScriptElement[] = [];
+        const scriptNodes = container.childNodes;
+        const added: HTMLElement[] = [];
 
-        scriptNodes.forEach((oldScript) => {
-            const script = document.createElement("script");
-            script.setAttribute(DATA_ATTR, "true");
-            if (oldScript.src) {
-                script.src = oldScript.src;
-                if (oldScript.async) script.async = true;
-                if (oldScript.defer) script.defer = true;
-            } else {
-                script.textContent = oldScript.textContent || "";
+        scriptNodes.forEach((node) => {
+            if (node.nodeType === Node.ELEMENT_NODE) {
+                const oldEl = node as HTMLElement;
+                const newEl = document.createElement(oldEl.tagName);
+                newEl.setAttribute(DATA_ATTR, "true");
+
+                // Copy all attributes
+                Array.from(oldEl.attributes).forEach((attr) => {
+                    newEl.setAttribute(attr.name, attr.value);
+                });
+
+                newEl.innerHTML = oldEl.innerHTML;
+                document.head.appendChild(newEl);
+                added.push(newEl);
             }
-            document.head.appendChild(script);
-            added.push(script);
         });
 
         return () => {

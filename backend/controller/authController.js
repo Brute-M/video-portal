@@ -443,6 +443,7 @@ const updateProfile = async (req, res) => {
   try {
     const userId = req.userId; // From middleware
     const {
+      fname, lname, email, mobile,
       gender, zone_id, city, state, pincode,
       address1, address2, aadhar, playerRole
     } = req.body;
@@ -452,7 +453,21 @@ const updateProfile = async (req, res) => {
       return res.status(404).json({ statusCode: 404, data: { message: 'User not found' } });
     }
 
-    // Update fields if present
+    // Update personal details (name, email, mobile) if present
+    if (fname !== undefined && fname.trim() !== '') user.fname = fname.trim();
+    if (lname !== undefined) user.lname = lname.trim();
+    if (mobile !== undefined && mobile.trim() !== '') {
+      user.mobile = mobile.trim();
+    }
+    if (email !== undefined && email.trim() !== '' && email.trim() !== user.email) {
+      const existing = await User.findOne({ email: email.trim().toLowerCase(), _id: { $ne: userId } });
+      if (existing) {
+        return res.status(400).json({ statusCode: 400, data: { message: 'Email is already in use by another account' } });
+      }
+      user.email = email.trim().toLowerCase();
+    }
+
+    // Update other profile fields if present
     if (gender) user.gender = gender;
     if (zone_id) user.zone_id = zone_id;
     if (city) user.city = city;
@@ -461,8 +476,6 @@ const updateProfile = async (req, res) => {
     if (address1) user.address1 = address1;
     if (address2) user.address2 = address2;
     if (aadhar) user.aadhar = aadhar;
-    // user.playerRole = playerRole; // Usually role shouldn't be changed after registration easily? Let's check reqs. 
-    // The req says they fill details in Step 3. So yes, allow update.
     if (playerRole) user.playerRole = playerRole;
 
     await user.save();
@@ -476,7 +489,7 @@ const updateProfile = async (req, res) => {
           lname: user.lname,
           email: user.email,
           mobile: user.mobile,
-          // include other fields if needed
+          playerRole: user.playerRole,
         }
       }
     });

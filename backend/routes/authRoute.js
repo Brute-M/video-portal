@@ -67,6 +67,7 @@ router.get('/profile', authenticate, async (req, res) => {
         isPaid: user.isPaid || !!user.paymentId,
         profileImage: user.profileImage,
         role: user.role,
+        playerRole: user.playerRole,
         twoFaEnabled: user.twoFaEnabled || false
       }
     });

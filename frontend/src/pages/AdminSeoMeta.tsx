@@ -192,7 +192,7 @@ export default function AdminSeoMeta() {
                         Google Analytics & Search Console
                     </CardTitle>
                     <CardDescription>
-                        Paste the script code provided by Google (Analytics gtag.js or Search Console verification meta/script). It will be injected into the <code className="text-xs bg-muted px-1 rounded">&lt;head&gt;</code> on every public page.
+                        Paste the script/meta code (e.g., Google Analytics gtag.js, Search Console verification) or organization schema. It will be injected into the <code className="text-xs bg-muted px-1 rounded">&lt;head&gt;</code> on every public page.
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="pt-6">
@@ -202,12 +202,12 @@ export default function AdminSeoMeta() {
                         </div>
                     ) : (
                         <form onSubmit={handleSaveScripts} className="space-y-4">
-                            <Label htmlFor="customHeadScripts" className="font-medium">Script code (e.g. &lt;script&gt;...&lt;/script&gt; or multiple tags)</Label>
+                            <Label htmlFor="customHeadScripts" className="font-medium">Script/Meta code (e.g. &lt;script&gt;...&lt;/script&gt; or &lt;meta ... /&gt;)</Label>
                             <CodeEditorWithHighlight
                                 id="customHeadScripts"
                                 value={customHeadScripts}
                                 onChange={setCustomHeadScripts}
-                                placeholder="Paste the code from Google (e.g. gtag.js or Search Console verification). Include full script tags."
+                                placeholder="Paste the code from Google (e.g. gtag.js or Search Console verification). Include full script/meta tags."
                                 rows={12}
                             />
                             <Button type="submit" disabled={scriptsSaving}>
@@ -352,14 +352,14 @@ export default function AdminSeoMeta() {
                             </div>
 
                             <div className="border-t pt-6 mt-6 space-y-4">
-                                <h3 className="font-bold text-foreground">Per-page Script Tags</h3>
+                                <h3 className="font-bold text-foreground">Per-page Script & Schema Tags</h3>
                                 <div className="space-y-2">
-                                    <Label htmlFor="customBodyScripts" className="font-medium">Bottom Script code (&lt;body&gt;)</Label>
+                                    <Label htmlFor="customBodyScripts" className="font-medium">Custom Page Scripts & Schema (&lt;head&gt;)</Label>
                                     <CodeEditorWithHighlight
                                         id="customBodyScripts"
                                         value={formData.customBodyScripts}
                                         onChange={(val) => setFormData(prev => ({ ...prev, customBodyScripts: val }))}
-                                        placeholder="Paste script tags specifically for this page (e.g. conversion tracking) to inject at the very bottom of the page."
+                                        placeholder="Paste JSON-LD schema or script tags specifically for this page. They will be injected into the <head>."
                                         rows={6}
                                     />
                                 </div>

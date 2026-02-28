@@ -64,9 +64,9 @@ const SEO = ({ title, description, keywords, image, url, breadcrumbCurrentName }
 
     useEffect(() => {
         const raw = customBodyScripts;
-        const DATA_ATTR = "data-custom-body-script";
+        const DATA_ATTR = "data-custom-body-script"; // kept same name to avoid database field logic changes, but injects to head
 
-        const existing = document.body.querySelectorAll(`script[${DATA_ATTR}="true"]`);
+        const existing = document.head.querySelectorAll(`[${DATA_ATTR}="true"]`);
         existing.forEach((el) => el.remove());
         injectedBodyRef.current = "";
 
@@ -77,21 +77,24 @@ const SEO = ({ title, description, keywords, image, url, breadcrumbCurrentName }
 
         const container = document.createElement("div");
         container.innerHTML = raw;
-        const scriptNodes = container.querySelectorAll("script");
-        const added: HTMLScriptElement[] = [];
+        const scriptNodes = container.childNodes;
+        const added: HTMLElement[] = [];
 
-        scriptNodes.forEach((oldScript) => {
-            const script = document.createElement("script");
-            script.setAttribute(DATA_ATTR, "true");
-            if (oldScript.src) {
-                script.src = oldScript.src;
-                if (oldScript.async) script.async = true;
-                if (oldScript.defer) script.defer = true;
-            } else {
-                script.textContent = oldScript.textContent || "";
+        scriptNodes.forEach((node) => {
+            if (node.nodeType === Node.ELEMENT_NODE) {
+                const oldEl = node as HTMLElement;
+                const newEl = document.createElement(oldEl.tagName);
+                newEl.setAttribute(DATA_ATTR, "true");
+
+                // Copy all attributes
+                Array.from(oldEl.attributes).forEach((attr) => {
+                    newEl.setAttribute(attr.name, attr.value);
+                });
+
+                newEl.innerHTML = oldEl.innerHTML;
+                document.head.appendChild(newEl);
+                added.push(newEl);
             }
-            document.body.appendChild(script);
-            added.push(script);
         });
 
         return () => {
