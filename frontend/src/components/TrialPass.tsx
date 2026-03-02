@@ -7,62 +7,95 @@ interface TrialPassProps {
 
 const DEFAULT_AVATAR = '/assets/avtar.jpg';
 
+const blobToBase64 = (blob: Blob): Promise<string> =>
+    new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+    });
+
+const isExternalUrl = (url: string) =>
+    typeof url === 'string' && (url.startsWith('http://') || url.startsWith('https://'));
+
 const TrialPass = ({ user }: TrialPassProps) => {
     const fullName = user ? (`${user.fname || ''} ${user.lname || ''}`.trim() || 'Sushil Sharma') : 'Sushil Sharma';
     const profileImage = user?.profileImage || DEFAULT_AVATAR;
     const barcodeValue = String(user?.userId || user?._id || '1234567890123');
 
-    const [imgSrc, setImgSrc] = useState<string>(profileImage);
-    const [imgError, setImgError] = useState(false);
+    // Display: URL or base64. Use base64 when possible so download (html-to-image) works.
+    const [imgSrc, setImgSrc] = useState<string>(DEFAULT_AVATAR);
+    // Only use crossOrigin for same-origin/base64 so S3 URLs can display without CORS
+    const useCrossOrigin = imgSrc.startsWith('data:') || imgSrc.startsWith('/') || imgSrc.startsWith('blob:');
 
     useEffect(() => {
-        let isMounted = true;
-        setImgError(false);
-        const isExternal = profileImage && !profileImage.startsWith('data:') && !profileImage.startsWith('/') && !profileImage.startsWith('blob:');
-        const displayUrl = isExternal
-            ? profileImage + (profileImage.includes('?') ? '&' : '?') + 't=' + Date.now()
-            : profileImage;
-        setImgSrc(displayUrl);
-
-        if (!profileImage || profileImage.startsWith('data:') || profileImage.startsWith('/')) {
+        if (!profileImage) {
+            setImgSrc(DEFAULT_AVATAR);
             return;
         }
 
-        const fetchAndSetImage = async () => {
-            const isLocal = !profileImage || profileImage.startsWith('data:') || profileImage.startsWith('/');
-            if (isLocal) return;
+        // Already base64 — use directly
+        if (profileImage.startsWith('data:')) {
+            setImgSrc(profileImage);
+            return;
+        }
 
+        // Set URL immediately so <img> can display it (without crossOrigin, S3 works)
+        setImgSrc(profileImage);
+
+        let isMounted = true;
+
+        const loadImage = async () => {
+            // 1. Proxy first for S3/external — avoids CORS; works when bucket doesn't send CORS
+            if (isExternalUrl(profileImage)) {
+                try {
+                    const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(profileImage)}`;
+                    const res = await fetch(proxyUrl, { cache: 'no-cache' });
+                    if (res.ok) {
+                        const blob = await res.blob();
+                        const base64 = await blobToBase64(blob);
+                        if (isMounted) { setImgSrc(base64); return; }
+                    }
+                } catch (_) {}
+            }
+
+            // 2. Direct CORS fetch — for CORS-enabled S3/CDN
             try {
-                const directUrl = profileImage + (profileImage.includes('?') ? '&' : '?') + 't=' + Date.now();
-                const res = await fetch(directUrl, { mode: 'cors' });
-                if (!res.ok) throw new Error("Direct fetch failed");
-                const blob = await res.blob();
-                const reader = new FileReader();
-                reader.onloadend = () => {
-                    if (isMounted && reader.result) setImgSrc(reader.result as string);
-                };
-                reader.readAsDataURL(blob);
+                const res = await fetch(profileImage, { mode: 'cors', cache: 'no-cache' });
+                if (res.ok) {
+                    const blob = await res.blob();
+                    const base64 = await blobToBase64(blob);
+                    if (isMounted) { setImgSrc(base64); return; }
+                }
+            } catch (_) {}
+
+            // 3. Canvas extraction — for same-origin images (e.g. /assets/...)
+            try {
+                await new Promise<void>((resolve, reject) => {
+                    const img = new Image();
+                    img.crossOrigin = 'anonymous';
+                    img.onload = () => {
+                        try {
+                            const canvas = document.createElement('canvas');
+                            canvas.width = img.naturalWidth || 300;
+                            canvas.height = img.naturalHeight || 300;
+                            const ctx = canvas.getContext('2d')!;
+                            ctx.drawImage(img, 0, 0);
+                            const base64 = canvas.toDataURL('image/jpeg', 0.92);
+                            if (isMounted) setImgSrc(base64);
+                            resolve();
+                        } catch (e) { reject(e); }
+                    };
+                    img.onerror = reject;
+                    img.src = profileImage;
+                });
                 return;
-            } catch (err) {
-                console.warn("Direct fetch failed, trying proxy...", err);
-            }
+            } catch (_) {}
 
-            try {
-                const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(profileImage)}`;
-                const res = await fetch(proxyUrl);
-                if (!res.ok) throw new Error("Proxy fetch failed");
-                const blob = await res.blob();
-                const reader = new FileReader();
-                reader.onloadend = () => {
-                    if (isMounted && reader.result) setImgSrc(reader.result as string);
-                };
-                reader.readAsDataURL(blob);
-            } catch (err) {
-                console.warn("Proxy also failed for TrialPass image:", err);
-            }
+            // Keep current imgSrc (already set to profileImage above for display)
         };
 
-        fetchAndSetImage();
+        loadImage();
         return () => { isMounted = false; };
     }, [profileImage]);
 
@@ -83,7 +116,7 @@ const TrialPass = ({ user }: TrialPassProps) => {
                 {/* Top header area — reserve ~22% for logo/title/validity */}
                 <div style={{ height: '22%' }} />
 
-                {/* Profile Photo — centered, ~46% wide, with rounded corners */}
+                {/* Profile Photo */}
                 <div className="flex justify-center" style={{ marginTop: '1%' }}>
                     <div
                         className="overflow-hidden bg-[#5c667a]"
@@ -96,10 +129,11 @@ const TrialPass = ({ user }: TrialPassProps) => {
                         }}
                     >
                         <img
-                            src={imgError ? DEFAULT_AVATAR : imgSrc}
+                            src={imgSrc}
                             alt={fullName}
+                            {...(useCrossOrigin ? { crossOrigin: 'anonymous' as const } : {})}
                             style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center' }}
-                            onError={() => setImgError(true)}
+                            onError={() => setImgSrc(DEFAULT_AVATAR)}
                         />
                     </div>
                 </div>
@@ -118,11 +152,11 @@ const TrialPass = ({ user }: TrialPassProps) => {
                 </div>
 
                 {/* Barcode */}
-                <div className="flex justify-center" style={{ marginTop: '2%', paddingLeft: '8%', paddingRight: '8%' }}>
+                <div className="flex justify-center" style={{ marginTop: '2%', paddingLeft: '15%', paddingRight: '15%' }}>
                     <ReactBarcode
                         value={barcodeValue}
-                        width={1.4}
-                        height={45}
+                        width={0.9}
+                        height={40}
                         displayValue={false}
                         background="transparent"
                         lineColor="#000000"
@@ -130,7 +164,7 @@ const TrialPass = ({ user }: TrialPassProps) => {
                     />
                 </div>
 
-                {/* Bottom tagline area — reserve remaining space */}
+                {/* Bottom tagline spacer */}
                 <div className="flex-1" />
             </div>
         </div>

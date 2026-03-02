@@ -497,7 +497,7 @@ const UserProfile = () => {
 
                         {/* Trial Pass - responsive wrapper: scale down on small screens */}
                         <div id="trial-pass-container" className="flex justify-center w-full overflow-x-auto py-2 md:py-0">
-                            <div className="trial-pass-scaled origin-top transition-transform duration-500 ease-out md:hover:scale-105 relative group" style={{ width: 'min(400px, 100%)' }}>
+                            <div className="trial-pass-scaled origin-top relative group" style={{ width: 'min(400px, 100%)' }}>
                                 <TrialPass key={profile?.profileImage ?? profile?._id ?? 'pass'} user={profile} />
 
                                 <div className="absolute inset-x-0 top-[21%] flex justify-center pointer-events-none">
