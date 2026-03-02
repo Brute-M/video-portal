@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { getAdminRecords, AdminRecord } from "@/apihelper/admin";
+import { getAdminRecords, AdminRecord, AdminRecordsType } from "@/apihelper/admin";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -16,7 +16,7 @@ import { ChevronLeft, ChevronRight, Eye, Video, Download, FileSpreadsheet } from
 import { downloadUserInvoice, exportUsersExcel } from "@/apihelper/admin";
 
 import { useNavigate } from "react-router-dom";
-import { FilterBar } from "@/components/FilterBar";
+import { FilterBar, type FilterBarFilter, type PaymentStatusFilter } from "@/components/FilterBar";
 
 const RegisteredUsers = () => {
     const { toast } = useToast();
@@ -25,8 +25,15 @@ const RegisteredUsers = () => {
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [totalRecords, setTotalRecords] = useState(0);
-    const [filters, setFilters] = useState<{ search: string, startDate?: Date, endDate?: Date, source?: string }>({ search: '' });
+    const [filters, setFilters] = useState<{ search: string, startDate?: Date, endDate?: Date, source?: string, paymentStatus?: PaymentStatusFilter }>({
+        search: '',
+        source: 'landing',
+        paymentStatus: 'paid'
+    });
     const limit = 10;
+
+    /** API type: 'users' = all, 'paid' = paid only, 'unpaid' = unpaid only */
+    const recordType: AdminRecordsType = (filters.paymentStatus === 'all' ? 'users' : filters.paymentStatus) ?? 'paid';
 
     useEffect(() => {
         fetchUsers();
@@ -35,7 +42,7 @@ const RegisteredUsers = () => {
     const fetchUsers = async () => {
         setIsLoading(true);
         try {
-            const response = await getAdminRecords(page, limit, filters.search, 'users', filters.startDate, filters.endDate, filters.source);
+            const response = await getAdminRecords(page, limit, filters.search, recordType, filters.startDate, filters.endDate, filters.source);
             if (response && response.data) {
                 setUsers(response.data.items);
                 setTotalPages(response.data.pagination.pages);
@@ -58,7 +65,7 @@ const RegisteredUsers = () => {
         }
     };
 
-    const handleFilterChange = (newFilters: { search: string; startDate?: Date; endDate?: Date; source?: string }) => {
+    const handleFilterChange = (newFilters: FilterBarFilter) => {
         setFilters(prev => ({ ...prev, ...newFilters }));
         setPage(1); // Reset to first page on filter change
     };
@@ -90,7 +97,7 @@ const RegisteredUsers = () => {
             // But exportTypes supports 'paid'|'unpaid'|'landing'.
             // If the user hasn't selected a specific filter in UI (UI doesn't show type filter explicitly other than implicit 'users' list), we export all matches of search.
 
-            const blob = await exportUsersExcel(filters.search, 'users', filters.startDate, filters.endDate, filters.source);
+            const blob = await exportUsersExcel(filters.search, recordType, filters.startDate, filters.endDate, filters.source);
             const url = window.URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
@@ -136,12 +143,24 @@ const RegisteredUsers = () => {
                 </div>
             </div>
 
-            <FilterBar onFilterChange={handleFilterChange} />
+            <FilterBar
+                onFilterChange={handleFilterChange}
+                defaultSource="landing"
+                showPaymentFilter
+                defaultPaymentStatus="paid"
+            />
 
             <Card className="glass-card">
                 <CardHeader>
                     <CardTitle className="text-lg flex justify-between items-center">
-                        <span>All Registered Users {filters.source ? `(${filters.source === 'landing' ? 'Landing Page' : filters.source === 'website' ? 'Website' : 'All'})` : ''}</span>
+                        <span>
+                            Registered Users
+                            {filters.source === 'landing' && ' (Landing Page)'}
+                            {filters.source === 'website' && ' (Website)'}
+                            {filters.paymentStatus === 'paid' && ' — Paid'}
+                            {filters.paymentStatus === 'unpaid' && ' — Unpaid'}
+                            {filters.paymentStatus === 'all' && ' — All'}
+                        </span>
                     </CardTitle>
                 </CardHeader>
                 <CardContent>

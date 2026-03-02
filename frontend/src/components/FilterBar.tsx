@@ -12,26 +12,54 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-interface FilterBarProps {
-    onFilterChange: (filters: { search: string; startDate?: Date; endDate?: Date; source?: string }) => void;
+export type PaymentStatusFilter = 'paid' | 'unpaid' | 'all';
+
+export interface FilterBarFilter {
+    search: string;
+    startDate?: Date;
+    endDate?: Date;
+    source?: string;
+    paymentStatus?: PaymentStatusFilter;
 }
 
-export const FilterBar = ({ onFilterChange }: FilterBarProps) => {
+interface FilterBarProps {
+    onFilterChange: (filters: FilterBarFilter) => void;
+    /** Initial source (e.g. "landing") so dropdown shows correct value on load */
+    defaultSource?: string;
+    /** Show Payment status dropdown (Paid / Unpaid / All) */
+    showPaymentFilter?: boolean;
+    /** Initial payment status when showPaymentFilter is true */
+    defaultPaymentStatus?: PaymentStatusFilter;
+}
+
+export const FilterBar = ({ onFilterChange, defaultSource = "all", showPaymentFilter = false, defaultPaymentStatus = "all" }: FilterBarProps) => {
     const [search, setSearch] = useState("");
     const [startDate, setStartDate] = useState<Date>();
     const [endDate, setEndDate] = useState<Date>();
-    const [source, setSource] = useState<string>("all");
+    const [source, setSource] = useState<string>(defaultSource);
+    const [paymentStatus, setPaymentStatus] = useState<PaymentStatusFilter>(defaultPaymentStatus);
 
     const handleApply = () => {
-        onFilterChange({ search, startDate, endDate, source: source === "all" ? undefined : source });
+        onFilterChange({
+            search,
+            startDate,
+            endDate,
+            source: source === "all" ? undefined : source,
+            ...(showPaymentFilter && { paymentStatus })
+        });
     };
 
     const handleClear = () => {
         setSearch("");
         setStartDate(undefined);
         setEndDate(undefined);
-        setSource("all");
-        onFilterChange({ search: "", source: undefined });
+        setSource(defaultSource);
+        setPaymentStatus(defaultPaymentStatus);
+        onFilterChange({
+            search: "",
+            source: defaultSource === "all" ? undefined : defaultSource,
+            ...(showPaymentFilter && { paymentStatus: defaultPaymentStatus })
+        });
     };
 
     return (
@@ -58,6 +86,19 @@ export const FilterBar = ({ onFilterChange }: FilterBarProps) => {
                         <SelectItem value="website">Website</SelectItem>
                     </SelectContent>
                 </Select>
+
+                {showPaymentFilter && (
+                    <Select value={paymentStatus} onValueChange={(val) => setPaymentStatus(val as PaymentStatusFilter)}>
+                        <SelectTrigger className="w-[140px]">
+                            <SelectValue placeholder="Payment" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="paid">Paid</SelectItem>
+                            <SelectItem value="unpaid">Unpaid</SelectItem>
+                            <SelectItem value="all">All</SelectItem>
+                        </SelectContent>
+                    </Select>
+                )}
 
                 <Popover>
                     <PopoverTrigger asChild>

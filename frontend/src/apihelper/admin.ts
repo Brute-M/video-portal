@@ -34,7 +34,9 @@ export interface PaginatedResponse<T> {
     }
 }
 
-export const getAdminRecords = async (page: number = 1, limit: number = 10, search: string = '', type: 'users' | 'coaches' | 'influencers' = 'users', startDate?: Date, endDate?: Date, source?: string) => {
+export type AdminRecordsType = 'users' | 'coaches' | 'influencers' | 'paid' | 'unpaid';
+
+export const getAdminRecords = async (page: number = 1, limit: number = 10, search: string = '', type: AdminRecordsType = 'users', startDate?: Date, endDate?: Date, source?: string) => {
     const params = new URLSearchParams();
     params.append('page', page.toString());
     params.append('limit', limit.toString());
