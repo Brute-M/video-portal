@@ -18,7 +18,8 @@ const DEFAULT_SETTINGS = {
     bannerTitles: {},
     teamsBannerImage: '',
     teamsVideoUrl: '',
-    customHeadScripts: ''
+    customHeadScripts: '',
+    customBodyScripts: ''
 };
 
 // GET presigned URL for an S3 key (for admin preview when key is stored)

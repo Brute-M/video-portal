@@ -11,8 +11,6 @@
   <!-- Preconnect to critical third-party origins (reduces connection time) -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link rel="preconnect" href="https://www.googletagmanager.com" />
-  <link rel="preconnect" href="https://www.clarity.ms" />
   <link rel="preconnect" href="https://checkout.razorpay.com" />
 
   <!-- Fonts: load asynchronously with display=swap to avoid blocking render -->
@@ -24,33 +22,11 @@
   <!-- Preload LCP image (hero banner) for faster First Contentful Paint / LCP -->
   <link rel="preload" href="/banner-brpl.jpeg" as="image" />
 
-  <!-- GTM and Clarity deferred to after first paint (run after load) -->
-  <script>
-    window.addEventListener('load', function () {
-      var w = window, d = document, s = 'script', l = 'dataLayer', i = 'GTM-MCPX98JT';
-      w[l] = w[l] || []; w[l].push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' });
-      var f = d.getElementsByTagName(s)[0], j = d.createElement(s);
-      j.async = true; j.src = 'https://www.googletagmanager.com/gtm.js?id=' + i + '&l=' + l;
-      f.parentNode.insertBefore(j, f);
-    });
-  </script>
-  <script>
-    window.addEventListener('load', function () {
-      (function (c, l, a, r, i, t, y) {
-        c[a] = c[a] || function () { (c[a].q = c[a].q || []).push(arguments); };
-        t = l.createElement(r); t.async = 1; t.src = "https://www.clarity.ms/tag/" + i;
-        y = l.getElementsByTagName(r)[0]; y.parentNode.insertBefore(t, y);
-      })(window, document, "clarity", "script", "uy6mwk4tcp");
-    });
-  </script>
+  <!-- GTM / Meta / Clarity: managed via Admin → Site Settings → Script/Meta code (customHeadScripts). -->
 </head>
 
 <body>
-  <!-- Google Tag Manager (noscript) -->
-  <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-MCPX98JT" height="0" width="0"
-      style="display:none;visibility:hidden"></iframe></noscript>
-  <!-- End Google Tag Manager (noscript) -->
-
+  <!-- GTM noscript / body scripts: managed via Admin → Site Settings → Custom body scripts (customBodyScripts). -->
   <div id="root"></div>
   <script type="module" src="/src/main.tsx"></script>
 </body>
