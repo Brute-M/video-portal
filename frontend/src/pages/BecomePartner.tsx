@@ -40,7 +40,7 @@ const partnerFormSchema = z.object({
     companyName: z.string().optional(),
     email: z.string().email({ message: "Please enter a valid email address." }),
     contactNumber: z.string().min(10, { message: "Contact number must be at least 10 digits." }),
-    partnershipType: z.enum(["Sponsorship", "Co-Branding", "Joint Venture", "None of the above"], {
+    partnershipType: z.enum(["Sponsorship", "Franchise"], {
         required_error: "Please select a partnership type.",
     }),
     message: z.string().min(10, { message: "Message must be at least 10 characters." }),
@@ -206,8 +206,8 @@ const BecomePartner = () => {
                                                 </FormControl>
                                                 <SelectContent>
                                                     <SelectItem value="Sponsorship">Sponsorship</SelectItem>
-                                                    <SelectItem value="Co-Branding">Co-Branding</SelectItem>
-                                                    <SelectItem value="None of the above">None of the above (Please mention below)</SelectItem>
+                                                    <SelectItem value="Franchise">Franchise</SelectItem>
+                                                    {/* <SelectItem value="None of the above">None of the above (Please mention below)</SelectItem> */}
                                                 </SelectContent>
                                             </Select>
                                             <FormMessage />
