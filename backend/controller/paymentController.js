@@ -13,6 +13,7 @@ const razorpay = new Razorpay({
 
 // ACTUAL AMOUNT (INR)
 const TEST_AMOUNT_INR = 1499;
+const MOBILE_AMOUNT_INR = 999;
 
 // Create an order
 exports.createOrder = async (req, res) => {
@@ -48,6 +49,25 @@ exports.createOrderLanding = async (req, res) => {
         res.json(order);
     } catch (error) {
         console.error('Error creating Razorpay order for landing:', error);
+        res.status(500).send(error);
+    }
+};
+
+// Create order for mobile app (Rs 999 only)
+exports.createOrderMobile = async (req, res) => {
+    const { currency = 'INR', receipt } = req.body;
+
+    try {
+        const options = {
+            amount: MOBILE_AMOUNT_INR * 100, // 999 INR in paise
+            currency,
+            receipt: receipt || `mobile_${Date.now()}`,
+        };
+
+        const order = await razorpay.orders.create(options);
+        res.json(order);
+    } catch (error) {
+        console.error('Error creating Razorpay order for mobile:', error);
         res.status(500).send(error);
     }
 };
@@ -170,6 +190,75 @@ exports.verifyLandingPayment = async (req, res) => {
         res.json({ message: "Payment verified successfully", success: true });
     } catch (error) {
         console.error("Error updating status after payment:", error);
+        res.status(500).json({ message: "Payment verified but failed to update status", success: false });
+    }
+};
+
+// Verify mobile app payment (Rs 999 only)
+exports.verifyMobilePayment = async (req, res) => {
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature, userId } = req.body;
+
+    const body = razorpay_order_id + "|" + razorpay_payment_id;
+
+    const expectedSignature = crypto
+        .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET || '1pFXfyat0LN1xPEeadrz1RN4')
+        .update(body.toString())
+        .digest('hex');
+
+    const isAuthentic = expectedSignature === razorpay_signature;
+
+    if (!isAuthentic) {
+        return res.status(400).json({ message: "Invalid signature", success: false });
+    }
+
+    if (!userId) {
+        return res.status(400).json({
+            message: "User ID is required to complete payment verification",
+            success: false
+        });
+    }
+
+    try {
+        const paidAmount = MOBILE_AMOUNT_INR; // Always 999 for mobile
+        await User.findByIdAndUpdate(userId, {
+            isPaid: true,
+            paymentAmount: paidAmount,
+            paymentId: razorpay_payment_id
+        });
+
+        await Payment.create({
+            userId,
+            transactionId: razorpay_payment_id,
+            amount: paidAmount,
+            type: 'registration',
+            status: 'completed',
+            paymentGateway: 'razorpay'
+        });
+
+        await Video.updateMany(
+            { userId: userId, status: 'pending_payment' },
+            { status: 'completed' }
+        );
+
+        try {
+            const user = await User.findById(userId).select('-password');
+            if (user && user.email) {
+                const invoiceData = {
+                    paymentId: razorpay_payment_id,
+                    amount: paidAmount,
+                    originalName: 'Registration / Service Fee (Mobile)',
+                    createdAt: new Date()
+                };
+                const pdfBuffer = await createInvoiceBuffer(invoiceData, user);
+                await sendRegistrationInvoiceEmail(user, razorpay_payment_id, paidAmount, pdfBuffer);
+            }
+        } catch (emailErr) {
+            console.error('Failed to send registration invoice email:', emailErr);
+        }
+
+        res.json({ message: "Payment verified successfully", success: true });
+    } catch (error) {
+        console.error("Error updating status after mobile payment:", error);
         res.status(500).json({ message: "Payment verified but failed to update status", success: false });
     }
 };

@@ -3103,6 +3103,124 @@
         }
       }
     },
+    "/api/payment/order-mobile": {
+      "post": {
+        "tags": ["Payment"],
+        "summary": "Create order – Mobile (₹999)",
+        "description": "Creates a Razorpay order for mobile app registration payment. Amount is fixed at ₹999 (99900 paise). Use this endpoint only for mobile app; website/landing use order-landing (₹1499).",
+        "consumes": ["application/json"],
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": false,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "currency": {
+                  "type": "string",
+                  "example": "INR",
+                  "description": "Currency code (default: INR)"
+                },
+                "receipt": {
+                  "type": "string",
+                  "example": "mobile_test_001",
+                  "description": "Optional receipt id; if omitted, server uses mobile_<timestamp>"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Razorpay order created successfully",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "id": { "type": "string", "example": "order_xxxxxxxxxxxx" },
+                "entity": { "type": "string", "example": "order" },
+                "amount": { "type": "number", "example": 99900 },
+                "amount_paid": { "type": "number", "example": 0 },
+                "amount_due": { "type": "number", "example": 99900 },
+                "currency": { "type": "string", "example": "INR" },
+                "receipt": { "type": "string", "example": "mobile_test_001" },
+                "status": { "type": "string", "example": "created" },
+                "created_at": { "type": "number" }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/api/payment/verify-mobile": {
+      "post": {
+        "tags": ["Payment"],
+        "summary": "Verify payment – Mobile (₹999)",
+        "description": "Verifies Razorpay payment for mobile app. Marks user as paid with paymentAmount ₹999. Requires razorpay_order_id, razorpay_payment_id, razorpay_signature (from Razorpay after payment) and userId (MongoDB ObjectId).",
+        "consumes": ["application/json"],
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "required": ["razorpay_order_id", "razorpay_payment_id", "razorpay_signature", "userId"],
+              "properties": {
+                "razorpay_order_id": {
+                  "type": "string",
+                  "example": "order_xxxxxxxxxxxx",
+                  "description": "Order ID from create order-mobile response"
+                },
+                "razorpay_payment_id": {
+                  "type": "string",
+                  "example": "pay_xxxxxxxxxxxx",
+                  "description": "Payment ID from Razorpay after successful payment"
+                },
+                "razorpay_signature": {
+                  "type": "string",
+                  "example": "xxxxxxxxxxxxxxxxxxxxxxxx",
+                  "description": "Signature from Razorpay for verification"
+                },
+                "userId": {
+                  "type": "string",
+                  "example": "507f1f77bcf86cd799439011",
+                  "description": "MongoDB ObjectId of the user to mark as paid"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Payment verified successfully; user updated with isPaid true and paymentAmount 999",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "message": { "type": "string", "example": "Payment verified successfully" },
+                "success": { "type": "boolean", "example": true }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid signature or missing userId",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "message": { "type": "string", "example": "Invalid signature" },
+                "success": { "type": "boolean", "example": false }
+              }
+            }
+          },
+          "500": {
+            "description": "Payment verified but failed to update status"
+          }
+        }
+      }
+    },
     "/api/events/create": {
       "post": {
         "description": "",
