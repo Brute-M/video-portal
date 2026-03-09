@@ -81,6 +81,7 @@ const sendInvoiceEmail = async (user, video, downloadLink, previewLink, pdfBuffe
 /** Send registration invoice PDF to user email (website/landing registration payment). */
 const sendRegistrationInvoiceEmail = async (user, paymentId, amount, pdfBuffer) => {
     try {
+        console.log('[Invoice Email] sendRegistrationInvoiceEmail: preparing mail to', user?.email, 'paymentId', paymentId, 'pdfBuffer length', pdfBuffer?.length ?? 0);
         const logoPath = path.join(__dirname, '../../frontend/public/logo.png');
         const attachments = [
             { filename: 'logo.png', path: logoPath, cid: 'logo' }
@@ -118,10 +119,13 @@ const sendRegistrationInvoiceEmail = async (user, paymentId, amount, pdfBuffer) 
             attachments
         };
         const info = await transporter.sendMail(mailOptions);
-        console.log('Registration invoice email sent to %s: %s', user.email, info.messageId);
+        console.log('[Invoice Email] sendRegistrationInvoiceEmail: sent successfully to', user.email, 'messageId', info.messageId);
         return info;
     } catch (error) {
-        console.error('Error sending registration invoice email:', error);
+        console.error('[Invoice Email] sendRegistrationInvoiceEmail: error sending to', user?.email, error?.message || error);
+        if (error?.code) console.error('[Invoice Email] sendRegistrationInvoiceEmail: error code', error.code);
+        if (error?.response) console.error('[Invoice Email] sendRegistrationInvoiceEmail: response', error.response);
+        throw error;
     }
 };
 

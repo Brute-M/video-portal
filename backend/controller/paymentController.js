@@ -171,8 +171,14 @@ exports.verifyLandingPayment = async (req, res) => {
 
         // Send invoice to user email (website/landing registration)
         try {
+            console.log('[Invoice Email] verifyLandingPayment: attempting to send registration invoice, userId=', userId);
             const user = await User.findById(userId).select('-password');
-            if (user && user.email) {
+            if (!user) {
+                console.warn('[Invoice Email] verifyLandingPayment: user not found for userId=', userId);
+            } else if (!user.email) {
+                console.warn('[Invoice Email] verifyLandingPayment: user has no email, userId=', userId);
+            } else {
+                console.log('[Invoice Email] verifyLandingPayment: generating PDF for user', user.email);
                 const invoiceData = {
                     paymentId: razorpay_payment_id,
                     amount: paidAmount,
@@ -180,10 +186,13 @@ exports.verifyLandingPayment = async (req, res) => {
                     createdAt: new Date()
                 };
                 const pdfBuffer = await createInvoiceBuffer(invoiceData, user);
+                console.log('[Invoice Email] verifyLandingPayment: PDF generated, sending to', user.email);
                 await sendRegistrationInvoiceEmail(user, razorpay_payment_id, paidAmount, pdfBuffer);
+                console.log('[Invoice Email] verifyLandingPayment: registration invoice email sent successfully to', user.email);
             }
         } catch (emailErr) {
-            console.error('Failed to send registration invoice email:', emailErr);
+            console.error('[Invoice Email] verifyLandingPayment: failed to send registration invoice email:', emailErr?.message || emailErr);
+            if (emailErr?.stack) console.error(emailErr.stack);
             // Do not fail the payment response; user is already paid
         }
 
@@ -241,8 +250,14 @@ exports.verifyMobilePayment = async (req, res) => {
         );
 
         try {
+            console.log('[Invoice Email] verifyMobilePayment: attempting to send registration invoice, userId=', userId);
             const user = await User.findById(userId).select('-password');
-            if (user && user.email) {
+            if (!user) {
+                console.warn('[Invoice Email] verifyMobilePayment: user not found for userId=', userId);
+            } else if (!user.email) {
+                console.warn('[Invoice Email] verifyMobilePayment: user has no email, userId=', userId);
+            } else {
+                console.log('[Invoice Email] verifyMobilePayment: generating PDF for user', user.email);
                 const invoiceData = {
                     paymentId: razorpay_payment_id,
                     amount: paidAmount,
@@ -250,10 +265,13 @@ exports.verifyMobilePayment = async (req, res) => {
                     createdAt: new Date()
                 };
                 const pdfBuffer = await createInvoiceBuffer(invoiceData, user);
+                console.log('[Invoice Email] verifyMobilePayment: PDF generated, sending to', user.email);
                 await sendRegistrationInvoiceEmail(user, razorpay_payment_id, paidAmount, pdfBuffer);
+                console.log('[Invoice Email] verifyMobilePayment: registration invoice email sent successfully to', user.email);
             }
         } catch (emailErr) {
-            console.error('Failed to send registration invoice email:', emailErr);
+            console.error('[Invoice Email] verifyMobilePayment: failed to send registration invoice email:', emailErr?.message || emailErr);
+            if (emailErr?.stack) console.error(emailErr.stack);
         }
 
         res.json({ message: "Payment verified successfully", success: true });
