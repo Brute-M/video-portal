@@ -1,32 +1,76 @@
-import { useState } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
-    Play,
     LogOut,
     LayoutDashboard,
     Video,
     Settings,
     Menu,
     X,
-    Activity,
-    User
+    User,
+    HelpCircle,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { ModeToggle } from "@/components/mode-toggle";
-
 import { useTranslation } from "react-i18next";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { TourProvider, useTour } from "@reactour/tour";
 
-const DashboardLayout = () => {
+type Step = { selector: string; content: string; position: "top" | "right" | "bottom" | "left" };
+
+const DASHBOARD_TOUR_STORAGE_KEY = "brpl_dashboard_tour_done";
+
+/** Tour steps: welcome then each sidebar menu item with guide text */
+function getTourSteps(t: (key: string) => string): Step[] {
+    return [
+        { selector: "[data-tour=\"welcome\"]", content: t("tour_welcome"), position: "bottom" },
+        { selector: "[data-tour=\"nav-dashboard\"]", content: t("tour_nav_dashboard"), position: "right" },
+        { selector: "[data-tour=\"nav-videos\"]", content: t("tour_nav_videos"), position: "right" },
+        { selector: "[data-tour=\"nav-profile\"]", content: t("tour_nav_profile"), position: "right" },
+        { selector: "[data-tour=\"nav-settings\"]", content: t("tour_nav_settings"), position: "right" },
+    ];
+}
+
+function openTourWhenWelcomeReady(setTourOpen: (open: boolean) => void) {
+    const openWhenReady = (attempts = 0) => {
+        const maxAttempts = 50;
+        const el = document.querySelector("[data-tour=\"welcome\"]");
+        if (el) {
+            setTourOpen(true);
+            return;
+        }
+        if (attempts < maxAttempts) {
+            setTimeout(() => openWhenReady(attempts + 1), 100);
+        }
+    };
+    setTimeout(() => openWhenReady(), 400);
+}
+
+function DashboardLayoutInner() {
     const navigate = useNavigate();
     const location = useLocation();
     const { toast } = useToast();
     const { t } = useTranslation();
+    const { setIsOpen: setTourOpen } = useTour();
 
-    // Initialize closed on mobile (less than 768px), open on desktop
     const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth >= 768);
     const userEmail = localStorage.getItem("userEmail");
+    const isOnDashboard = location.pathname.startsWith("/dashboard");
+
+    const handleStartTour = () => {
+        if (location.pathname !== "/dashboard") {
+            navigate("/dashboard");
+        }
+        openTourWhenWelcomeReady(setTourOpen);
+    };
+
+    // Auto-start tour once after login when user lands on dashboard and hasn't completed/skipped it before
+    useEffect(() => {
+        if (location.pathname !== "/dashboard") return;
+        if (localStorage.getItem(DASHBOARD_TOUR_STORAGE_KEY) === "true") return;
+        openTourWhenWelcomeReady(setTourOpen);
+    }, [location.pathname, setTourOpen]);
 
     const handleLogout = () => {
         toast({
@@ -38,10 +82,10 @@ const DashboardLayout = () => {
     };
 
     const navItems = [
-        { icon: LayoutDashboard, label: t("dashboard"), path: "/dashboard" },
-        { icon: Video, label: t("my_videos"), path: "/dashboard/videos" },
-        { icon: User, label: "My Profile", path: "/dashboard/profile" },
-        { icon: Settings, label: t("settings"), path: "/dashboard/settings" },
+        { icon: LayoutDashboard, label: t("dashboard"), path: "/dashboard", tourId: "nav-dashboard" },
+        { icon: Video, label: t("my_videos"), path: "/dashboard/videos", tourId: "nav-videos" },
+        { icon: User, label: "My Profile", path: "/dashboard/profile", tourId: "nav-profile" },
+        { icon: Settings, label: t("settings"), path: "/dashboard/settings", tourId: "nav-settings" },
     ];
 
     return (
@@ -56,6 +100,7 @@ const DashboardLayout = () => {
 
             {/* Sidebar */}
             <aside
+                data-tour="sidebar"
                 className={`${isSidebarOpen ? "translate-x-0 w-64" : "-translate-x-full md:translate-x-0 md:w-20"
                     } glass-card border-r border-border transition-all duration-300 flex flex-col fixed h-full z-30 bg-background`}
             >
@@ -85,6 +130,7 @@ const DashboardLayout = () => {
                             <Link
                                 key={item.path}
                                 to={item.path}
+                                data-tour={item.tourId}
                                 className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${location.pathname === item.path
                                     ? "bg-primary/10 text-primary"
                                     : "text-muted-foreground hover:bg-secondary hover:text-foreground"
@@ -115,6 +161,19 @@ const DashboardLayout = () => {
                     </div>
 
                     <div className="flex items-center gap-4">
+                        {isOnDashboard && (
+                            <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={handleStartTour}
+                                className="gap-2 shrink-0"
+                                title={t("take_tour")}
+                            >
+                                <HelpCircle className="w-4 h-4" />
+                                <span className="hidden sm:inline">{t("take_tour")}</span>
+                            </Button>
+                        )}
                         <div className="md:hidden">
                             <LanguageSwitcher />
                         </div>
@@ -139,6 +198,50 @@ const DashboardLayout = () => {
                 </main>
             </div>
         </div>
+    );
+}
+
+const TourWrapper = ({ children }: { children: React.ReactNode }) => (
+    <div style={{ position: "fixed", inset: 0, zIndex: 99999 }}>{children}</div>
+);
+
+const DashboardLayout = () => {
+    const { t } = useTranslation();
+    const steps = useMemo(() => getTourSteps(t), [t]);
+
+    return (
+        <TourProvider
+            steps={steps}
+            showCloseButton
+            showBadge
+            showNavigation
+            showPrevNextButtons
+            scrollSmooth
+            Wrapper={TourWrapper}
+            beforeClose={() => {
+                try {
+                    localStorage.setItem(DASHBOARD_TOUR_STORAGE_KEY, "true");
+                } catch {
+                    // ignore
+                }
+            }}
+            styles={{
+                popover: (base: React.CSSProperties) => ({
+                    ...base,
+                    borderRadius: "12px",
+                    padding: "1rem 1.25rem",
+                    maxWidth: "320px",
+                }),
+                close: (base: React.CSSProperties) => ({
+                    ...base,
+                    top: 8,
+                    right: 8,
+                }),
+            }}
+            className="reactour-popover-dashboard"
+        >
+            <DashboardLayoutInner />
+        </TourProvider>
     );
 };
 

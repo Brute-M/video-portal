@@ -1,5 +1,6 @@
 const Team = require('../model/Team');
 const { deleteFromS3, getPresignedUrl } = require('../utils/s3Client');
+const { convertCloudUrlToStream } = require('../utils/cloudStore');
 
 exports.createTeam = async (req, res) => {
     try {
@@ -36,7 +37,7 @@ exports.getAllTeams = async (req, res) => {
 
         const teamsWithSignedUrls = await Promise.all(teams.map(async (team) => {
             if (team.logoKey) {
-                const signedUrl = await getPresignedUrl(team.logoKey);
+                const signedUrl = convertCloudUrlToStream(req, team.logo);
                 if (signedUrl) {
                     return { ...team.toObject(), logo: signedUrl };
                 }
@@ -59,7 +60,7 @@ exports.getTeamById = async (req, res) => {
         }
 
         if (team.logoKey) {
-            const signedUrl = await getPresignedUrl(team.logoKey);
+            const signedUrl = convertCloudUrlToStream(req, team.logo);
             if (signedUrl) {
                 return res.status(200).json({ ...team.toObject(), logo: signedUrl });
             }

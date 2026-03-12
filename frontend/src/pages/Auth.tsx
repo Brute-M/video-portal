@@ -117,6 +117,12 @@ const Auth = ({ forceRegister }: AuthProps) => {
     }
   }, [searchParams, forceRegister]);
 
+  // Restore userId from sessionStorage on mount (e.g. user refreshed on payment step)
+  useEffect(() => {
+    const stored = sessionStorage.getItem('brpl_registration_user_id');
+    if (stored && !userId) setUserId(stored);
+  }, []);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     // For mobile, only allow numbers and max 10 digits
     if (e.target.id === 'mobile') {
@@ -275,7 +281,9 @@ const Auth = ({ forceRegister }: AuthProps) => {
       if (token) {
         localStorage.setItem('token', token);
         localStorage.setItem('userEmail', email);
-        setUserId(newUserId);
+        const idStr = String(newUserId);
+        setUserId(idStr);
+        sessionStorage.setItem('brpl_registration_user_id', idStr);
         setCurrentStep(2);
         toast({
           title: "Account Created",
@@ -283,7 +291,9 @@ const Auth = ({ forceRegister }: AuthProps) => {
         });
       } else if (newUserId) {
         // Fallback: If user created but no token (weird, but handle it)
-        setUserId(newUserId);
+        const idStr = String(newUserId);
+        setUserId(idStr);
+        sessionStorage.setItem('brpl_registration_user_id', idStr);
         setCurrentStep(2);
         toast({
           title: "Account Created",
@@ -319,6 +329,17 @@ const Auth = ({ forceRegister }: AuthProps) => {
       content_name: 'Registration Fee',
       content_type: 'product',
     }));
+    // Use state first, then sessionStorage so payment verification works after reload/redirect (e.g. mobile/Instagram)
+    const userIdForPayment = userId || sessionStorage.getItem('brpl_registration_user_id') || '';
+    if (!userIdForPayment) {
+      toast({
+        variant: "destructive",
+        title: "Session expired",
+        description: "Please complete Step 1 again to proceed to payment.",
+      });
+      return;
+    }
+
     // Razorpay Payment Logic
     setIsPaymentProcessing(true);
     try {
@@ -336,17 +357,20 @@ const Auth = ({ forceRegister }: AuthProps) => {
         description: "Registration Fee",
         order_id: order.id,
         handler: async (response: any) => {
+          const resolvedUserId = userIdForPayment || sessionStorage.getItem('brpl_registration_user_id') || '';
           try {
             await verifyLandingPayment({
               razorpay_order_id: response.razorpay_order_id,
               razorpay_payment_id: response.razorpay_payment_id,
               razorpay_signature: response.razorpay_signature,
-              userId, // From state
+              userId: resolvedUserId,
               amount: 1499,
               isFromLandingPage: false, // Website payment (not landing page)
             });
 
+            sessionStorage.removeItem('brpl_registration_user_id');
             setPaymentId(response.razorpay_payment_id);
+            if (resolvedUserId && !userId) setUserId(resolvedUserId);
 
             // Track Facebook Pixel Purchase Event
             import('react-facebook-pixel').then((x) => x.default.track('Purchase', {
@@ -356,7 +380,7 @@ const Auth = ({ forceRegister }: AuthProps) => {
               content_type: 'product',
               order_id: response.razorpay_order_id,
               payment_id: response.razorpay_payment_id,
-              user_id: userId
+              user_id: resolvedUserId
             }));
 
             toast({

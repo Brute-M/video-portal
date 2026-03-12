@@ -1,7 +1,8 @@
 const Banner = require('../model/banner.model');
 const AboutUs = require('../model/aboutus.model');
 const WhoWeAre = require('../model/whoweare.model');
-const { deleteFromS3, resolveImageUrl } = require('../utils/s3Client');
+const { deleteFromS3 } = require('../utils/s3Client');
+const { convertCloudUrlToStream } = require('../utils/cloudStore');
 
 function isS3Key(value) {
     return value && typeof value === 'string' && !value.startsWith('http') && !value.startsWith('uploads/');
@@ -27,7 +28,7 @@ exports.createBanner = async (req, res) => {
             return res.status(400).json({ message: "Background image is required" });
         }
 
-        const background = file.key;
+        const background = file.location || file.key;
         const backgroundSize = formatFileSize(file.size);
 
         const newBanner = new Banner({
@@ -40,7 +41,7 @@ exports.createBanner = async (req, res) => {
         });
 
         await newBanner.save();
-        const backgroundUrl = await resolveImageUrl(background);
+        const backgroundUrl = convertCloudUrlToStream(req, background);
         res.status(201).json({ success: true, data: { ...newBanner.toObject(), background: backgroundUrl } });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -50,11 +51,11 @@ exports.createBanner = async (req, res) => {
 exports.getBanners = async (req, res) => {
     try {
         const banners = await Banner.find().sort({ createdAt: -1 });
-        const withUrls = await Promise.all(banners.map(async (b) => {
+        const withUrls = banners.map((b) => {
             const obj = b.toObject ? b.toObject() : b;
-            obj.background = await resolveImageUrl(obj.background);
+            obj.background = convertCloudUrlToStream(req, obj.background);
             return obj;
-        }));
+        });
         res.status(200).json({ success: true, data: withUrls });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -96,12 +97,12 @@ exports.updateBanner = async (req, res) => {
             if (isS3Key(banner.background)) {
                 await deleteFromS3(banner.background).catch(err => console.error('S3 delete error:', err));
             }
-            updateData.background = file.key;
+            updateData.background = file.location || file.key;
             updateData.backgroundSize = formatFileSize(file.size);
         }
 
         const updated = await Banner.findByIdAndUpdate(id, updateData, { new: true });
-        const backgroundUrl = await resolveImageUrl(updated.background);
+        const backgroundUrl = convertCloudUrlToStream(req, updated.background);
         res.status(200).json({ success: true, data: { ...updated.toObject(), background: backgroundUrl } });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -115,7 +116,7 @@ exports.getWhoWeAre = async (req, res) => {
         const data = await WhoWeAre.findOne().sort({ createdAt: -1 });
         if (!data) return res.status(200).json({ success: true, data: null });
         const obj = data.toObject ? data.toObject() : data;
-        if (obj.image) obj.image = await resolveImageUrl(obj.image);
+        if (obj.image) obj.image = convertCloudUrlToStream(req, obj.image);
         res.status(200).json({ success: true, data: obj });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -148,7 +149,7 @@ exports.updateWhoWeAre = async (req, res) => {
             if (data && isS3Key(data.image)) {
                 await deleteFromS3(data.image).catch(err => console.error('S3 delete error:', err));
             }
-            updateData.image = file.key;
+            updateData.image = file.location || file.key;
         }
 
         if (data) {
@@ -159,7 +160,7 @@ exports.updateWhoWeAre = async (req, res) => {
         }
 
         const obj = data.toObject ? data.toObject() : data;
-        if (obj.image) obj.image = await resolveImageUrl(obj.image);
+        if (obj.image) obj.image = convertCloudUrlToStream(req, obj.image);
         res.status(200).json({ success: true, data: obj });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -173,10 +174,10 @@ exports.getAboutUs = async (req, res) => {
         const data = await AboutUs.findOne().sort({ createdAt: -1 });
         if (!data) return res.status(200).json({ success: true, data: null });
         const obj = data.toObject ? data.toObject() : data;
-        if (obj.bannerImage) obj.bannerImage = await resolveImageUrl(obj.bannerImage);
-        if (obj.aboutBrplImage) obj.aboutBrplImage = await resolveImageUrl(obj.aboutBrplImage);
-        if (obj.missionImage) obj.missionImage = await resolveImageUrl(obj.missionImage);
-        if (obj.visionImage) obj.visionImage = await resolveImageUrl(obj.visionImage);
+        if (obj.bannerImage) obj.bannerImage = convertCloudUrlToStream(req, obj.bannerImage);
+        if (obj.aboutBrplImage) obj.aboutBrplImage = convertCloudUrlToStream(req, obj.aboutBrplImage);
+        if (obj.missionImage) obj.missionImage = convertCloudUrlToStream(req, obj.missionImage);
+        if (obj.visionImage) obj.visionImage = convertCloudUrlToStream(req, obj.visionImage);
         res.status(200).json({ success: true, data: obj });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -204,7 +205,7 @@ exports.updateAboutUsBanner = async (req, res) => {
             if (data && isS3Key(data.bannerImage)) {
                 await deleteFromS3(data.bannerImage).catch(err => console.error('S3 delete error:', err));
             }
-            updateData.bannerImage = file.key;
+            updateData.bannerImage = file.location || file.key;
         }
 
         if (data) {
@@ -215,7 +216,7 @@ exports.updateAboutUsBanner = async (req, res) => {
         }
 
         const obj = data.toObject ? data.toObject() : data;
-        if (obj.bannerImage) obj.bannerImage = await resolveImageUrl(obj.bannerImage);
+        if (obj.bannerImage) obj.bannerImage = convertCloudUrlToStream(req, obj.bannerImage);
         res.status(200).json({ success: true, data: obj });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -248,10 +249,10 @@ exports.updateAboutUsVideo = async (req, res) => {
         }
 
         const obj = data.toObject ? data.toObject() : data;
-        if (obj.bannerImage) obj.bannerImage = await resolveImageUrl(obj.bannerImage);
-        if (obj.aboutBrplImage) obj.aboutBrplImage = await resolveImageUrl(obj.aboutBrplImage);
-        if (obj.missionImage) obj.missionImage = await resolveImageUrl(obj.missionImage);
-        if (obj.visionImage) obj.visionImage = await resolveImageUrl(obj.visionImage);
+        if (obj.bannerImage) obj.bannerImage = convertCloudUrlToStream(req, obj.bannerImage);
+        if (obj.aboutBrplImage) obj.aboutBrplImage = convertCloudUrlToStream(req, obj.aboutBrplImage);
+        if (obj.missionImage) obj.missionImage = convertCloudUrlToStream(req, obj.missionImage);
+        if (obj.visionImage) obj.visionImage = convertCloudUrlToStream(req, obj.visionImage);
         res.status(200).json({ success: true, data: obj });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -279,7 +280,7 @@ exports.updateAboutBrpl = async (req, res) => {
             if (data && isS3Key(data.aboutBrplImage)) {
                 await deleteFromS3(data.aboutBrplImage).catch(err => console.error('S3 delete error:', err));
             }
-            updateData.aboutBrplImage = file.key;
+            updateData.aboutBrplImage = file.location || file.key;
         }
 
         if (data) {
@@ -290,10 +291,10 @@ exports.updateAboutBrpl = async (req, res) => {
         }
 
         const obj = data.toObject ? data.toObject() : data;
-        if (obj.bannerImage) obj.bannerImage = await resolveImageUrl(obj.bannerImage);
-        if (obj.aboutBrplImage) obj.aboutBrplImage = await resolveImageUrl(obj.aboutBrplImage);
-        if (obj.missionImage) obj.missionImage = await resolveImageUrl(obj.missionImage);
-        if (obj.visionImage) obj.visionImage = await resolveImageUrl(obj.visionImage);
+        if (obj.bannerImage) obj.bannerImage = convertCloudUrlToStream(req, obj.bannerImage);
+        if (obj.aboutBrplImage) obj.aboutBrplImage = convertCloudUrlToStream(req, obj.aboutBrplImage);
+        if (obj.missionImage) obj.missionImage = convertCloudUrlToStream(req, obj.missionImage);
+        if (obj.visionImage) obj.visionImage = convertCloudUrlToStream(req, obj.visionImage);
         res.status(200).json({ success: true, data: obj });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -329,7 +330,7 @@ exports.updateMissionVision = async (req, res) => {
             if (data && isS3Key(data.missionImage)) {
                 await deleteFromS3(data.missionImage).catch(err => console.error('S3 delete error:', err));
             }
-            updateData.missionImage = missionFile.key;
+            updateData.missionImage = missionFile.location || missionFile.key;
         }
 
         if (removeVisionImage === 'true') {
@@ -341,7 +342,7 @@ exports.updateMissionVision = async (req, res) => {
             if (data && isS3Key(data.visionImage)) {
                 await deleteFromS3(data.visionImage).catch(err => console.error('S3 delete error:', err));
             }
-            updateData.visionImage = visionFile.key;
+            updateData.visionImage = visionFile.location || visionFile.key;
         }
 
         if (data) {
@@ -352,10 +353,10 @@ exports.updateMissionVision = async (req, res) => {
         }
 
         const obj = data.toObject ? data.toObject() : data;
-        if (obj.bannerImage) obj.bannerImage = await resolveImageUrl(obj.bannerImage);
-        if (obj.aboutBrplImage) obj.aboutBrplImage = await resolveImageUrl(obj.aboutBrplImage);
-        if (obj.missionImage) obj.missionImage = await resolveImageUrl(obj.missionImage);
-        if (obj.visionImage) obj.visionImage = await resolveImageUrl(obj.visionImage);
+        if (obj.bannerImage) obj.bannerImage = convertCloudUrlToStream(req, obj.bannerImage);
+        if (obj.aboutBrplImage) obj.aboutBrplImage = convertCloudUrlToStream(req, obj.aboutBrplImage);
+        if (obj.missionImage) obj.missionImage = convertCloudUrlToStream(req, obj.missionImage);
+        if (obj.visionImage) obj.visionImage = convertCloudUrlToStream(req, obj.visionImage);
         res.status(200).json({ success: true, data: obj });
     } catch (error) {
         res.status(500).json({ message: error.message });

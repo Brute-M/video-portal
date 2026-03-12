@@ -1,7 +1,6 @@
 const express = require("express");
 require("dotenv").config();
 const cors = require("cors");
-const morgan = require("morgan");
 const mongoose = require("mongoose");
 // const winston = require('winston');
 // const expressWinston = require('express-winston');
@@ -20,6 +19,7 @@ const ambassadorRoutes = require("./routes/ambassadorRoute");
 const teamRoutes = require("./routes/teamRoute");
 const partnerRoutes = require("./routes/partnerRoutes");
 const webhookRoutes = require("./routes/webhookRoute");
+const { streamCloudStoreToUser } = require("./utils/cloudStore");
 
 const path = require("path");
 const app = express();
@@ -105,6 +105,8 @@ app.use("/webhooks", webhookRoutes);
 app.use("/api", userRoutes);
 app.use("/admin", adminRoutes);
 app.use("/api/admin", adminRoutes); // Alias for consistency
+
+app.get("/api/cloud-store/preview", streamCloudStoreToUser);
 
 app.listen(port, () => {
   console.log(`server is running on port ${port}`);

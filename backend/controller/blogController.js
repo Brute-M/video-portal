@@ -1,14 +1,5 @@
 const Blog = require('../model/blog.model');
-const { createS3Upload } = require('../utils/uploadHelper');
-const { resolveImageUrl, deleteFromS3 } = require('../utils/s3Client');
-
-/** Max featured image size in bytes (10 MB). Used for multer limit and error messages. */
-const BLOG_FEATURED_IMAGE_LIMIT_BYTES = 10 * 1024 * 1024;
-const uploadFeatured = createS3Upload('blog/featured', { limits: { fileSize: BLOG_FEATURED_IMAGE_LIMIT_BYTES } });
-
-function isS3Key(value) {
-    return value && typeof value === 'string' && !value.startsWith('http') && !value.startsWith('uploads/') && !value.startsWith('/');
-}
+const { convertCloudUrlToStream } = require('../utils/cloudStore');
 
 function slugify(text) {
     return text
@@ -44,12 +35,12 @@ exports.getBlogs = async (req, res) => {
             .select('title slug metaTitle metaDescription featuredImage createdAt updatedAt')
             .lean();
 
-        const withUrls = await Promise.all(posts.map(async (p) => {
-            if (p.featuredImage && isS3Key(p.featuredImage)) {
-                p.featuredImage = await resolveImageUrl(p.featuredImage);
+        const withUrls = posts.map(p => {
+            if (p.featuredImage) {
+                p.featuredImage = convertCloudUrlToStream(req, p.featuredImage);
             }
             return p;
-        }));
+        });
 
         res.status(200).json({ success: true, data: withUrls });
     } catch (error) {
@@ -66,8 +57,8 @@ exports.getBlogBySlug = async (req, res) => {
         if (!post) {
             return res.status(404).json({ success: false, message: 'Post not found' });
         }
-        if (post.featuredImage && isS3Key(post.featuredImage)) {
-            post.featuredImage = await resolveImageUrl(post.featuredImage);
+        if (post.featuredImage) {
+            post.featuredImage = convertCloudUrlToStream(req, post.featuredImage);
         }
         res.status(200).json({ success: true, data: post });
     } catch (error) {
@@ -80,12 +71,12 @@ exports.getBlogBySlug = async (req, res) => {
 exports.adminGetBlogs = async (req, res) => {
     try {
         const posts = await Blog.find().sort({ createdAt: -1 }).lean();
-        const withUrls = await Promise.all(posts.map(async (p) => {
-            if (p.featuredImage && isS3Key(p.featuredImage)) {
-                p.featuredImage = await resolveImageUrl(p.featuredImage);
+        const withUrls = posts.map(p => {
+            if (p.featuredImage) {
+                p.featuredImage = convertCloudUrlToStream(req, p.featuredImage);
             }
             return p;
-        }));
+        });
         res.status(200).json({ success: true, data: withUrls });
     } catch (error) {
         console.error('adminGetBlogs error:', error);
@@ -98,8 +89,8 @@ exports.adminGetBlog = async (req, res) => {
     try {
         const post = await Blog.findById(req.params.id).lean();
         if (!post) return res.status(404).json({ success: false, message: 'Post not found' });
-        if (post.featuredImage && isS3Key(post.featuredImage)) {
-            post.featuredImage = await resolveImageUrl(post.featuredImage);
+        if (post.featuredImage) {
+            post.featuredImage = convertCloudUrlToStream(req, post.featuredImage);
         }
         res.status(200).json({ success: true, data: post });
     } catch (error) {
@@ -112,7 +103,7 @@ exports.createBlog = async (req, res) => {
     try {
         const { title, slug, metaTitle, metaDescription, content, enableSchema, isPublished } = req.body;
         const finalSlug = await ensureUniqueSlug(slug || slugify(title || 'post'));
-        const featuredKey = req.file ? req.file.key : '';
+        const featuredKey = req.file ? (req.file.location || req.file.key) : '';
 
         const post = new Blog({
             title: title || 'Untitled',
@@ -127,8 +118,8 @@ exports.createBlog = async (req, res) => {
         await post.save();
 
         const data = post.toObject();
-        if (data.featuredImage && isS3Key(data.featuredImage)) {
-            data.featuredImage = await resolveImageUrl(data.featuredImage);
+        if (data.featuredImage) {
+            data.featuredImage = convertCloudUrlToStream(req, data.featuredImage);
         }
         res.status(201).json({ success: true, data });
     } catch (error) {
@@ -157,16 +148,13 @@ exports.updateBlog = async (req, res) => {
         }
 
         if (req.file) {
-            if (post.featuredImage && isS3Key(post.featuredImage)) {
-                await deleteFromS3(post.featuredImage).catch(() => {});
-            }
-            post.featuredImage = req.file.key;
+            post.featuredImage = req.file.location || req.file.key;
         }
 
         await post.save();
         const data = post.toObject();
-        if (data.featuredImage && isS3Key(data.featuredImage)) {
-            data.featuredImage = await resolveImageUrl(data.featuredImage);
+        if (data.featuredImage) {
+            data.featuredImage = convertCloudUrlToStream(req, data.featuredImage);
         }
         res.status(200).json({ success: true, data });
     } catch (error) {
@@ -180,15 +168,10 @@ exports.deleteBlog = async (req, res) => {
     try {
         const post = await Blog.findById(req.params.id);
         if (!post) return res.status(404).json({ success: false, message: 'Post not found' });
-        if (post.featuredImage && isS3Key(post.featuredImage)) {
-            await deleteFromS3(post.featuredImage).catch(() => {});
-        }
+
         await Blog.findByIdAndDelete(req.params.id);
         res.status(200).json({ success: true, message: 'Post deleted' });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }
 };
-
-exports.uploadFeatured = uploadFeatured;
-exports.BLOG_FEATURED_IMAGE_LIMIT_BYTES = BLOG_FEATURED_IMAGE_LIMIT_BYTES;

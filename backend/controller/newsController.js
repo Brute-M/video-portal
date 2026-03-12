@@ -1,13 +1,5 @@
 const News = require('../model/news.model');
-const { createS3Upload } = require('../utils/uploadHelper');
-const { resolveImageUrl, deleteFromS3 } = require('../utils/s3Client');
-
-const NEWS_FEATURED_IMAGE_LIMIT_BYTES = 10 * 1024 * 1024;
-const uploadFeatured = createS3Upload('news/featured', { limits: { fileSize: NEWS_FEATURED_IMAGE_LIMIT_BYTES } });
-
-function isS3Key(value) {
-    return value && typeof value === 'string' && !value.startsWith('http') && !value.startsWith('uploads/') && !value.startsWith('/');
-}
+const { convertCloudUrlToStream } = require('../utils/cloudStore');
 
 function slugify(text) {
     return text
@@ -42,12 +34,12 @@ exports.getNewsList = async (req, res) => {
             .select('title slug metaTitle metaDescription featuredImage createdAt updatedAt')
             .lean();
 
-        const withUrls = await Promise.all(posts.map(async (p) => {
-            if (p.featuredImage && isS3Key(p.featuredImage)) {
-                p.featuredImage = await resolveImageUrl(p.featuredImage);
+        const withUrls = posts.map(p => {
+            if (p.featuredImage) {
+                p.featuredImage = convertCloudUrlToStream(req, p.featuredImage);
             }
             return p;
-        }));
+        });
 
         res.status(200).json({ success: true, data: withUrls });
     } catch (error) {
@@ -63,8 +55,8 @@ exports.getNewsBySlug = async (req, res) => {
         if (!post) {
             return res.status(404).json({ success: false, message: 'News not found' });
         }
-        if (post.featuredImage && isS3Key(post.featuredImage)) {
-            post.featuredImage = await resolveImageUrl(post.featuredImage);
+        if (post.featuredImage) {
+            post.featuredImage = convertCloudUrlToStream(req, post.featuredImage);
         }
         res.status(200).json({ success: true, data: post });
     } catch (error) {
@@ -76,12 +68,12 @@ exports.getNewsBySlug = async (req, res) => {
 exports.adminGetNewsList = async (req, res) => {
     try {
         const posts = await News.find().sort({ createdAt: -1 }).lean();
-        const withUrls = await Promise.all(posts.map(async (p) => {
-            if (p.featuredImage && isS3Key(p.featuredImage)) {
-                p.featuredImage = await resolveImageUrl(p.featuredImage);
+        const withUrls = posts.map(p => {
+            if (p.featuredImage) {
+                p.featuredImage = convertCloudUrlToStream(req, p.featuredImage);
             }
             return p;
-        }));
+        });
         res.status(200).json({ success: true, data: withUrls });
     } catch (error) {
         console.error('adminGetNewsList error:', error);
@@ -93,8 +85,8 @@ exports.adminGetNews = async (req, res) => {
     try {
         const post = await News.findById(req.params.id).lean();
         if (!post) return res.status(404).json({ success: false, message: 'News not found' });
-        if (post.featuredImage && isS3Key(post.featuredImage)) {
-            post.featuredImage = await resolveImageUrl(post.featuredImage);
+        if (post.featuredImage) {
+            post.featuredImage = convertCloudUrlToStream(req, post.featuredImage);
         }
         res.status(200).json({ success: true, data: post });
     } catch (error) {
@@ -106,7 +98,7 @@ exports.createNews = async (req, res) => {
     try {
         const { title, slug, metaTitle, metaDescription, content, enableSchema, isPublished } = req.body;
         const finalSlug = await ensureUniqueSlug(slug || slugify(title || 'news'));
-        const featuredKey = req.file ? req.file.key : '';
+        const featuredKey = req.file ? (req.file.location || req.file.key) : '';
 
         const post = new News({
             title: title || 'Untitled',
@@ -121,8 +113,8 @@ exports.createNews = async (req, res) => {
         await post.save();
 
         const data = post.toObject();
-        if (data.featuredImage && isS3Key(data.featuredImage)) {
-            data.featuredImage = await resolveImageUrl(data.featuredImage);
+        if (data.featuredImage) {
+            data.featuredImage = convertCloudUrlToStream(req, data.featuredImage);
         }
         res.status(201).json({ success: true, data });
     } catch (error) {
@@ -150,16 +142,13 @@ exports.updateNews = async (req, res) => {
         }
 
         if (req.file) {
-            if (post.featuredImage && isS3Key(post.featuredImage)) {
-                await deleteFromS3(post.featuredImage).catch(() => {});
-            }
-            post.featuredImage = req.file.key;
+            post.featuredImage = req.file.location || req.file.key;
         }
 
         await post.save();
         const data = post.toObject();
-        if (data.featuredImage && isS3Key(data.featuredImage)) {
-            data.featuredImage = await resolveImageUrl(data.featuredImage);
+        if (data.featuredImage) {
+            data.featuredImage = convertCloudUrlToStream(req, data.featuredImage);
         }
         res.status(200).json({ success: true, data });
     } catch (error) {
@@ -172,15 +161,10 @@ exports.deleteNews = async (req, res) => {
     try {
         const post = await News.findById(req.params.id);
         if (!post) return res.status(404).json({ success: false, message: 'News not found' });
-        if (post.featuredImage && isS3Key(post.featuredImage)) {
-            await deleteFromS3(post.featuredImage).catch(() => {});
-        }
+
         await News.findByIdAndDelete(req.params.id);
         res.status(200).json({ success: true, message: 'News deleted' });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }
 };
-
-exports.uploadFeatured = uploadFeatured;
-exports.NEWS_FEATURED_IMAGE_LIMIT_BYTES = NEWS_FEATURED_IMAGE_LIMIT_BYTES;

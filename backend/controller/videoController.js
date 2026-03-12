@@ -1,29 +1,36 @@
-
+const axios = require('axios');
 const Video = require('../model/video.model');
 const User = require('../model/user.model');
-const { s3Client, deleteFromS3, getPresignedUrl } = require('../utils/s3Client');
+const { deleteFromS3, getPresignedUrl } = require('../utils/s3Client');
 const multer = require('multer');
-const multerS3 = require('multer-s3');
-const path = require('path');
 const mongoose = require('mongoose');
 const PAYMENT_CONFIG = require('../config/payment');
 const Payment = require('../model/payment.model');
 const { drawInvoice, createInvoiceBuffer, sendInvoiceEmail } = require('../utils/pdfGenerator');
+const { convertCloudUrlToStream } = require('../utils/cloudStore');
 
-const storage = multerS3({
-    s3: s3Client,
-    bucket: 'brpl-uploads',
-    contentType: multerS3.AUTO_CONTENT_TYPE,
-    key: function (req, file, cb) {
-        const userId = req.userId ? req.userId.toString() : 'anonymous';
-        cb(null, `${userId}/${Date.now()}-${file.originalname}`);
-    },
+/* --S3-- */
+// const storage = multerS3({
+//     s3: s3Client,
+//     bucket: 'brpl-uploads',
+//     contentType: multerS3.AUTO_CONTENT_TYPE,
+//     key: function (req, file, cb) {
+//         const userId = req.userId ? req.userId.toString() : 'anonymous';
+//         cb(null, `${userId}/${Date.now()}-${file.originalname}`);
+//     },
+//     limits: {
+//         fileSize: 500 * 1024 * 1024 // 500MB
+//     }
+// });
+// const upload = multer({ storage: storage });
+/* --S3-- */
+
+const upload = multer({
+    storage: multer.memoryStorage(),
     limits: {
-        fileSize: 500 * 1024 * 1024 // 500MB
+        fileSize: 500 * 1024 * 1024
     }
 });
-
-const upload = multer({ storage: storage });
 
 const uploadVideo = async (req, res) => {
     try {
@@ -150,8 +157,8 @@ const getVideoById = async (req, res) => {
         if (!video) return res.status(404).json({ message: "Video not found" });
 
         if (video.filename) {
-            const signedUrl = await getPresignedUrl(video.filename);
-            const videoData = { ...video.toObject(), path: signedUrl || video.path };
+            const streamURL = convertCloudUrlToStream(req, video.path);
+            const videoData = { ...video.toObject(), path: streamURL };
             return res.status(200).json(videoData);
         }
 
@@ -286,6 +293,7 @@ const saveVideoAnalysis = async (req, res) => {
     }
 };
 
+
 module.exports = {
     upload,
     uploadVideo,
@@ -295,5 +303,6 @@ module.exports = {
     getLatestVideo,
     deleteVideo,
     downloadInvoice,
-    saveVideoAnalysis,
+    saveVideoAnalysis
+
 };

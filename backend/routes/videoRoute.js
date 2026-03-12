@@ -9,13 +9,15 @@ const {
     getLatestVideo,
     deleteVideo,
     downloadInvoice,
-    saveVideoAnalysis
+    saveVideoAnalysis,
+    getVideoStream
 } = require('../controller/videoController');
 
 const authenticate = require('../middleware/authMiddleware');
+const { uploadToVideoUploads } = require('../middleware/cloudStorageUploader');
 
 // Route to upload video -> Status becomes 'pending_payment'
-router.post('/upload', authenticate, upload.single('video'), uploadVideo);
+router.post('/upload', authenticate, upload.single('video'), uploadToVideoUploads, uploadVideo);
 
 // Route to verify payment -> Status becomes 'completed'
 router.post('/verify-payment', authenticate, verifyPayment);

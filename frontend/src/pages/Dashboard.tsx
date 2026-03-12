@@ -186,7 +186,7 @@ const Dashboard = () => {
         </div>
 
         {/* Content */}
-        <div className="relative z-10 flex flex-col md:flex-row justify-between md:items-center gap-6">
+        <div className="relative z-10 flex flex-col md:flex-row justify-between md:items-center gap-6" data-tour="welcome">
           <div className="space-y-2 max-w-lg">
             <h1 className="text-4xl md:text-5xl font-display font-bold text-foreground tracking-tight slide-in-from-left-5">
               {t("welcome")} <span className="text-primary glow-text">BRPL</span>
@@ -280,7 +280,7 @@ const Dashboard = () => {
           )}
 
           {/* Stats Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6" data-tour="stats">
             <Card className="glass-card hover:border-primary/50 transition-colors group">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground group-hover:text-primary transition-colors">
@@ -314,7 +314,7 @@ const Dashboard = () => {
 
           {/* Main Content Area */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div className="space-y-4">
+            <div className="space-y-4" data-tour="recent-uploads">
               <div className="flex items-center justify-between">
                 <h2 className="text-xl font-display font-semibold">{t("recent_uploads")}</h2>
                 <Link to="/dashboard/videos" className="text-sm text-primary hover:underline flex items-center">
@@ -349,7 +349,7 @@ const Dashboard = () => {
               </div>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-4" data-tour="system-status">
               <Card className="glass-card border-border">
                 <CardContent className="pt-6">
                   <h3 className="font-semibold mb-2">{t("system_status")}</h3>

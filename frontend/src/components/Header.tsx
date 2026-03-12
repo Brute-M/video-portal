@@ -9,6 +9,14 @@ const Header = () => {
     const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 768);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [navLinks, setNavLinks] = useState<any[]>([]);
+    const [expandedMenus, setExpandedMenus] = useState<Record<string, boolean>>({});
+
+    const toggleSubmenu = (label: string) => {
+        setExpandedMenus(prev => ({
+            ...prev,
+            [label]: !prev[label]
+        }));
+    };
 
     const socialImageSrc = (image: string) => {
         if (!image) return "";
@@ -199,23 +207,31 @@ const Header = () => {
 
             {/* Mobile Menu Dropdown - Left Aligned List with Separators */}
             {isMenuOpen && (
-                <div className="lg:hidden absolute top-full left-0 w-full bg-[#111a45] shadow-xl border-t border-white/10 z-50 px-6 py-4">
+                <div className="lg:hidden absolute top-full left-0 w-full bg-[#111a45] shadow-xl border-t border-white/10 z-50 px-6 py-4 overflow-y-auto max-h-[calc(100vh-110px)]">
                     <nav className="flex flex-col text-left">
                         {navLinks.filter(link => link.isActive).map((link) => (
                             link.subLinks ? (
                                 <div key={link._id || link.label} className="border-b border-white/20 last:border-0">
-                                    <div className="py-4 text-white text-[16px] font-medium">{link.label}</div>
-                                    <div className="pl-4 pb-2 border-l border-white/10 ml-1">
-                                        {link.subLinks.map((sub: any) => (
-                                            <Link
-                                                key={sub.label}
-                                                to={sub.path}
-                                                className="block py-2 text-white/80 hover:text-yellow-400 text-sm"
-                                                onClick={() => setIsMenuOpen(false)}
-                                            >
-                                                {sub.label}
-                                            </Link>
-                                        ))}
+                                    <button
+                                        className="w-full flex justify-between items-center py-4 text-white text-[16px] font-medium focus:outline-none focus:ring-0"
+                                        onClick={() => toggleSubmenu(link.label)}
+                                    >
+                                        <span>{link.label}</span>
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`transition-transform duration-200 ${expandedMenus[link.label] ? "rotate-180" : ""}`}><path d="m6 9 6 6 6-6" /></svg>
+                                    </button>
+                                    <div className={`overflow-hidden transition-all duration-300 ${expandedMenus[link.label] ? "max-h-screen opacity-100" : "max-h-0 opacity-0"}`}>
+                                        <div className="pl-4 pb-4 border-l border-white/10 ml-1">
+                                            {link.subLinks.map((sub: any) => (
+                                                <Link
+                                                    key={sub.label}
+                                                    to={sub.path}
+                                                    className="block py-2 text-white/80 hover:text-yellow-400 text-sm"
+                                                    onClick={() => setIsMenuOpen(false)}
+                                                >
+                                                    {sub.label}
+                                                </Link>
+                                            ))}
+                                        </div>
                                     </div>
                                 </div>
                             ) : link.isExternal ? (

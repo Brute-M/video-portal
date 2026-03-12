@@ -1,0 +1,69 @@
+const { default: axios } = require("axios");
+
+const convertCloudUrlToStream = (req, path) => {
+    const protocol = req.protocol;
+    const host = req.get('host');
+
+    return `${protocol}://${host}/api/cloud-store/preview?uri=${encodeURIComponent(path)}`;
+};
+
+const streamCloudStoreToUser = async (req, res) => {
+    try {
+        const CLOUD_STORAGE_SERVER_URL = process.env.CLOUD_STORAGE_SERVER_URL;
+        const { uri } = req.query;
+
+        if (!uri) {
+            return res.status(400).json({
+                statusCode: 400,
+                data: { message: 'Missing media URI' }
+            });
+        }
+
+        const baseUrl = CLOUD_STORAGE_SERVER_URL.replace(/\/$/, '');
+        const uriPath = uri.startsWith('/') ? uri : `/${uri}`;
+        const mediaUrl = `${baseUrl}${uriPath}`;
+
+        const headers = {};
+
+        if (req.headers.range) {
+            headers.Range = req.headers.range;
+        }
+
+        const response = await axios({
+            method: 'GET',
+            url: mediaUrl,
+            responseType: 'stream',
+            headers
+        });
+
+        res.status(response.status);
+
+        if (response.headers['content-type']) {
+            res.set('Content-Type', response.headers['content-type']);
+        }
+
+        if (response.headers['content-length']) {
+            res.set('Content-Length', response.headers['content-length']);
+        }
+
+        if (response.headers['accept-ranges']) {
+            res.set('Accept-Ranges', response.headers['accept-ranges']);
+        }
+
+        if (response.headers['content-range']) {
+            res.set('Content-Range', response.headers['content-range']);
+        }
+
+        response.data.pipe(res);
+
+    } catch (error) {
+        console.error('Streaming Error:', error?.response?.data || error.message);
+
+        return res.status(500).json({
+            statusCode: 500,
+            data: { message: 'Error streaming media' }
+        });
+    }
+};
+
+module.exports = { convertCloudUrlToStream, streamCloudStoreToUser };

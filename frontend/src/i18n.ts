@@ -96,7 +96,17 @@ const resources = {
             "pay_to_finalize": "Pay to finalize your video upload and make it live.",
             "video_upload": "Video Upload",
             "total": "Total",
-            "redirect_razorpay": "You will be redirected to Razorpay secure checkout to complete your payment of"
+            "redirect_razorpay": "You will be redirected to Razorpay secure checkout to complete your payment of",
+            "take_tour": "Take a tour",
+            "tour_welcome": "This is your dashboard home. Here you can see a quick overview and upload your first video once payment is complete.",
+            "tour_sidebar": "Use this menu to navigate: Dashboard, My Videos, Profile, and Settings.",
+            "tour_nav_dashboard": "Your dashboard home. See overview, stats, and quick actions here.",
+            "tour_nav_videos": "My Videos — Upload your video for analysis by API and view their reports.",
+            "tour_nav_profile": "My Profile — Update your profile, upload a profile image, and get your trial pass.",
+            "tour_nav_settings": "Settings — Manage your account and preferences.",
+            "tour_stats": "Your video count and storage usage appear here.",
+            "tour_recent": "Your most recent uploads are listed here. Click \"View all\" to go to the full videos page.",
+            "tour_system_status": "System status shows if upload and payment services are running."
         }
     },
     hi: {
@@ -184,6 +194,7 @@ const resources = {
             "change_video": "वीडियो बदलें",
             "delete_video": "वीडियो हटाएं",
             "download_report": "रिपोर्ट डाउनलोड करें",
+            "view_report": "रिपोर्ट देखें",
             "analyze_again": "फिर से विश्लेषण करें",
             "download_invoice": "चालान डाउनलोड करें",
             "no_videos_uploaded": "अभी तक कोई वीडियो अपलोड नहीं किया गया है। अपना पहला वीडियो अपलोड करके शुरुआत करें!",
@@ -191,7 +202,17 @@ const resources = {
             "pay_to_finalize": "अपना वीडियो अपलोड अंतिम रूप देने और इसे लाइव करने के लिए भुगतान करें।",
             "video_upload": "वीडियो अपलोड",
             "total": "कुल",
-            "redirect_razorpay": "आपको भुगतान पूरा करने के लिए रेज़रपे सुरक्षित चेकआउट पर पुनर्निर्देशित किया जाएगा"
+            "redirect_razorpay": "आपको भुगतान पूरा करने के लिए रेज़रपे सुरक्षित चेकआउट पर पुनर्निर्देशित किया जाएगा",
+            "take_tour": "टूर लें",
+            "tour_welcome": "यह आपका डैशबोर्ड होम है। यहां आप एक त्वरित अवलोकन देख सकते हैं और भुगतान पूरा होने के बाद अपना पहला वीडियो अपलोड कर सकते हैं।",
+            "tour_sidebar": "नेविगेट करने के लिए इस मेनू का उपयोग करें: डैशबोर्ड, मेरे वीडियो, प्रोफाइल और सेटिंग्स।",
+            "tour_nav_dashboard": "आपका डैशबोर्ड होम। यहां अवलोकन, आंकड़े और त्वरित क्रियाएं देखें।",
+            "tour_nav_videos": "मेरे वीडियो — API द्वारा विश्लेषण के लिए वीडियो अपलोड करें और रिपोर्ट देखें।",
+            "tour_nav_profile": "मेरी प्रोफाइल — प्रोफाइल अपडेट करें, प्रोफाइल छवि अपलोड करें और ट्रायल पास प्राप्त करें।",
+            "tour_nav_settings": "सेटिंग्स — अपने खाते और प्राथमिकताओं को प्रबंधित करें।",
+            "tour_stats": "आपकी वीडियो संख्या और स्टोरेज उपयोग यहां दिखाई देता है।",
+            "tour_recent": "आपके हाल के अपलोड यहां सूचीबद्ध हैं। पूर्ण वीडियो पेज पर जाने के लिए \"सभी देखें\" पर क्लिक करें।",
+            "tour_system_status": "सिस्टम स्थिति दिखाती है कि अपलोड और भुगतान सेवाएं चल रही हैं या नहीं।"
         }
     },
     mr: {

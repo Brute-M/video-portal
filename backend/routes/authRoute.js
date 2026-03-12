@@ -1,8 +1,18 @@
 const express = require('express');
 const router = express.Router();
+const multer = require('multer');
 const { login, register, upload, uploadProfileImage, uploadProfileImageHandler, sendOtp, verifyOtp, forgotPassword, resetPassword, registerCoach, loginCoach, resendWelcomeEmail, getPartnerProfile, getCoachMyPlayers, trackVisit, getVisits, saveStep1Data, storeSyncData, createSystemUser, updateSystemUser, deleteSystemUser, toggle2FA } = require('../controller/authController');
 const authenticate = require('../middleware/authMiddleware');
+const { uploadToPublicBucket } = require('../middleware/cloudStorageUploader');
+const { convertCloudUrlToStream } = require('../utils/cloudStore');
 const User = require('../model/user.model');
+
+const uploadMemory = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 500 * 1024 * 1024
+  }
+});
 
 router.post('/login', login);
 
@@ -27,7 +37,7 @@ router.delete('/delete-system-user/:id', authenticate, deleteSystemUser);
 router.put('/toggle-2fa/:userId', authenticate, toggle2FA);
 /* #swagger.consumes = ['application/json'] */
 router.post('/update-profile', authenticate, require('../controller/authController').updateProfile);
-router.post('/upload-profile-image', authenticate, uploadProfileImage.single('profileImage'), uploadProfileImageHandler);
+router.post('/upload-profile-image', authenticate, uploadMemory.single('profileImage'), uploadToPublicBucket, uploadProfileImageHandler);
 router.get('/partner/profile', authenticate, getPartnerProfile);
 router.get('/coach/my-players', authenticate, getCoachMyPlayers);
 router.get('/visits', getVisits);
@@ -56,6 +66,12 @@ router.get('/profile', authenticate, async (req, res) => {
     if (!user) {
       return res.status(404).json({ statusCode: 404, data: { message: 'User not found' } });
     }
+
+    let profileImageUrl = user.profileImage;
+    if (profileImageUrl && !profileImageUrl.startsWith('http')) {
+      profileImageUrl = convertCloudUrlToStream(req, profileImageUrl);
+    }
+
     res.json({
       statusCode: 200,
       data: {
@@ -66,7 +82,7 @@ router.get('/profile', authenticate, async (req, res) => {
         mobile: user.mobile,
         isFromLandingPage: user.isFromLandingPage,
         isPaid: user.isPaid || !!user.paymentId,
-        profileImage: user.profileImage,
+        profileImage: profileImageUrl,
         role: user.role,
         playerRole: user.playerRole,
         twoFaEnabled: user.twoFaEnabled || false

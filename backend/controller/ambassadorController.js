@@ -1,4 +1,5 @@
 const Ambassador = require('../model/Ambassador');
+const { convertCloudUrlToStream } = require('../utils/cloudStore');
 const { deleteFromS3, getPresignedUrl } = require('../utils/s3Client');
 
 exports.createAmbassador = async (req, res) => {
@@ -38,7 +39,7 @@ exports.getAllAmbassadors = async (req, res) => {
 
         const ambassadorsWithSignedUrls = await Promise.all(ambassadors.map(async (ambassador) => {
             if (ambassador.imageKey) {
-                const signedUrl = await getPresignedUrl(ambassador.imageKey);
+                const signedUrl = convertCloudUrlToStream(req, ambassador.image);
                 if (signedUrl) {
                     return { ...ambassador.toObject(), image: signedUrl };
                 }
@@ -61,7 +62,7 @@ exports.getAmbassadorById = async (req, res) => {
         }
 
         if (ambassador.imageKey) {
-            const signedUrl = await getPresignedUrl(ambassador.imageKey);
+            const signedUrl = convertCloudUrlToStream(req, ambassador.image);
             if (signedUrl) {
                 return res.status(200).json({ ...ambassador.toObject(), image: signedUrl });
             }

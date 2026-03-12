@@ -404,3 +404,20 @@
 .animate-broadcast-title {
   animation: broadcast-title-glow 2.5s ease-in-out infinite;
 }
+
+/* Dashboard tour (@reactour/tour) – theme-aware, above layout */
+[class*="reactour"] {
+  z-index: 99999 !important;
+}
+.reactour-popover-dashboard {
+  background: hsl(var(--popover)) !important;
+  color: hsl(var(--popover-foreground)) !important;
+  border: 1px solid hsl(var(--border));
+  z-index: 100000 !important;
+}
+.reactour__mask {
+  fill: rgba(0, 0, 0, 0.6);
+}
+.dark .reactour__mask {
+  fill: rgba(0, 0, 0, 0.75);
+}

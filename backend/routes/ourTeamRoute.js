@@ -1,15 +1,22 @@
 const express = require('express');
 const router = express.Router();
 const tourTeamController = require('../controller/ourTeamController');
-const { createS3Upload } = require('../utils/uploadHelper');
 const authenticate = require('../middleware/authMiddleware');
 
-const upload = createS3Upload('our-team', { limits: { fileSize: 5 * 1024 * 1024 } });
+const { uploadToPublicBucket } = require('../middleware/cloudStorageUploader');
+const multer = require('multer');
 
-router.post('/', authenticate, upload.single('image'), tourTeamController.createMember);
+const upload = multer({
+    storage: multer.memoryStorage(),
+    limits: {
+        fileSize: 500 * 1024 * 1024
+    }
+});
+
+router.post('/', authenticate, upload.single('image'), uploadToPublicBucket, tourTeamController.createMember);
 router.get('/', tourTeamController.getAllMembers);
 router.get('/:id', tourTeamController.getMemberById);
-router.put('/:id', authenticate, upload.single('image'), tourTeamController.updateMember);
+router.put('/:id', authenticate, upload.single('image'), uploadToPublicBucket, tourTeamController.updateMember);
 router.delete('/:id', authenticate, tourTeamController.deleteMember);
 
 module.exports = router;

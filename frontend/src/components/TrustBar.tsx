@@ -22,16 +22,16 @@ const TrustBar = () => {
             color: "text-purple-500", // TV/Broadcast color
         },
         {
-            icon: Bot,
-            hook: "100% Fair",
-            descriptor: "AI POWERED SELECTION",
-            color: "text-blue-500", // Technology/AI blue
-        },
-        {
             icon: Users,
             hook: "All Ages",
             descriptor: "U-18, U-19, U-24, U-40",
             color: "text-indigo-500", // People/Users
+        },
+        {
+            icon: Bot,
+            hook: "100% Fair",
+            descriptor: "Pure Skill Selection",
+            color: "text-blue-500", // Technology/AI blue
         },
         {
             icon: Timer,

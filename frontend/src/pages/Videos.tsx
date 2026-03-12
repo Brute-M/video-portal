@@ -807,61 +807,68 @@ const Videos = () => {
                         {videos.map((video) => (
                             <div
                                 key={video.id}
-                                className="glass-card p-4 flex flex-col sm:flex-row sm:items-center gap-4 transition-all hover:bg-secondary/40"
+                                className="glass-card p-4 flex flex-col xl:flex-row xl:items-center gap-4 transition-all hover:bg-secondary/40"
                             >
-                                <div className="w-12 h-12 rounded-lg bg-secondary flex items-center justify-center flex-shrink-0">
-                                    <Video className="w-6 h-6 text-primary" />
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                    <div className="flex items-center justify-between mb-1">
-                                        <h4 className="font-medium text-foreground truncate">
-                                            {video.name}
-                                        </h4>
-                                        <span className="text-sm text-muted-foreground flex-shrink-0 ml-4">
-                                            {formatFileSize(video.size)}
-                                        </span>
+                                <div className="flex items-start sm:items-center gap-4 flex-1 min-w-0">
+                                    <div className="w-12 h-12 rounded-lg bg-secondary flex items-center justify-center flex-shrink-0">
+                                        <Video className="w-6 h-6 text-primary" />
                                     </div>
-                                    <div className="flex items-center gap-3">
-                                        <Progress value={video.progress} className="flex-1 h-2" />
-                                        <span className="text-sm text-muted-foreground w-12 text-right">
-                                            {Math.round(video.progress)}%
-                                        </span>
-                                    </div>
-                                    <div className="mt-2">
-                                        {video.status === "uploading" && (
-                                            <span className="text-xs text-primary animate-pulse">{t('uploading')}</span>
-                                        )}
-                                        {video.status === "analyzing" && (
-                                            <span className="text-xs text-accent animate-pulse flex items-center gap-1">
-                                                <Loader2 className="w-3 h-3 animate-spin" />
-                                                {t('analyzing_video')}
-                                            </span>
-                                        )}
-                                        {video.status === "pending-payment" && !userProfile?.isPaid && (
-                                            <span className="text-xs text-accent flex items-center gap-1">
-                                                <CreditCard className="w-3 h-3" />
-                                                {t('awaiting_payment')}
-                                            </span>
-                                        )}
-                                        {(video.status === "completed" || (video.status === "pending-payment" && userProfile?.isPaid)) && (
-                                            <div className="flex gap-4">
-                                                <span className="text-xs text-green-500 flex items-center gap-1">
-                                                    <Check className="w-3 h-3" />
-                                                    {t('upload_complete')}
-                                                </span>
-                                                {video.analysis && (
-                                                    <span className="text-xs text-blue-500 flex items-center gap-1">
-                                                        <Activity className="w-3 h-3" />
-                                                        {t('analyzed')}
-                                                    </span>
-                                                )}
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-1 gap-1 sm:gap-4 w-full">
+                                            <div className="flex-1 min-w-0">
+                                                <h4
+                                                    className="font-medium text-foreground truncate max-w-[180px] sm:max-w-[250px] md:max-w-[350px] lg:max-w-[500px] xl:max-w-[400px] 2xl:max-w-[600px]"
+                                                    title={video.name}
+                                                >
+                                                    {video.name}
+                                                </h4>
                                             </div>
-                                        )}
+                                            <span className="text-sm text-muted-foreground flex-shrink-0">
+                                                {formatFileSize(video.size)}
+                                            </span>
+                                        </div>
+                                        <div className="flex items-center gap-3">
+                                            <Progress value={video.progress} className="flex-1 h-2" />
+                                            <span className="text-sm text-muted-foreground w-12 text-right flex-shrink-0">
+                                                {Math.round(video.progress)}%
+                                            </span>
+                                        </div>
+                                        <div className="mt-2">
+                                            {video.status === "uploading" && (
+                                                <span className="text-xs text-primary animate-pulse">{t('uploading')}</span>
+                                            )}
+                                            {video.status === "analyzing" && (
+                                                <span className="text-xs text-accent animate-pulse flex items-center gap-1">
+                                                    <Loader2 className="w-3 h-3 animate-spin" />
+                                                    {t('analyzing_video')}
+                                                </span>
+                                            )}
+                                            {video.status === "pending-payment" && !userProfile?.isPaid && (
+                                                <span className="text-xs text-accent flex items-center gap-1">
+                                                    <CreditCard className="w-3 h-3" />
+                                                    {t('awaiting_payment')}
+                                                </span>
+                                            )}
+                                            {(video.status === "completed" || (video.status === "pending-payment" && userProfile?.isPaid)) && (
+                                                <div className="flex gap-4">
+                                                    <span className="text-xs text-green-500 flex items-center gap-1">
+                                                        <Check className="w-3 h-3" />
+                                                        {t('upload_complete')}
+                                                    </span>
+                                                    {video.analysis && (
+                                                        <span className="text-xs text-blue-500 flex items-center gap-1">
+                                                            <Activity className="w-3 h-3" />
+                                                            {t('analyzed')}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
 
                                 {video.status === "pending-payment" && !userProfile?.isPaid && (
-                                    <div className="flex gap-2">
+                                    <div className="flex flex-wrap gap-2 xl:shrink-0 justify-start xl:justify-end mt-2 xl:mt-0">
                                         <Button
                                             variant="ghost"
                                             size="icon"
@@ -905,7 +912,7 @@ const Videos = () => {
                                 )}
 
                                 {((video.status === "completed") || (video.status === "pending-payment" && userProfile?.isPaid)) && (
-                                    <div className="flex gap-2">
+                                    <div className="flex flex-wrap gap-2 xl:shrink-0 justify-start xl:justify-end mt-2 xl:mt-0">
                                         {video.analysis && (
                                             <Button
                                                 variant="outline"
@@ -1067,17 +1074,28 @@ const Videos = () => {
             </Dialog>
 
             {selectedAnalysis && (
-                <div id="analysis-report-container" ref={analysisRef} className="mt-12 pt-8 border-t border-border animate-in slide-in-from-bottom-10 duration-700">
-                    <div className="flex justify-between items-center mb-6 no-print">
-                        <div>
-                            <h2 className="text-2xl font-display font-bold text-foreground">{t('analysis_report')}</h2>
-                            <p className="text-muted-foreground">Detailed performance analysis for {selectedAnalysis.role}</p>
+                <section
+                    id="analysis-report-container"
+                    ref={analysisRef}
+                    className="mt-14 pt-10 pb-8 animate-in slide-in-from-bottom-10 duration-700"
+                    aria-label={t('analysis_report')}
+                >
+                    <div className="rounded-2xl border-2 border-primary/20 bg-gradient-to-b from-card to-card/80 shadow-xl shadow-primary/5 overflow-hidden">
+                        <div className="bg-primary/5 border-b border-border/50 px-6 py-4 no-print">
+                            <p className="text-sm text-muted-foreground uppercase tracking-wider font-medium">
+                                {t('analysis_report')}
+                            </p>
+                            <p className="text-muted-foreground mt-0.5">
+                                {selectedAnalysis.role
+                                    ? `Detailed performance analysis for ${selectedAnalysis.role}`
+                                    : "Detailed performance analysis"}
+                            </p>
+                        </div>
+                        <div className="p-6 md:p-8">
+                            <AnalysisResult data={selectedAnalysis} showTitle={false} />
                         </div>
                     </div>
-                    <div className="bg-background/40 backdrop-blur-sm rounded-xl border border-border/50 p-1 shadow-lg">
-                        <AnalysisResult data={selectedAnalysis} />
-                    </div>
-                </div>
+                </section>
             )}
         </div>
     );

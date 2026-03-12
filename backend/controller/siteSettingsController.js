@@ -1,5 +1,6 @@
 const SiteSettings = require('../model/siteSettings.model');
-const { resolveImageUrl, getPresignedUrl } = require('../utils/s3Client');
+const { getPresignedUrl } = require('../utils/s3Client');
+const { convertCloudUrlToStream } = require('../utils/cloudStore');
 
 const DEFAULT_SETTINGS = {
     key: 'main',
@@ -29,7 +30,7 @@ exports.getPresignedUrl = async (req, res) => {
         if (!key || typeof key !== 'string') {
             return res.status(400).json({ success: false, message: 'Missing key' });
         }
-        const url = await getPresignedUrl(key);
+        const url = convertCloudUrlToStream(req, key);
         if (!url) return res.status(404).json({ success: false, message: 'Could not generate URL' });
         res.status(200).json({ success: true, url });
     } catch (error) {
@@ -45,15 +46,15 @@ exports.getSettings = async (req, res) => {
             settings = await SiteSettings.create(DEFAULT_SETTINGS);
         }
         const data = settings.toObject ? settings.toObject() : settings;
-        if (data.bannerImage) data.bannerImage = await resolveImageUrl(data.bannerImage);
-        if (data.teamsBannerImage) data.teamsBannerImage = await resolveImageUrl(data.teamsBannerImage);
+        if (data.bannerImage) data.bannerImage = convertCloudUrlToStream(req, data.bannerImage);
+        if (data.teamsBannerImage) data.teamsBannerImage = convertCloudUrlToStream(req, data.teamsBannerImage);
         // Use default social links if none in DB so header/footer always have icons
         if (!Array.isArray(data.socialLinks) || data.socialLinks.length === 0) {
             data.socialLinks = DEFAULT_SETTINGS.socialLinks;
         }
         for (let i = 0; i < data.socialLinks.length; i++) {
             if (data.socialLinks[i].image) {
-                data.socialLinks[i].image = await resolveImageUrl(data.socialLinks[i].image);
+                data.socialLinks[i].image = convertCloudUrlToStream(req, data.socialLinks[i].image);
             }
         }
         res.status(200).json({ success: true, data });
@@ -112,8 +113,8 @@ exports.uploadSocialIcon = async (req, res) => {
         if (!req.file) {
             return res.status(400).json({ success: false, message: 'No file uploaded' });
         }
-        const url = await resolveImageUrl(req.file.key);
-        res.status(200).json({ success: true, path: req.file.key, url: url || req.file.key });
+        const url = convertCloudUrlToStream(req, req.file.location || req.file.key);
+        res.status(200).json({ success: true, path: req.file.location || req.file.key, url: url || (req.file.location || req.file.key) });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }
@@ -127,11 +128,11 @@ exports.uploadBannerImage = async (req, res) => {
         }
         await SiteSettings.findOneAndUpdate(
             { key: 'main' },
-            { $set: { bannerImage: req.file.key } },
+            { $set: { bannerImage: req.file.location || req.file.key } },
             { new: true, upsert: true }
         );
-        const url = await resolveImageUrl(req.file.key);
-        res.status(200).json({ success: true, path: req.file.key, url });
+        const url = convertCloudUrlToStream(req, req.file.location || req.file.key);
+        res.status(200).json({ success: true, path: req.file.location || req.file.key, url });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }
@@ -145,11 +146,11 @@ exports.uploadTeamsBannerImage = async (req, res) => {
         }
         await SiteSettings.findOneAndUpdate(
             { key: 'main' },
-            { $set: { teamsBannerImage: req.file.key } },
+            { $set: { teamsBannerImage: req.file.location || req.file.key } },
             { new: true, upsert: true }
         );
-        const url = await resolveImageUrl(req.file.key);
-        res.status(200).json({ success: true, path: req.file.key, url });
+        const url = convertCloudUrlToStream(req, req.file.location || req.file.key);
+        res.status(200).json({ success: true, path: req.file.location || req.file.key, url });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }

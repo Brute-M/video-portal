@@ -1,0 +1,241 @@
+{
+  "role": "bowler",
+  "video_contents": "The frames show a batsman preparing to face a delivery, with the bowler visible in the background delivering the ball.",
+  "valid_for_role": true,
+  "message": "",
+  "summary": "The video captures the bowler delivering the ball, with focus on the batsman's stance and shot preparation.",
+  "categories": {
+    "run_up": {
+      "label": "Run-Up",
+      "scores": {
+        "rhythm": {
+          "score": 7,
+          "label": "Rhythm",
+          "comment": "The bowler shows a smooth rhythm in the run-up."
+        },
+        "consistency": {
+          "score": 7,
+          "label": "Consistency",
+          "comment": "Consistent approach observed in the delivery stride."
+        },
+        "speed_control": {
+          "score": 6,
+          "label": "Speed Control",
+          "comment": "Speed is controlled but could be more aggressive."
+        },
+        "alignment_to_target": {
+          "score": 8,
+          "label": "Alignment To Target",
+          "comment": "Good alignment towards the stumps."
+        },
+        "acceleration_phase": {
+          "score": 6,
+          "label": "Acceleration Phase",
+          "comment": "Acceleration is steady but lacks explosiveness."
+        }
+      },
+      "category_average": 6.8,
+      "category_comment": "Overall, the run-up is smooth with good alignment but could benefit from more aggressive acceleration."
+    },
+    "pre_delivery_gather": {
+      "label": "Pre-Delivery Gather",
+      "scores": {
+        "jump_height": {
+          "score": 6,
+          "label": "Jump Height",
+          "comment": "Moderate jump height observed."
+        },
+        "body_coil": {
+          "score": 7,
+          "label": "Body Coil",
+          "comment": "Decent body coil before delivery."
+        },
+        "stability_at_bound": {
+          "score": 7,
+          "label": "Stability At Bound",
+          "comment": "Stable during the bound phase."
+        },
+        "alignment_at_landing": {
+          "score": 8,
+          "label": "Alignment At Landing",
+          "comment": "Well-aligned at back foot landing."
+        }
+      },
+      "category_average": 7,
+      "category_comment": "Pre-delivery gather is stable with good alignment, though jump height could be improved."
+    },
+    "load_up_position": {
+      "label": "Load-Up Position",
+      "scores": {
+        "shoulder_alignment": {
+          "score": 7,
+          "label": "Shoulder Alignment",
+          "comment": "Shoulders are well-aligned during load-up."
+        },
+        "hip_rotation": {
+          "score": 6,
+          "label": "Hip Rotation",
+          "comment": "Hip rotation is present but could be more dynamic."
+        },
+        "back_foot_landing_angle": {
+          "score": 7,
+          "label": "Back Foot Landing Angle",
+          "comment": "Back foot lands at a good angle."
+        },
+        "front_foot_landing_direction": {
+          "score": 8,
+          "label": "Front Foot Landing Direction",
+          "comment": "Front foot lands in a strong braced position."
+        }
+      },
+      "category_average": 7,
+      "category_comment": "Load-up position is solid with good shoulder alignment and front foot bracing."
+    },
+    "release_mechanics": {
+      "label": "Release Mechanics",
+      "scores": {
+        "arm_path": {
+          "score": 7,
+          "label": "Arm Path",
+          "comment": "Arm path is efficient and direct."
+        },
+        "release_height": {
+          "score": 7,
+          "label": "Release Height",
+          "comment": "Release height is adequate."
+        },
+        "wrist_position": {
+          "score": 6,
+          "label": "Wrist Position",
+          "comment": "Wrist position is stable but could be more flexible."
+        },
+        "seam_position": {
+          "score": 7,
+          "label": "Seam Position",
+          "comment": "Seam position is consistent at release."
+        },
+        "finger_control": {
+          "score": 6,
+          "label": "Finger Control",
+          "comment": "Finger control is average, with room for improvement."
+        },
+        "head_position_at_release": {
+          "score": 8,
+          "label": "Head Position At Release",
+          "comment": "Head position is stable at release."
+        }
+      },
+      "category_average": 6.8,
+      "category_comment": "Release mechanics are solid with good arm path and head stability, though wrist and finger control could improve."
+    },
+    "follow_through": {
+      "label": "Follow Through",
+      "scores": {
+        "follow_through_direction": {
+          "score": 7,
+          "label": "Follow Through Direction",
+          "comment": "Follow-through is directed towards the target."
+        },
+        "balance": {
+          "score": 7,
+          "label": "Balance",
+          "comment": "Maintains good balance during follow-through."
+        },
+        "injury_risk_indicators": {
+          "score": 8,
+          "label": "Injury Risk Indicators",
+          "comment": "Low risk of injury observed."
+        },
+        "momentum_transfer": {
+          "score": 7,
+          "label": "Momentum Transfer",
+          "comment": "Momentum transfer is adequate."
+        }
+      },
+      "category_average": 7.3,
+      "category_comment": "Follow-through is balanced and directed, with low injury risk."
+    },
+    "variations": {
+      "label": "Variations",
+      "scores": {
+        "yorker_execution": {
+          "score": 6,
+          "label": "Yorker Execution",
+          "comment": "Yorker execution is average."
+        },
+        "slower_ball_execution": {
+          "score": 6,
+          "label": "Slower Ball Execution",
+          "comment": "Slower ball needs more disguise."
+        },
+        "bouncer_execution": {
+          "score": 7,
+          "label": "Bouncer Execution",
+          "comment": "Bouncer is executed with good height."
+        },
+        "cutter_execution": {
+          "score": 6,
+          "label": "Cutter Execution",
+          "comment": "Cutter delivery is average."
+        },
+        "seam_position_changes": {
+          "score": 7,
+          "label": "Seam Position Changes",
+          "comment": "Seam position changes are noticeable."
+        },
+        "wrist_position_changes": {
+          "score": 6,
+          "label": "Wrist Position Changes",
+          "comment": "Wrist position changes need more variation."
+        }
+      },
+      "category_average": 6.3,
+      "category_comment": "Variations are present but need more refinement and disguise."
+    },
+    "line_and_length_control": {
+      "label": "Line & Length Control",
+      "scores": {
+        "consistency": {
+          "score": 7,
+          "label": "Consistency",
+          "comment": "Consistent line and length maintained."
+        },
+        "ability_to_hit_target": {
+          "score": 7,
+          "label": "Ability To Hit Target",
+          "comment": "Hits target areas regularly."
+        },
+        "adjustment_after_being_hit": {
+          "score": 6,
+          "label": "Adjustment After Being Hit",
+          "comment": "Adjustments after being hit could be quicker."
+        }
+      },
+      "category_average": 6.7,
+      "category_comment": "Line and length control is consistent, but adjustments can be faster."
+    }
+  },
+  "overall_average": 6.8,
+  "top_strengths": [
+    "Alignment to target",
+    "Head position at release",
+    "Follow-through balance"
+  ],
+  "key_weaknesses": [
+    "Acceleration phase",
+    "Wrist position",
+    "Slower ball disguise"
+  ],
+  "recommendations": [
+    "Work on explosive acceleration during run-up.",
+    "Improve wrist flexibility for better control.",
+    "Enhance slower ball disguise for effectiveness."
+  ],
+  "jobId": "2323c49d-c631-4eff-a86d-f9852899de6f",
+  "videoMetadata": {
+    "duration": 9,
+    "resolution": "900x474"
+  },
+  "analyzedAt": "2026-03-10T05:28:22.138Z",
+  "framesAnalyzed": 9
+}

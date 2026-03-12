@@ -18,6 +18,8 @@ const fs = require('fs');
 const multerS3 = require('multer-s3');
 const SiteSettings = require('../model/siteSettings.model');
 
+const { convertCloudUrlToStream } = require('../utils/cloudStore');
+
 const s3 = new S3Client({
   region: process.env.AWS_REGION || 'ap-south-1'
 });
@@ -1110,6 +1112,7 @@ const exportStep1Leads = async (req, res) => {
   }
 };
 
+
 const uploadProfileImageHandler = async (req, res) => {
   try {
     if (!req.file) {
@@ -1135,16 +1138,17 @@ const uploadProfileImageHandler = async (req, res) => {
       });
     }
 
-    // Update user profile image with S3 URL
-    // req.file.location contains the S3 URL
-    user.profileImage = req.file.location;
+    // Update user profile image with path
+    user.profileImage = req.file.location || req.file.key;
     await user.save();
+
+    const imageUrl = convertCloudUrlToStream(req, user.profileImage);
 
     res.json({
       statusCode: 200,
       data: {
         message: 'Profile image uploaded successfully',
-        imageUrl: user.profileImage, // Return full S3 URL
+        imageUrl: imageUrl,
         profileImage: user.profileImage
       }
     });
