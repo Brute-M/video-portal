@@ -82,7 +82,7 @@ const getEvents = async (req, res) => {
         const events = await Promise.all(eventsRaw.map(async (event) => {
             // Sign main image
             if (event.image) {
-                event.image = convertCloudUrlToStream(event.image, req);
+                event.image = convertCloudUrlToStream(req, event.image);
             }
 
             // Sign gallery media
