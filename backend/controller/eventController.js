@@ -1,4 +1,5 @@
 const Event = require('../model/event.model');
+const { convertCloudUrlToStream } = require('../utils/cloudStore');
 const { s3Client, deleteFromS3, getPresignedUrl } = require('../utils/s3Client');
 const multer = require('multer');
 const multerS3 = require('multer-s3');
@@ -81,11 +82,7 @@ const getEvents = async (req, res) => {
         const events = await Promise.all(eventsRaw.map(async (event) => {
             // Sign main image
             if (event.image) {
-                const key = getKeyFromUrl(event.image);
-                if (key) {
-                    const signed = await getPresignedUrl(key);
-                    if (signed) event.image = signed;
-                }
+                event.image = convertCloudUrlToStream(event.image, req);
             }
 
             // Sign gallery media

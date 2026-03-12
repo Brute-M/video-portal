@@ -12,7 +12,7 @@ const { uploadToPublicBucket } = require("../middleware/cloudStorageUploader");
 
 const dbURI =
     process.env.MONGO_URL ||
-    "mongodb+srv://brpl-dev-write:YnJwbC1kZXYtd3JpdGU@brpl-dev.nj1umik.mongodb.net/brpl-development";
+    "mongodb+srv://brpl-dev-write:YnJwbC1kZXYtd3JpdGU@brpl-dev.nj1umik.mongodb.net/brpl";
 
 
 const streamToBuffer = async (stream) => {
