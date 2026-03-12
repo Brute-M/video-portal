@@ -4,6 +4,10 @@ const convertCloudUrlToStream = (req, path) => {
     const protocol = req.protocol;
     const host = req.get('host');
 
+    if (process.env.NODE_ENV === 'production') {
+        return `${protocol}://${host}/api/api/cloud-store/preview?uri=${encodeURIComponent(path)}`;
+    }
+
     return `${protocol}://${host}/api/cloud-store/preview?uri=${encodeURIComponent(path)}`;
 };
 
