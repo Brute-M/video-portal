@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
+import { Helmet } from "react-helmet-async";
 import PageBanner from "@/components/PageBanner";
 import apiClient from "@/apihelper/api";
 import {
@@ -12,6 +13,23 @@ interface FAQ {
     _id: string;
     question: string;
     answer: string;
+}
+
+/** FAQPage schema for search engines (Google FAQ rich results) */
+function buildFaqPageSchema(faqs: FAQ[]) {
+    if (!faqs.length) return null;
+    return {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        mainEntity: faqs.map((faq) => ({
+            "@type": "Question",
+            name: faq.question,
+            acceptedAnswer: {
+                "@type": "Answer",
+                text: faq.answer,
+            },
+        })),
+    };
 }
 
 const FAQs = () => {
@@ -34,8 +52,15 @@ const FAQs = () => {
         fetchFAQs();
     }, []);
 
+    const faqSchema = useMemo(() => buildFaqPageSchema(faqs), [faqs]);
+
     return (
         <div className="min-h-screen bg-slate-50 font-sans">
+            {faqSchema && (
+                <Helmet>
+                    <script type="application/ld+json">{JSON.stringify(faqSchema)}</script>
+                </Helmet>
+            )}
             <PageBanner pageKey="faqs" title="Frequently Asked Questions" currentPage="FAQs" />
 
             <div className="max-w-4xl mx-auto px-6 py-16">
