@@ -2,6 +2,27 @@ const SiteSettings = require('../model/siteSettings.model');
 const { getPresignedUrl } = require('../utils/s3Client');
 const { convertCloudUrlToStream } = require('../utils/cloudStore');
 
+/**
+ * If the admin sends back a stream URL (from GET response), extract and return the storage key.
+ * Otherwise return the value as-is (it's already a key or path like /facebook.png).
+ * This prevents overwriting DB keys with stream URLs when saving "All Settings" without re-uploading.
+ */
+function normalizeSocialLinkImage(image) {
+    if (!image || typeof image !== 'string') return image;
+    const trimmed = image.trim();
+    if (!trimmed) return trimmed;
+    // Our stream URL format: .../cloud-store/preview?uri=encoded_key
+    const match = trimmed.match(/[?&]uri=([^&]+)/);
+    if (match) {
+        try {
+            return decodeURIComponent(match[1]);
+        } catch (e) {
+            return trimmed;
+        }
+    }
+    return trimmed;
+}
+
 const DEFAULT_SETTINGS = {
     key: 'main',
     contactAddress: 'Ground Floor, Suite G-01, Procapitus Business Park, D-247/4A, D Block, Sector 63, Noida, Uttar Pradesh 201309',
@@ -76,7 +97,14 @@ exports.updateSettings = async (req, res) => {
         if (mapEmbedUrl !== undefined) update.mapEmbedUrl = mapEmbedUrl;
         if (socialLinks !== undefined) {
             try {
-                update.socialLinks = typeof socialLinks === 'string' ? JSON.parse(socialLinks) : socialLinks;
+                let links = typeof socialLinks === 'string' ? JSON.parse(socialLinks) : socialLinks;
+                if (Array.isArray(links)) {
+                    links = links.map((link) => ({
+                        ...link,
+                        image: link && link.image !== undefined ? normalizeSocialLinkImage(link.image) : (link && link.image) || ''
+                    }));
+                }
+                update.socialLinks = links;
             } catch (e) {
                 return res.status(400).json({ success: false, message: 'Invalid socialLinks JSON' });
             }

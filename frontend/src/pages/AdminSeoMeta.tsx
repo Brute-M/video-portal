@@ -16,6 +16,7 @@ export default function AdminSeoMeta() {
     const [isLoading, setIsLoading] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [customHeadScripts, setCustomHeadScripts] = useState("");
+    const [customBodyScripts, setCustomBodyScripts] = useState("");
     const [scriptsLoading, setScriptsLoading] = useState(true);
     const [scriptsSaving, setScriptsSaving] = useState(false);
 
@@ -62,8 +63,10 @@ export default function AdminSeoMeta() {
                 const res = await api.get("/api/cms/site-settings");
                 const data = res.data?.data;
                 setCustomHeadScripts(data?.customHeadScripts != null ? String(data.customHeadScripts) : "");
+                setCustomBodyScripts(data?.customBodyScripts != null ? String(data.customBodyScripts) : "");
             } catch {
                 setCustomHeadScripts("");
+                setCustomBodyScripts("");
             } finally {
                 setScriptsLoading(false);
             }
@@ -159,7 +162,10 @@ export default function AdminSeoMeta() {
         e.preventDefault();
         setScriptsSaving(true);
         try {
-            await api.put("/api/cms/site-settings", { customHeadScripts: customHeadScripts.trim() });
+            await api.put("/api/cms/site-settings", {
+                customHeadScripts: customHeadScripts.trim(),
+                customBodyScripts: customBodyScripts.trim()
+            });
             toast({
                 title: "Success",
                 description: "Scripts saved. They will be injected on the next page load across the site.",
@@ -201,15 +207,37 @@ export default function AdminSeoMeta() {
                             <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
                         </div>
                     ) : (
-                        <form onSubmit={handleSaveScripts} className="space-y-4">
-                            <Label htmlFor="customHeadScripts" className="font-medium">Script/Meta code (e.g. &lt;script&gt;...&lt;/script&gt; or &lt;meta ... /&gt;)</Label>
-                            <CodeEditorWithHighlight
-                                id="customHeadScripts"
-                                value={customHeadScripts}
-                                onChange={setCustomHeadScripts}
-                                placeholder="Paste the code from Google (e.g. gtag.js or Search Console verification). Include full script/meta tags."
-                                rows={12}
-                            />
+                        <form onSubmit={handleSaveScripts} className="space-y-6">
+                            <div className="space-y-2">
+                                <Label htmlFor="customHeadScripts" className="font-medium">Global Head Script/Meta code</Label>
+                                <p className="text-xs text-muted-foreground">
+                                    Injected into the <code className="text-xs bg-muted px-1 rounded">&lt;head&gt;</code> of every public page.
+                                    Use this for Google Analytics, Search Console verification, Meta Pixel, etc.
+                                </p>
+                                <CodeEditorWithHighlight
+                                    id="customHeadScripts"
+                                    value={customHeadScripts}
+                                    onChange={setCustomHeadScripts}
+                                    placeholder="Paste scripts or meta tags for the &lt;head&gt; (e.g. GA gtag.js, Search Console, Meta Pixel)."
+                                    rows={8}
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="globalCustomBodyScripts" className="font-medium">Global Body Scripts (e.g. GTM noscript)</Label>
+                                <p className="text-xs text-muted-foreground">
+                                    Injected into the <code className="text-xs bg-muted px-1 rounded">&lt;body&gt;</code> on every public page.
+                                    Use this for snippets that must live in the body, like the Google Tag Manager noscript iframe.
+                                </p>
+                                <CodeEditorWithHighlight
+                                    id="globalCustomBodyScripts"
+                                    value={customBodyScripts}
+                                    onChange={setCustomBodyScripts}
+                                    placeholder="Paste body-only snippets (e.g. Google Tag Manager noscript iframe) that should run on every page."
+                                    rows={6}
+                                />
+                            </div>
+
                             <Button type="submit" disabled={scriptsSaving}>
                                 {scriptsSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                                 Save scripts
