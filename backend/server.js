@@ -2,8 +2,6 @@ const express = require("express");
 require("dotenv").config();
 const cors = require("cors");
 const mongoose = require("mongoose");
-// const winston = require('winston');
-// const expressWinston = require('express-winston');
 
 const userRoutes = require("./routes/userRoute");
 const authRoutes = require("./routes/authRoute");
@@ -19,7 +17,6 @@ const ambassadorRoutes = require("./routes/ambassadorRoute");
 const teamRoutes = require("./routes/teamRoute");
 const partnerRoutes = require("./routes/partnerRoutes");
 const webhookRoutes = require("./routes/webhookRoute");
-// const { streamCloudStoreToUser } = require("./utils/cloudStore");
 
 const path = require("path");
 const app = express();
