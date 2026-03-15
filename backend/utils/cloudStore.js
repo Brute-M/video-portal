@@ -1,4 +1,6 @@
-const { default: axios } = require("axios");
+// const { default: axios } = require("axios");
+const { request } = require("undici");
+
 
 const convertCloudUrlToStream = (req, path) => {
     const backendUrl = process.env.BACKEND_URL;
@@ -29,43 +31,40 @@ const streamCloudStoreToUser = async (req, res) => {
         const headers = {};
 
         if (req.headers.range) {
-            headers["Range"] = req.headers.range;
+            headers["range"] = req.headers.range;
         }
 
-        const response = await axios({
+        const { statusCode, headers: upstreamHeaders, body } = await request(mediaUrl, {
             method: "GET",
-            url: mediaUrl,
-            responseType: "stream",
-            headers,
-            validateStatus: () => true
+            headers
         });
 
-        res.status(response.status);
+        res.status(statusCode);
 
-        if (response.headers["content-type"]) {
-            res.setHeader("Content-Type", response.headers["content-type"]);
-        } else {
-            res.setHeader("Content-Type", "video/mp4");
+        // Forward important headers
+        if (upstreamHeaders["content-type"]) {
+            res.setHeader("Content-Type", upstreamHeaders["content-type"]);
         }
 
-        if (response.headers["content-length"]) {
-            res.setHeader("Content-Length", response.headers["content-length"]);
+        if (upstreamHeaders["content-length"]) {
+            res.setHeader("Content-Length", upstreamHeaders["content-length"]);
         }
 
-        if (response.headers["content-range"]) {
-            res.setHeader("Content-Range", response.headers["content-range"]);
+        if (upstreamHeaders["content-range"]) {
+            res.setHeader("Content-Range", upstreamHeaders["content-range"]);
         }
 
-        res.setHeader("Accept-Ranges", "bytes");
+        if (upstreamHeaders["accept-ranges"]) {
+            res.setHeader("Accept-Ranges", upstreamHeaders["accept-ranges"]);
+        }
 
         res.setHeader("Content-Disposition", "inline");
-
         res.setHeader("Cache-Control", "public, max-age=3600");
 
-        response.data.pipe(res);
+        body.pipe(res);
 
     } catch (error) {
-        console.error("Streaming Error:", error?.response?.data || error.message);
+        console.error("Streaming Error:", error);
 
         if (!res.headersSent) {
             res.status(500).json({
