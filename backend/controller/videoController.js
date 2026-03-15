@@ -144,6 +144,11 @@ const verifyPayment = async (req, res) => {
 const getUserVideos = async (req, res) => {
     try {
         const videos = await Video.find({ userId: req.userId }).sort({ createdAt: -1 });
+
+        videos.forEach(video => {
+            video.path = convertCloudUrlToStream(req, video.path);
+        });
+
         res.status(200).json({ statusCode: 200, data: videos });
     } catch (error) {
         console.error(error);

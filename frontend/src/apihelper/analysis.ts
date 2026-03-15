@@ -88,9 +88,19 @@ export const analyzeVideo = async (formData: FormData): Promise<{
         const result = await getAnalysisStatus(jobId);
         const status = (result.status ?? result?.data?.status ?? '').toLowerCase();
 
+        window.dispatchEvent(new CustomEvent('analysis:progress', {
+            detail: { jobId, attempt, total: MAX_POLL_ATTEMPTS, result }
+        }));
+
         if (status === 'completed' || status === 'complete' || status === 'done') {
             const analysis = await getAnalysisResult(jobId);
             const role = result.data?.role ?? formData.get('role')?.toString();
+
+            /* Use this to handle complete event */
+            // window.dispatchEvent(new CustomEvent('analysis:progress', {
+            //     detail: { jobId, attempt, total: MAX_POLL_ATTEMPTS, status: 'completed', raw: result }
+            // }));
+
             return {
                 success: true,
                 data: {
@@ -106,6 +116,11 @@ export const analyzeVideo = async (formData: FormData): Promise<{
                 result.message ??
                 result.error ??
                 'Analysis failed';
+
+            window.dispatchEvent(new CustomEvent('analysis:progress', {
+                detail: { jobId, attempt, total: MAX_POLL_ATTEMPTS, status: 'failed', raw: result }
+            }));
+
             throw new Error(typeof message === 'string' ? message : 'Analysis failed');
         }
 

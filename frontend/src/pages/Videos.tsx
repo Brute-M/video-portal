@@ -80,6 +80,19 @@ const Videos = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [userProfile, setUserProfile] = useState<any>(null);
     const [isProfileLoading, setIsProfileLoading] = useState(true);
+    const [analysisInformation, setAnalysisInformation] = useState<any>(null);
+
+    useEffect(() => {
+        const handleProgress = (e: Event) => {
+            const { result } = (e as CustomEvent).detail ?? {};
+            if (!result) return;
+
+            setAnalysisInformation(result);
+        };
+
+        window.addEventListener('analysis:progress', handleProgress);
+        return () => window.removeEventListener('analysis:progress', handleProgress);
+    }, []);
 
     // Define Role Categories
     useEffect(() => {
@@ -645,6 +658,8 @@ const Videos = () => {
         }
     };
 
+
+
     const isPaid = userProfile?.isPaid || videos.length > 0;
 
     if (isProfileLoading) {
@@ -840,7 +855,7 @@ const Videos = () => {
                                             {video.status === "analyzing" && (
                                                 <span className="text-xs text-accent animate-pulse flex items-center gap-1">
                                                     <Loader2 className="w-3 h-3 animate-spin" />
-                                                    {t('analyzing_video')}
+                                                    {t('analyzing_video')} {analysisInformation?.progress ? `(${analysisInformation?.progress})%` : ''}
                                                 </span>
                                             )}
                                             {video.status === "pending-payment" && !userProfile?.isPaid && (

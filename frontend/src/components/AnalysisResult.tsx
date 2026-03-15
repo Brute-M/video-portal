@@ -60,6 +60,48 @@ const getValByRegex = (obj: any, regex: RegExp) => {
     return undefined;
 };
 
+const renderDynamicValue = (value: any, depth = 0): JSX.Element => {
+    const formatLabel = (k: string) =>
+        k.replace(/_/g, ' ').replace(/([A-Z])/g, ' $1').trim().replace(/\b\w/g, l => l.toUpperCase());
+
+    if (Array.isArray(value)) {
+        return (
+            <ul className={`space-y-1.5 ${depth > 0 ? 'mt-1 ml-3' : ''}`}>
+                {value.map((item, i) => (
+                    <li key={i} className="flex gap-2 text-sm text-slate-300">
+                        <span className="shrink-0 mt-1 w-1.5 h-1.5 rounded-full bg-slate-500 inline-block" />
+                        <span className="leading-snug">
+                            {typeof item === 'object' && item !== null
+                                ? renderDynamicValue(item, depth + 1)
+                                : String(item)}
+                        </span>
+                    </li>
+                ))}
+            </ul>
+        );
+    }
+
+    if (typeof value === 'object' && value !== null) {
+        return (
+            <div className={`space-y-3 ${depth > 0 ? 'ml-3 mt-1 pl-3 border-l border-slate-700' : ''}`}>
+                {Object.entries(value).map(([k, v]) => (
+                    <div key={k}>
+                        <p className={`font-semibold capitalize ${depth === 0 ? 'text-slate-200 text-sm mb-1' : 'text-slate-400 text-xs mb-0.5'
+                            }`}>
+                            {formatLabel(k)}
+                        </p>
+                        {typeof v === 'object' && v !== null
+                            ? renderDynamicValue(v, depth + 1)
+                            : <p className="text-sm text-slate-300 leading-snug">{String(v)}</p>}
+                    </div>
+                ))}
+            </div>
+        );
+    }
+
+    return <span className="text-sm text-slate-300">{String(value ?? '')}</span>;
+};
+
 export const AnalysisResult = ({ data, showTitle = true }: AnalysisResultProps) => {
     const { t } = useTranslation();
 
@@ -99,6 +141,12 @@ export const AnalysisResult = ({ data, showTitle = true }: AnalysisResultProps) 
         if (typeof recommendations === 'string') recommendations = recommendations.split('\n').filter(s => s.trim().length > 0);
         else recommendations = [];
     }
+
+    const safeRender = (text: any): JSX.Element | string => {
+        if (typeof text === 'string') return text;
+        if (typeof text === 'object' && text !== null) return renderDynamicValue(text);
+        return String(text || '');
+    };
 
     const formatKey = (key: string) => {
         const exists = t(key, { defaultValue: '__NOT_FOUND__' }) !== '__NOT_FOUND__';
@@ -268,14 +316,14 @@ export const AnalysisResult = ({ data, showTitle = true }: AnalysisResultProps) 
                         <Video className="w-4 h-4 text-slate-400" />
                         <h3 className="font-bold text-xs uppercase tracking-wider text-slate-400">Video Contents</h3>
                     </div>
-                    <p className="text-sm leading-relaxed text-slate-300">{videoContents}</p>
+                    <div className="text-sm leading-relaxed text-slate-300">{safeRender(videoContents)}</div>
                 </div>
             )}
 
             {suitability && suitability !== "true" && suitability !== true && (
                 <div className="bg-[#2A2111] border border-amber-900/50 rounded-xl p-5 mb-6 flex items-start gap-4">
                     <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
-                    <p className="text-amber-500 text-sm font-medium leading-relaxed">{String(suitability)}</p>
+                    <div className="text-amber-500 text-sm font-medium leading-relaxed">{safeRender(suitability)}</div>
                 </div>
             )}
 
@@ -289,9 +337,9 @@ export const AnalysisResult = ({ data, showTitle = true }: AnalysisResultProps) 
                             <span className="text-orange-500 text-xl">🏏</span> {role} Analysis — {(overallScore).toFixed(1)}/10
                         </span>
                     </div>
-                    <p className="text-slate-400 text-sm leading-relaxed max-w-3xl">
-                        {summary || `The ${role.toLowerCase()} demonstrates a solid setup...`}
-                    </p>
+                    <div className="text-slate-400 text-sm leading-relaxed max-w-3xl">
+                        {summary ? safeRender(summary) : `The ${role.toLowerCase()} demonstrates a solid setup...`}
+                    </div>
                     <div className="flex flex-wrap justify-center md:justify-start gap-2 pt-2">
                         <span className="px-3 py-1 bg-slate-800 border border-slate-700 text-[10px] font-bold tracking-wider text-slate-300 rounded-full uppercase">
                             {role}

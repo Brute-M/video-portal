@@ -5,6 +5,7 @@ const ExcelJS = require('exceljs');
 const { sendBulkRegistrationEmail } = require('../utils/emailService');
 const { createInvoiceBuffer } = require('../utils/pdfGenerator');
 const Video = require('../model/video.model');
+const { convertCloudUrlToStream } = require('../utils/cloudStore');
 
 /**
  * Controller to get all users.
@@ -258,6 +259,7 @@ const getUserById = async (req, res) => {
           trail_video: 1, // Include trail_video from user document
           videoCount: { $size: '$userVideos' },
           videos: '$userVideos',
+          profileImage: '$profileImage',
           paymentAmount: {
             $add: [
               { $ifNull: ['$paymentAmount', 0] },
@@ -310,15 +312,19 @@ const getUserById = async (req, res) => {
 
     if (userData.videos && userData.videos.length > 0) {
       await Promise.all(userData.videos.map(async (video) => {
-        const key = video.filename || (video.path ? video.path.split('/').pop() : '');
+        const key = video.path;
         if (key) {
-          const signedUrl = await getPresignedUrl(key);
+          const signedUrl = convertCloudUrlToStream(req, key);
           if (signedUrl) {
             video.path = signedUrl;
             video.url = signedUrl;
           }
         }
       }));
+    }
+
+    if (userData?.profileImage) {
+      userData.profileImage = convertCloudUrlToStream(req, userData.profileImage);
     }
 
     res.json(userData);

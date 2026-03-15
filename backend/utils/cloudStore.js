@@ -1,15 +1,13 @@
 const { default: axios } = require("axios");
 
 const convertCloudUrlToStream = (req, path) => {
-    const protocol = req.protocol;
-    const host = req.get('host');
+    const backendUrl = process.env.BACKEND_URL;
 
     if (process.env.NODE_ENV === 'production') {
-        return `${protocol}://${host}/api/api/cloud-store/preview?uri=${encodeURIComponent(path)}`;
-        // return `${process.env.CLOUD_STORAGE_SERVER_URL}${path}`;
+        return `${backendUrl}/api/cloud-store/preview?uri=${encodeURIComponent(path)}`;
     }
 
-    return `${protocol}://${host}/api/cloud-store/preview?uri=${encodeURIComponent(path)}`;
+    return `${backendUrl}/cloud-store/preview?uri=${encodeURIComponent(path)}`;
 };
 
 const streamCloudStoreToUser = async (req, res) => {
