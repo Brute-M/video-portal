@@ -22,6 +22,7 @@
     "exceljs": "^4.4.0",
     "express": "^4.21.2",
     "express-winston": "^4.2.0",
+    "http-proxy-middleware": "^3.0.5",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.13.0",
     "morgan": "^1.10.1",
@@ -36,7 +37,6 @@
     "swagger-autogen": "^2.23.7",
     "swagger-ui-express": "^5.0.1",
     "toml": "^3.0.0",
-    "undici": "^7.24.3",
     "uuid": "^13.0.0",
     "winston": "^3.19.0"
   }

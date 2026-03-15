@@ -19,7 +19,7 @@ const ambassadorRoutes = require("./routes/ambassadorRoute");
 const teamRoutes = require("./routes/teamRoute");
 const partnerRoutes = require("./routes/partnerRoutes");
 const webhookRoutes = require("./routes/webhookRoute");
-const { streamCloudStoreToUser } = require("./utils/cloudStore");
+// const { streamCloudStoreToUser } = require("./utils/cloudStore");
 
 const path = require("path");
 const app = express();
@@ -106,7 +106,42 @@ app.use("/api", userRoutes);
 app.use("/admin", adminRoutes);
 app.use("/api/admin", adminRoutes); // Alias for consistency
 
-app.get("/api/cloud-store/preview", streamCloudStoreToUser);
+
+const { createProxyMiddleware } = require("http-proxy-middleware");
+
+app.use(
+  "/api/cloud-store/preview",
+  createProxyMiddleware({
+    target: process.env.CLOUD_STORAGE_SERVER_URL,
+    changeOrigin: true,
+
+    pathRewrite: (path, req) => {
+      const uri = req.query.uri;
+
+      if (!uri) {
+        return path;
+      }
+
+      return uri.startsWith("/") ? uri : `/${uri}`;
+    },
+
+    onProxyReq: (proxyReq, req, res) => {
+      // Forward range headers (important for Safari)
+      if (req.headers.range) {
+        proxyReq.setHeader("Range", req.headers.range);
+      }
+    },
+
+    onProxyRes: (proxyRes, req, res) => {
+      // Ensure Safari compatibility
+      res.setHeader("Accept-Ranges", "bytes");
+      res.setHeader("Content-Disposition", "inline");
+      res.setHeader("Cache-Control", "public, max-age=3600");
+    },
+
+    logLevel: "debug"
+  })
+);
 
 app.listen(port, () => {
   console.log(`server is running on port ${port}`);
