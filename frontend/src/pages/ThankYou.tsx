@@ -1,4 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
+import { useEffect } from "react";
 import { CheckCircle2, ArrowRight, LayoutDashboard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import SEO from "@/components/SEO";
@@ -6,6 +7,40 @@ import SEO from "@/components/SEO";
 const ThankYou = () => {
     const location = useLocation();
     const isPayment = location.state?.type === 'payment';
+
+    useEffect(() => {
+        // Dynamically load Trackier Web SDK and fire conversion on Thank You page
+        const script = document.createElement("script");
+        script.src = "https://static-cdn.trackier.com/js/trackier-web-sdk.js";
+        script.async = true;
+
+        script.onload = () => {
+            const w = window as any;
+            if (w.TrackierWebSDK && typeof w.TrackierWebSDK.trackConv === "function") {
+                try {
+                    w.TrackierWebSDK.trackConv(
+                        "marcamor.gotrackier.io",
+                        "69b7f797d9f00e58a834d12f",
+                        { is_iframe: true }
+                    );
+                } catch (err) {
+                    console.error("TrackierWebSDK.trackConv error:", err);
+                }
+            } else {
+                console.warn("TrackierWebSDK not available after script load");
+            }
+        };
+
+        script.onerror = () => {
+            console.error("Failed to load Trackier Web SDK script");
+        };
+
+        document.body.appendChild(script);
+
+        return () => {
+            document.body.removeChild(script);
+        };
+    }, []);
 
     return (
         <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4 relative overflow-hidden">

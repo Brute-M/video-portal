@@ -15,7 +15,7 @@ const RegistrationHero = () => {
         <section className="relative w-full h-auto py-10 md:py-0 md:h-[calc(100vh-80px)] flex items-center justify-center overflow-hidden bg-black">
             {/* Background Image with Overlay */}
             <div
-                className="absolute inset-0 z-0 bg-contain bg-top bg-no-repeat"
+                className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat"
                 style={{
                     backgroundImage: "url('/banner.png')",
                 }}
