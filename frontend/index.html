@@ -20,9 +20,6 @@
 
   <link rel="icon" type="image/png" href="/logo.png" />
 
-  <!-- Trackier Web SDK static init script: load on all pages -->
-  <script src="https://static-cdn.trackier.com/js/trackier-websdk-init.js"></script>
-
   <!-- Preload LCP image (hero banner) for faster First Contentful Paint / LCP -->
   <link rel="preload" href="/banner-brpl.jpeg" as="image" />
 
@@ -33,6 +30,9 @@
   <!-- GTM noscript / body scripts: managed via Admin → Site Settings → Custom body scripts (customBodyScripts). -->
   <div id="root"></div>
   <script type="module" src="/src/main.tsx"></script>
+  
+  <!-- Trackier Web SDK static init script: load on all pages -->
+  <script src="https://static-cdn.trackier.com/js/trackier-websdk-init.js"></script>
 </body>
 
 </html>
