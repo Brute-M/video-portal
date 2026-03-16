@@ -515,12 +515,15 @@ const Videos = () => {
         }
         // Meta Pixel: InitiateCheckout — fire once on button click, before payment completes
         if (typeof window !== "undefined" && (window as any).fbq) {
+            console.log("[Meta Pixel] InitiateCheckout (video upload): fbq available, tracking event.");
             (window as any).fbq("track", "InitiateCheckout", {
                 value: 1499,
                 currency: "INR",
                 content_name: "Video Upload Fee",
                 content_type: "product",
             });
+        } else {
+            console.warn("[Meta Pixel] InitiateCheckout (video upload): fbq NOT available, event not sent.");
         }
         setIsProcessingPayment(true);
         try {
@@ -542,6 +545,7 @@ const Videos = () => {
 
                         // Meta Pixel: Purchase — video upload payment successful
                         if (typeof window !== "undefined" && (window as any).fbq) {
+                            console.log("[Meta Pixel] Purchase (video upload): fbq available, tracking event.");
                             (window as any).fbq("track", "Purchase", {
                                 value: 1499,
                                 currency: "INR",
@@ -551,6 +555,8 @@ const Videos = () => {
                                 payment_id: response.razorpay_payment_id,
                                 user_id: userProfile?._id || userProfile?.id,
                             });
+                        } else {
+                            console.warn("[Meta Pixel] Purchase (video upload): fbq NOT available, event not sent.");
                         }
 
                         setVideos((prev) =>

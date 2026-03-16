@@ -80,12 +80,15 @@ const Dashboard = () => {
   const handleRegistrationPayment = async () => {
     // Meta Pixel: InitiateCheckout — fire once on button click, before payment completes
     if (typeof window !== "undefined" && (window as any).fbq) {
+      console.log("[Meta Pixel] InitiateCheckout (dashboard): fbq available, tracking event.");
       (window as any).fbq("track", "InitiateCheckout", {
         value: 1499,
         currency: "INR",
         content_name: "Registration and Service Fee",
         content_type: "product",
       });
+    } else {
+      console.warn("[Meta Pixel] InitiateCheckout (dashboard): fbq NOT available, event not sent.");
     }
     setIsProcessingPayment(true);
     try {

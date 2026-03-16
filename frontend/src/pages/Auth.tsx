@@ -324,12 +324,15 @@ const Auth = ({ forceRegister }: AuthProps) => {
     e.preventDefault();
     // Meta Pixel: InitiateCheckout — fire once on button click, before payment completes
     if (typeof window !== "undefined" && (window as any).fbq) {
+      console.log("[Meta Pixel] InitiateCheckout: fbq available, tracking event.");
       (window as any).fbq("track", "InitiateCheckout", {
         value: 1499,
         currency: "INR",
         content_name: "Registration Fee",
         content_type: "product",
       });
+    } else {
+      console.warn("[Meta Pixel] InitiateCheckout: fbq NOT available, event not sent.");
     }
     // Use state first, then sessionStorage so payment verification works after reload/redirect (e.g. mobile/Instagram)
     const userIdForPayment = userId || sessionStorage.getItem('brpl_registration_user_id') || '';
@@ -376,6 +379,7 @@ const Auth = ({ forceRegister }: AuthProps) => {
 
             // Meta Pixel: Purchase — registration payment successful
             if (typeof window !== "undefined" && (window as any).fbq) {
+              console.log("[Meta Pixel] Purchase (registration): fbq available, tracking event.");
               (window as any).fbq("track", "Purchase", {
                 value: 1499,
                 currency: "INR",
@@ -385,6 +389,8 @@ const Auth = ({ forceRegister }: AuthProps) => {
                 payment_id: response.razorpay_payment_id,
                 user_id: resolvedUserId,
               });
+            } else {
+              console.warn("[Meta Pixel] Purchase (registration): fbq NOT available, event not sent.");
             }
 
             toast({
@@ -530,12 +536,15 @@ const Auth = ({ forceRegister }: AuthProps) => {
 
         // Meta Pixel: CompleteRegistration — fire once when full registration is completed
         if (typeof window !== "undefined" && (window as any).fbq) {
+          console.log("[Meta Pixel] CompleteRegistration: fbq available, tracking event.");
           (window as any).fbq("track", "CompleteRegistration", {
             value: 1499,
             currency: "INR",
             content_name: "BRPL Registration",
             content_type: "registration",
           });
+        } else {
+          console.warn("[Meta Pixel] CompleteRegistration: fbq NOT available, event not sent.");
         }
 
         // Navigate to Thank You
