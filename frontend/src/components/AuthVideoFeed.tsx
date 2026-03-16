@@ -23,33 +23,33 @@ const AuthVideoFeed = () => {
             // title: "Season 2025 Grand Finale Highlights",
             thumbnail: "/banner-brpl.jpeg",
             duration: "10:24",
-            videoSrc: "https://brpl-public-uploads.s3.ap-south-1.amazonaws.com/BRPL_Launch_Film.mp4"
+            videoSrc: "https://brpl.net/api/api/cloud-store/preview?uri=%2Fapi%2Fpublic%2Fbrpl-public%2FBRPL_Launch_Film.mp4"
         },
         {
             id: 2,
             // title: "Best Catches of the Tournament",
             thumbnail: "/about-us.png",
             duration: "05:12",
-            videoSrc: "https://brpl-public-uploads.s3.ap-south-1.amazonaws.com/BRPL_Launch_Film.mp4"
+            videoSrc: "https://brpl.net/api/api/cloud-store/preview?uri=%2Fapi%2Fpublic%2Fbrpl-public%2FBRPL_Launch_Film.mp4"
         },
         {
             id: 3,
             // title: "Opening Ceremony Spectacular",
             thumbnail: "/banner-new.png",
             duration: "15:30",
-            videoSrc: "https://brpl-public-uploads.s3.ap-south-1.amazonaws.com/BRPL_Launch_Film.mp4"
+            videoSrc: "https://brpl.net/api/api/cloud-store/preview?uri=%2Fapi%2Fpublic%2Fbrpl-public%2Fteams-video.mp4"
         },
         {
             id: 4,
             // title: "Top 10 Sixes - Week 4",
             thumbnail: "/banner-2.png",
             duration: "03:45",
-            videoSrc: "https://brpl-public-uploads.s3.ap-south-1.amazonaws.com/BRPL_Launch_Film.mp4"
+            videoSrc: "https://brpl.net/api/api/cloud-store/preview?uri=%2Fapi%2Fpublic%2Fbrpl-public%2Fteams-video.mp4"
         }
     ];
 
     return (
-        <div className="w-full mt-auto pt-8 pb-4 bg-black/40 backdrop-blur-md border-t border-white/10 relative">
+        <div className="w-full mt-0 md:mt-[160px] pt-8 pb-4 bg-black/40 backdrop-blur-md border-t border-white/10 relative">
             <div className="flex items-center justify-center px-4">
                 <h2 className="text-center text-3xl md:text-5xl font-black text-white mb-12 uppercase tracking-tighter font-sans italic drop-shadow-2xl">
                     Latest <span className="text-[#FFC928]">Videos</span>

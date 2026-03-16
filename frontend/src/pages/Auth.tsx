@@ -692,7 +692,7 @@ const Auth = ({ forceRegister }: AuthProps) => {
       {/* Full Screen Background Image */}
       <div className="absolute inset-0 z-0 bg-[#0F172A]">
         {/* <div className="absolute inset-0 bg-black/50 z-10" /> Dark Overlay */}
-        <div className="absolute inset-0 bg-[length:100%_auto] bg-top bg-no-repeat" style={{ backgroundImage: "url('/auth-banner.jpeg')" }} />
+        <div className="absolute inset-0 bg-[length:100%_auto] bg-top bg-no-repeat" style={{ backgroundImage: "url('/auth-banner.png')" }} />
       </div>
 
       {isRegister && <FloatingRegisterButton />}
@@ -735,7 +735,7 @@ const Auth = ({ forceRegister }: AuthProps) => {
 
         {/* Right Panel - Auth Form */}
         <div id="auth-form-container" className="flex-1 flex flex-col items-center p-6 lg:p-12 relative z-10 overflow-auto">
-          <div className={`w-full ${isRegister ? 'max-w-2xl' : 'max-w-md'} my-auto`}>
+          <div className={`w-full ${isRegister ? 'max-w-2xl' : 'max-w-md'} mt-10 mb-0 md:mt-72 md:mb-0 lg:my-auto`}>
 
 
             <div className="bg-black/20 backdrop-blur-md border border-white/10 rounded-xl p-8 shadow-2xl">
