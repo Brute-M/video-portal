@@ -79,12 +79,14 @@ const Dashboard = () => {
 
   const handleRegistrationPayment = async () => {
     // Meta Pixel: InitiateCheckout — fire once on button click, before payment completes
-    import('react-facebook-pixel').then((x) => x.default.track('InitiateCheckout', {
-      value: 1499,
-      currency: 'INR',
-      content_name: 'Registration and Service Fee',
-      content_type: 'product',
-    }));
+    if (typeof window !== "undefined" && (window as any).fbq) {
+      (window as any).fbq("track", "InitiateCheckout", {
+        value: 1499,
+        currency: "INR",
+        content_name: "Registration and Service Fee",
+        content_type: "product",
+      });
+    }
     setIsProcessingPayment(true);
     try {
       const [order, Razorpay] = await Promise.all([createLandingOrder(1499), loadRazorpay()]);

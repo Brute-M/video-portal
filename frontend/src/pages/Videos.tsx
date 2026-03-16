@@ -514,12 +514,14 @@ const Videos = () => {
             return;
         }
         // Meta Pixel: InitiateCheckout — fire once on button click, before payment completes
-        import('react-facebook-pixel').then((x) => x.default.track('InitiateCheckout', {
-            value: 1499,
-            currency: 'INR',
-            content_name: 'Video Upload Fee',
-            content_type: 'product',
-        }));
+        if (typeof window !== "undefined" && (window as any).fbq) {
+            (window as any).fbq("track", "InitiateCheckout", {
+                value: 1499,
+                currency: "INR",
+                content_name: "Video Upload Fee",
+                content_type: "product",
+            });
+        }
         setIsProcessingPayment(true);
         try {
             const [order, Razorpay] = await Promise.all([createRazorpayOrder(1499), loadRazorpay()]);
@@ -538,16 +540,18 @@ const Videos = () => {
                             videoId: currentVideoId
                         });
 
-                        // Track Facebook Pixel Purchase Event
-                        import('react-facebook-pixel').then((x) => x.default.track('Purchase', {
-                            value: 1499,
-                            currency: 'INR',
-                            content_name: 'Video Upload Fee',
-                            content_type: 'product',
-                            order_id: response.razorpay_order_id,
-                            payment_id: response.razorpay_payment_id,
-                            user_id: userProfile?._id || userProfile?.id
-                        }));
+                        // Meta Pixel: Purchase — video upload payment successful
+                        if (typeof window !== "undefined" && (window as any).fbq) {
+                            (window as any).fbq("track", "Purchase", {
+                                value: 1499,
+                                currency: "INR",
+                                content_name: "Video Upload Fee",
+                                content_type: "product",
+                                order_id: response.razorpay_order_id,
+                                payment_id: response.razorpay_payment_id,
+                                user_id: userProfile?._id || userProfile?.id,
+                            });
+                        }
 
                         setVideos((prev) =>
                             prev.map((v) =>

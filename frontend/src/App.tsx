@@ -6,8 +6,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider } from "@/components/theme-provider";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
-const PixelTracker = lazy(() => import("@/components/PixelTracker"));
-
 const Index = lazy(() => import("./pages/Index"));
 const Auth = lazy(() => import("./pages/Auth"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
@@ -82,8 +80,6 @@ const RouteFallback = () => (
 );
 
 const App = () => {
-  const [deferAnalytics, setDeferAnalytics] = useState(false);
-
   // Lazy-load AOS after first paint to improve LCP/FCP
   useEffect(() => {
     let cancelled = false;
@@ -105,14 +101,6 @@ const App = () => {
     };
   }, []);
 
-  // Defer analytics (Pixel) until after load so they don't block main thread
-  useEffect(() => {
-    const onLoad = () => setDeferAnalytics(true);
-    if (document.readyState === "complete") onLoad();
-    else window.addEventListener("load", onLoad);
-    return () => window.removeEventListener("load", onLoad);
-  }, []);
-
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
@@ -120,11 +108,6 @@ const App = () => {
           <Toaster />
           <Sonner />
           <BrowserRouter>
-            {deferAnalytics && (
-              <Suspense fallback={null}>
-                <PixelTracker />
-              </Suspense>
-            )}
             <Suspense fallback={<RouteFallback />}>
               <Routes>
                 <Route element={<PublicLayout />}>

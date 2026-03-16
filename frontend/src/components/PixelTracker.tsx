@@ -1,27 +1,6 @@
-import { useEffect, useState } from 'react';
-import { useLocation } from 'react-router-dom';
-import ReactPixel from 'react-facebook-pixel';
+// Legacy PixelTracker using react-facebook-pixel has been removed.
+// Global Meta Pixel base code is now injected via Admin → Site Settings → customHeadScripts.
 
-const PixelTracker = () => {
-    const location = useLocation();
-    const [initialized, setInitialized] = useState(false);
-
-    useEffect(() => {
-        if (!initialized) {
-            const pixelId = '2343942202702670';
-            ReactPixel.init(pixelId, undefined, { debug: true, autoConfig: true }); // Actual Pixel ID
-            ReactPixel.pageView(); // Track initial page view
-            setInitialized(true);
-        }
-    }, [initialized]);
-
-    useEffect(() => {
-        if (initialized) {
-            ReactPixel.pageView();
-        }
-    }, [location, initialized]);
-
+export default function PixelTracker() {
     return null;
-};
-
-export default PixelTracker;
+}

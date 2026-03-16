@@ -21,12 +21,12 @@ const RegistrationFAQ = () => {
         {
             question: "3. What is the Age Limit?",
             answer:
-                "We have categories for everyone: Under-19, Under-24, and Open Category (No age limit). Talent has no age!",
+                "There are two categories: Under 19 and Open Category. Each team squad will include at least 2 Under 19 players, and 1 Under 19 player will be part of the playing XI in every match.",
         },
         {
             question: "4. What if I don't get selected?",
             answer:
-                "Even if you don't make it to the TV round, you get a Customized BRPL Jersey and a BRPL Tennis ball. Plus, you stay in our database for future leagues.",
+                "Even if you are not selected for this season, your registration remains valuable. When you register for the next season, you will receive an exclusive offer on the registration fee.",
         },
         {
             question: "5. Is the fee refundable?",

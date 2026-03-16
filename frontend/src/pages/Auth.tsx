@@ -323,12 +323,14 @@ const Auth = ({ forceRegister }: AuthProps) => {
   const handleStep2Submit = async (e: React.FormEvent) => {
     e.preventDefault();
     // Meta Pixel: InitiateCheckout — fire once on button click, before payment completes
-    import('react-facebook-pixel').then((x) => x.default.track('InitiateCheckout', {
-      value: 1499,
-      currency: 'INR',
-      content_name: 'Registration Fee',
-      content_type: 'product',
-    }));
+    if (typeof window !== "undefined" && (window as any).fbq) {
+      (window as any).fbq("track", "InitiateCheckout", {
+        value: 1499,
+        currency: "INR",
+        content_name: "Registration Fee",
+        content_type: "product",
+      });
+    }
     // Use state first, then sessionStorage so payment verification works after reload/redirect (e.g. mobile/Instagram)
     const userIdForPayment = userId || sessionStorage.getItem('brpl_registration_user_id') || '';
     if (!userIdForPayment) {
@@ -372,16 +374,18 @@ const Auth = ({ forceRegister }: AuthProps) => {
             setPaymentId(response.razorpay_payment_id);
             if (resolvedUserId && !userId) setUserId(resolvedUserId);
 
-            // Track Facebook Pixel Purchase Event
-            import('react-facebook-pixel').then((x) => x.default.track('Purchase', {
-              value: 1499,
-              currency: 'INR',
-              content_name: 'Registration Fee',
-              content_type: 'product',
-              order_id: response.razorpay_order_id,
-              payment_id: response.razorpay_payment_id,
-              user_id: resolvedUserId
-            }));
+            // Meta Pixel: Purchase — registration payment successful
+            if (typeof window !== "undefined" && (window as any).fbq) {
+              (window as any).fbq("track", "Purchase", {
+                value: 1499,
+                currency: "INR",
+                content_name: "Registration Fee",
+                content_type: "product",
+                order_id: response.razorpay_order_id,
+                payment_id: response.razorpay_payment_id,
+                user_id: resolvedUserId,
+              });
+            }
 
             toast({
               title: "Payment Successful",
@@ -523,6 +527,16 @@ const Auth = ({ forceRegister }: AuthProps) => {
         await updateProfile({
           ...formData, // Send what's needed
         });
+
+        // Meta Pixel: CompleteRegistration — fire once when full registration is completed
+        if (typeof window !== "undefined" && (window as any).fbq) {
+          (window as any).fbq("track", "CompleteRegistration", {
+            value: 1499,
+            currency: "INR",
+            content_name: "BRPL Registration",
+            content_type: "registration",
+          });
+        }
 
         // Navigate to Thank You
         navigate("/thank-you");
