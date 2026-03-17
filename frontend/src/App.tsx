@@ -66,6 +66,8 @@ const AdminBlog = lazy(() => import("./pages/AdminBlog"));
 const AdminNews = lazy(() => import("./pages/AdminNews"));
 const AdminProfile = lazy(() => import("./pages/AdminProfile"));
 const UserProfile = lazy(() => import("./pages/UserProfile"));
+const AdminInfluencerLinks = lazy(() => import("./pages/AdminInfluencerLinks"));
+const InfluencerRedirect = lazy(() => import("./pages/InfluencerRedirect"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -131,6 +133,7 @@ const App = () => {
                   <Route path="/faqs" element={<FAQs />} />
                 </Route>
 
+                <Route path="/i/:slug" element={<InfluencerRedirect />} />
                 <Route path="/thank-you" element={<ThankYou />} />
                 <Route path="/payment-successfull" element={<PaymentSuccessful />} />
 
@@ -166,6 +169,7 @@ const App = () => {
                   <Route path="/admin/meta-content" element={<AdminSeoMeta />} />
                   <Route path="/admin/blog" element={<AdminBlog />} />
                   <Route path="/admin/news" element={<AdminNews />} />
+                  <Route path="/admin/marketing/influencer-links" element={<AdminInfluencerLinks />} />
                   <Route path="/admin/profile" element={<AdminProfile />} />
                   {/* <Route path="/admin/nav-links" element={<AdminNavLinks />} /> */}
                 </Route>

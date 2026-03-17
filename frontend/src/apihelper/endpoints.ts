@@ -18,11 +18,14 @@ export const ENDPOINTS = {
     },
     PAYMENT: {
         VERIFY: '/api/video/verify-payment',
-        RAZORPAY_ORDER: '/api/payment/order', // Added Razorpay Order Endpoint
-        RAZORPAY_VERIFY: '/api/payment/verify', // Added Razorpay Verify Endpoint
+        RAZORPAY_ORDER: '/api/payment/order',
+        RAZORPAY_VERIFY: '/api/payment/verify',
         RAZORPAY_ORDER_LANDING: '/api/payment/order-landing',
         RAZORPAY_VERIFY_LANDING: '/api/payment/verify-landing',
+        RAZORPAY_ORDER_INFLUENCER: '/api/payment/order-registration-influencer',
+        RAZORPAY_VERIFY_INFLUENCER: '/api/payment/verify-landing-influencer',
     },
+    INFLUENCER_LINKS: '/influencer-links',
     USERS: {
         LIST: '/api/users',
     },

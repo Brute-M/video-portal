@@ -81,6 +81,14 @@ const AdminLayout = () => {
             ]
         },
         { icon: QrCode, label: "QR Campaigns", path: "/admin/campaigns" },
+        {
+            icon: LinkIcon,
+            label: "Marketing",
+            path: "#",
+            children: [
+                { label: "Influencer Links", path: "/admin/marketing/influencer-links" }
+            ]
+        },
         { icon: HelpCircle, label: "Manage FAQs", path: "/admin/faqs" },
         { icon: Share2, label: "Social & Contact", path: "/admin/social-contact" },
         { icon: ImageIcon, label: "Page Banner", path: "/admin/page-banner" },

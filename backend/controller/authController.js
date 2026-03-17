@@ -1,6 +1,7 @@
 const User = require('../model/user.model');
 const Coach = require('../model/coach.model');
 const Influencer = require('../model/influencer.model');
+const InfluencerLink = require('../model/InfluencerLink.model');
 const Otp = require('../model/otp.model');
 const Visit = require('../model/visit.model');
 const Step1Lead = require('../model/step1_lead.model');
@@ -338,6 +339,7 @@ const register = async (req, res) => {
       }
     }
 
+    let influencerSlug = undefined; // Marketing influencer link (new system)
     if (normalizedReferralCode) {
       const coachSource = await Coach.findOne({ referralCode: normalizedReferralCode }).select('_id');
       if (coachSource) {
@@ -349,10 +351,18 @@ const register = async (req, res) => {
           referralSourceRole = 'influencer';
           referralSourceId = influencerSource._id;
         } else {
-          return res.status(400).json({
-            statusCode: 400,
-            data: { message: 'Invalid referral code' }
-          });
+          // Check marketing influencer link by slug (lowercase)
+          const linkSlug = String(referralCodeUsed || '').trim().toLowerCase();
+          const influencerLink = await InfluencerLink.findOne({ slug: linkSlug, status: 'active' }).select('_id slug');
+          if (influencerLink) {
+            influencerSlug = influencerLink.slug;
+            // Do not set referralSourceRole/SourceId; use influencerSlug for discount flow
+          } else {
+            return res.status(400).json({
+              statusCode: 400,
+              data: { message: 'Invalid referral code' }
+            });
+          }
         }
       }
     }
@@ -384,6 +394,7 @@ const register = async (req, res) => {
       referralCodeUsed: normalizedReferralCode || undefined,
       referralSourceRole,
       referralSourceId,
+      influencerSlug: influencerSlug || undefined,
       couponCodeUsed: normalizedCouponCode || undefined,
       couponBenefits: appliedCouponBenefits,
       isPaid: !!paymentId, // Set isPaid to true if paymentId is present
@@ -396,6 +407,17 @@ const register = async (req, res) => {
     });
 
     await newUser.save();
+
+    if (influencerSlug) {
+      try {
+        await InfluencerLink.findOneAndUpdate(
+          { slug: influencerSlug },
+          { $inc: { totalRegistrations: 1 } }
+        );
+      } catch (e) {
+        console.error('InfluencerLink totalRegistrations increment failed:', e);
+      }
+    }
 
     if (matchedCoupon) {
       matchedCoupon.usedCount = (matchedCoupon.usedCount || 0) + 1;
@@ -430,7 +452,8 @@ const register = async (req, res) => {
         message: 'Registration successful',
         userId: newUser._id,
         email: newUser.email,
-        token
+        token,
+        influencerSlug: newUser.influencerSlug || undefined
       }
     });
 

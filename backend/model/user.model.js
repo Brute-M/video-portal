@@ -58,7 +58,10 @@ const userSchema = new mongoose.Schema({
   conversionType: { type: String, enum: ['code', 'fallback', 'organic', 'none', 'manual_admin'], default: 'none' },
   campaignCode: { type: String }, // Code from the QR Campaign
   twoFaSecret: { type: String },
-  twoFaEnabled: { type: Boolean, default: false }
+  twoFaEnabled: { type: Boolean, default: false },
+  // Influencer link (marketing) attribution & discount
+  influencerSlug: { type: String },
+  influencerDiscountApplied: { type: Boolean, default: false }
 }, { timestamps: true });
 
 const User = mongoose.model('User', userSchema);

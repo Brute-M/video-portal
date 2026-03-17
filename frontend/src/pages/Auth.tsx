@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Mail, Lock, CheckCircle2, Phone, Eye, EyeOff, ArrowLeft, Loader2, ArrowRight, Swords, CircleDot, Shield, Zap } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { login, verifyAdminOtp, register, sendOtp, verifyOtp, forgotPassword, resetPassword, saveStep1Data, updateProfile, storeSyncData } from "@/apihelper/auth";
-import { createLandingOrder, verifyLandingPayment } from "@/apihelper/payment";
+import { createLandingOrder, verifyLandingPayment, createOrderRegistrationInfluencer, verifyLandingPaymentInfluencer } from "@/apihelper/payment";
 import { loadRazorpay } from "@/utils/loadRazorpay";
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -63,6 +63,7 @@ const Auth = ({ forceRegister }: AuthProps) => {
   const [paymentId, setPaymentId] = useState("");
   const [isPaymentProcessing, setIsPaymentProcessing] = useState(false);
   const [userId, setUserId] = useState("");
+  const [influencerSlug, setInfluencerSlug] = useState<string | null>(null);
 
   // Admin 2FA (Google Authenticator) state
   const [requireAdminOtp, setRequireAdminOtp] = useState(false);
@@ -117,10 +118,12 @@ const Auth = ({ forceRegister }: AuthProps) => {
     }
   }, [searchParams, forceRegister]);
 
-  // Restore userId from sessionStorage on mount (e.g. user refreshed on payment step)
+  // Restore userId and influencerSlug from sessionStorage on mount (e.g. user refreshed on payment step)
   useEffect(() => {
     const stored = sessionStorage.getItem('brpl_registration_user_id');
     if (stored && !userId) setUserId(stored);
+    const storedSlug = sessionStorage.getItem('brpl_influencer_slug');
+    if (storedSlug && !influencerSlug) setInfluencerSlug(storedSlug);
   }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -284,16 +287,23 @@ const Auth = ({ forceRegister }: AuthProps) => {
         const idStr = String(newUserId);
         setUserId(idStr);
         sessionStorage.setItem('brpl_registration_user_id', idStr);
+        if (responseData.influencerSlug) {
+          setInfluencerSlug(responseData.influencerSlug);
+          sessionStorage.setItem('brpl_influencer_slug', responseData.influencerSlug);
+        }
         setCurrentStep(2);
         toast({
           title: "Account Created",
           description: "Please complete payment to access full features.",
         });
       } else if (newUserId) {
-        // Fallback: If user created but no token (weird, but handle it)
         const idStr = String(newUserId);
         setUserId(idStr);
         sessionStorage.setItem('brpl_registration_user_id', idStr);
+        if (responseData.influencerSlug) {
+          setInfluencerSlug(responseData.influencerSlug);
+          sessionStorage.setItem('brpl_influencer_slug', responseData.influencerSlug);
+        }
         setCurrentStep(2);
         toast({
           title: "Account Created",
@@ -322,19 +332,6 @@ const Auth = ({ forceRegister }: AuthProps) => {
 
   const handleStep2Submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Meta Pixel: InitiateCheckout — fire once on button click, before payment completes
-    if (typeof window !== "undefined" && (window as any).fbq) {
-      console.log("[Meta Pixel] InitiateCheckout: fbq available, tracking event.");
-      (window as any).fbq("track", "InitiateCheckout", {
-        value: 1499,
-        currency: "INR",
-        content_name: "Registration Fee",
-        content_type: "product",
-      });
-    } else {
-      console.warn("[Meta Pixel] InitiateCheckout: fbq NOT available, event not sent.");
-    }
-    // Use state first, then sessionStorage so payment verification works after reload/redirect (e.g. mobile/Instagram)
     const userIdForPayment = userId || sessionStorage.getItem('brpl_registration_user_id') || '';
     if (!userIdForPayment) {
       toast({
@@ -345,43 +342,65 @@ const Auth = ({ forceRegister }: AuthProps) => {
       return;
     }
 
-    // Razorpay Payment Logic
+    const useInfluencerPayment = !!(influencerSlug || sessionStorage.getItem('brpl_influencer_slug'));
+    const amountInr = useInfluencerPayment ? 999 : 1499;
+
+    if (typeof window !== "undefined" && (window as any).fbq) {
+      (window as any).fbq("track", "InitiateCheckout", {
+        value: amountInr,
+        currency: "INR",
+        content_name: "Registration Fee",
+        content_type: "product",
+      });
+    }
+
     setIsPaymentProcessing(true);
     try {
-      console.log("Creating landing order...");
-      const order = await createLandingOrder(1499);
-      console.log("Order created:", order);
+      let order: { id: string; amount: number; currency: string };
+      if (useInfluencerPayment) {
+        order = await createOrderRegistrationInfluencer(userIdForPayment);
+      } else {
+        order = await createLandingOrder(1499);
+      }
 
       const Razorpay = await loadRazorpay();
-
       const options: any = {
-        key: import.meta.env.VITE_RAZORPAY_KEY_ID || "rzp_live_RsBsR05m5SGbtT", // Should optimally be in env vars
+        key: import.meta.env.VITE_RAZORPAY_KEY_ID || "rzp_live_RsBsR05m5SGbtT",
         amount: order.amount,
-        currency: order.currency,
+        currency: order.currency || "INR",
         name: "Beyond Reach Premier League",
-        description: "Registration Fee",
+        description: useInfluencerPayment ? "Registration Fee (Influencer offer)" : "Registration Fee",
         order_id: order.id,
         handler: async (response: any) => {
           const resolvedUserId = userIdForPayment || sessionStorage.getItem('brpl_registration_user_id') || '';
           try {
-            await verifyLandingPayment({
-              razorpay_order_id: response.razorpay_order_id,
-              razorpay_payment_id: response.razorpay_payment_id,
-              razorpay_signature: response.razorpay_signature,
-              userId: resolvedUserId,
-              amount: 1499,
-              isFromLandingPage: false, // Website payment (not landing page)
-            });
+            if (useInfluencerPayment) {
+              await verifyLandingPaymentInfluencer({
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+                userId: resolvedUserId,
+              });
+            } else {
+              await verifyLandingPayment({
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+                userId: resolvedUserId,
+                amount: 1499,
+                isFromLandingPage: false,
+              });
+            }
 
             sessionStorage.removeItem('brpl_registration_user_id');
+            sessionStorage.removeItem('brpl_influencer_slug');
             setPaymentId(response.razorpay_payment_id);
             if (resolvedUserId && !userId) setUserId(resolvedUserId);
+            setInfluencerSlug(null);
 
-            // Meta Pixel: Purchase — registration payment successful
             if (typeof window !== "undefined" && (window as any).fbq) {
-              console.log("[Meta Pixel] Purchase (registration): fbq available, tracking event.");
               (window as any).fbq("track", "Purchase", {
-                value: 1499,
+                value: amountInr,
                 currency: "INR",
                 content_name: "Registration Fee",
                 content_type: "product",
@@ -389,8 +408,6 @@ const Auth = ({ forceRegister }: AuthProps) => {
                 payment_id: response.razorpay_payment_id,
                 user_id: resolvedUserId,
               });
-            } else {
-              console.warn("[Meta Pixel] Purchase (registration): fbq NOT available, event not sent.");
             }
 
             toast({
@@ -398,7 +415,6 @@ const Auth = ({ forceRegister }: AuthProps) => {
               description: "Payment verified. Please complete your profile.",
             });
             setCurrentStep(3);
-
           } catch (verifyError: any) {
             console.error("Verification failed", verifyError);
             toast({
@@ -410,26 +426,22 @@ const Auth = ({ forceRegister }: AuthProps) => {
         },
         prefill: {
           name: `${formData.fname} ${formData.lname}`,
-          email: formData.email, // Email might be empty at this stage if it's in step 3? Yes, step 3 is next.
+          email: formData.email,
           contact: formData.mobile,
         },
-        theme: {
-          color: "#0f172a",
-        },
-        modal: {
-          ondismiss: () => setIsPaymentProcessing(false)
-        }
+        theme: { color: "#0f172a" },
+        modal: { ondismiss: () => setIsPaymentProcessing(false) },
       };
 
-      console.log("Opening Razorpay with options:", options);
       const rzp = new Razorpay(options);
       rzp.open();
     } catch (error: any) {
       console.error("Payment initiation failed", error);
+      const msg = error.response?.data?.message || error.message || "Unknown error";
       toast({
         variant: "destructive",
         title: "Error",
-        description: `Could not initiate payment: ${error.message || "Unknown error"}`,
+        description: `Could not initiate payment: ${msg}`,
       });
       setIsPaymentProcessing(false);
     }
@@ -889,8 +901,18 @@ const Auth = ({ forceRegister }: AuthProps) => {
                       <div className="space-y-6 animate-fade-in text-center py-6">
                         <div className="bg-secondary/30 p-6 rounded-xl border border-secondary">
                           <p className="text-sm text-zinc-300 uppercase tracking-widest mb-2 font-bold">Registration Fee</p>
-                          <div className="text-5xl font-extrabold text-primary mb-2">₹ 1499</div>
-                          <p className="text-sm text-zinc-200 font-medium">One-time payment for lifetime access</p>
+                          {(influencerSlug || (typeof window !== "undefined" ? sessionStorage.getItem("brpl_influencer_slug") : null)) ? (
+                            <>
+                              <div className="text-3xl text-zinc-400 line-through mb-1">₹ 1499</div>
+                              <div className="text-5xl font-extrabold text-primary mb-2">₹ 999</div>
+                              <p className="text-sm text-zinc-200 font-medium">Influencer offer — one-time payment for lifetime access</p>
+                            </>
+                          ) : (
+                            <>
+                              <div className="text-5xl font-extrabold text-primary mb-2">₹ 1499</div>
+                              <p className="text-sm text-zinc-200 font-medium">One-time payment for lifetime access</p>
+                            </>
+                          )}
                         </div>
 
                         <div className="grid grid-cols-2 gap-4 text-left text-sm text-white font-medium max-w-sm mx-auto drop-shadow-sm">

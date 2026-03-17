@@ -85,7 +85,9 @@ router.get('/profile', authenticate, async (req, res) => {
         profileImage: profileImageUrl,
         role: user.role,
         playerRole: user.playerRole,
-        twoFaEnabled: user.twoFaEnabled || false
+        twoFaEnabled: user.twoFaEnabled || false,
+        influencerSlug: user.influencerSlug || undefined,
+        influencerDiscountApplied: user.influencerDiscountApplied || false
       }
     });
   } catch (err) {

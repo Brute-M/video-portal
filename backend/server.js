@@ -17,6 +17,8 @@ const ambassadorRoutes = require("./routes/ambassadorRoute");
 const teamRoutes = require("./routes/teamRoute");
 const partnerRoutes = require("./routes/partnerRoutes");
 const webhookRoutes = require("./routes/webhookRoute");
+const influencerLinkRoutes = require("./routes/influencerLinkRoute");
+const influencerLinkController = require("./controller/influencerLinkController");
 
 const path = require("path");
 const app = express();
@@ -70,6 +72,9 @@ app.get("/", (req, res) => {
   res.send("app start");
 });
 
+// Influencer short link redirect (must be before other routes that might catch /i)
+app.get("/i/:slug", (req, res) => influencerLinkController.redirect(req, res));
+
 // SEO: sitemap and robots (before other routes so paths are exact)
 app.use("/", require("./routes/sitemapRoute"));
 
@@ -91,6 +96,7 @@ app.use("/api/ambassadors", ambassadorRoutes);
 app.use("/api/teams", teamRoutes);
 app.use("/api/partners", partnerRoutes);
 app.use("/api/campaigns", require("./routes/campaignRoutes"));
+app.use("/api/influencer-links", influencerLinkRoutes);
 app.use("/api/faqs", require("./routes/faqRoute"));
 app.use("/api/nav-links", require("./routes/navLinkRoute"));
 app.use("/api/cms/our-team", require("./routes/ourTeamRoute"));

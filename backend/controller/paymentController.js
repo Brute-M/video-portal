@@ -3,6 +3,7 @@ const crypto = require('crypto');
 const Video = require('../model/video.model');
 const User = require('../model/user.model');
 const Payment = require('../model/payment.model');
+const InfluencerLink = require('../model/InfluencerLink.model');
 const { createInvoiceBuffer } = require('../utils/pdfGenerator');
 const { sendRegistrationInvoiceEmail } = require('../utils/emailService');
 
@@ -14,6 +15,10 @@ const razorpay = new Razorpay({
 // ACTUAL AMOUNT (INR)
 const TEST_AMOUNT_INR = 1499;
 const MOBILE_AMOUNT_INR = 999;
+const INFLUENCER_DISCOUNT_INR = 999;
+
+// Pending influencer orders: orderId -> { userId, amount, influencerLinkId }
+const pendingInfluencerOrders = new Map();
 
 // Create an order
 exports.createOrder = async (req, res) => {
@@ -292,5 +297,131 @@ exports.getOrderDetails = async (req, res) => {
     } catch (error) {
         console.error('Error fetching order details:', error);
         res.status(500).send(error);
+    }
+};
+
+// --- Influencer discount flow (separate from default 1499 flow) ---
+
+exports.createOrderRegistrationInfluencer = async (req, res) => {
+    const { userId } = req.body;
+    if (!userId) {
+        return res.status(400).json({ message: "userId is required", success: false });
+    }
+    try {
+        const user = await User.findById(userId).select('influencerSlug influencerDiscountApplied isPaid');
+        if (!user) return res.status(404).json({ message: "User not found", success: false });
+        if (user.isPaid) return res.status(400).json({ message: "User already paid", success: false });
+        if (user.influencerDiscountApplied) {
+            return res.status(400).json({ message: "Influencer discount already applied for this user", success: false });
+        }
+        if (!user.influencerSlug) {
+            return res.status(400).json({ message: "No influencer attribution; use standard payment", success: false });
+        }
+
+        const link = await InfluencerLink.findOne({ slug: user.influencerSlug, status: 'active' });
+        if (!link) {
+            return res.status(400).json({ message: "Influencer link not found or inactive", success: false });
+        }
+
+        const amountInr = link.discountPrice != null ? Number(link.discountPrice) : INFLUENCER_DISCOUNT_INR;
+        const amountPaise = Math.round(amountInr * 100);
+
+        const order = await razorpay.orders.create({
+            amount: amountPaise,
+            currency: 'INR',
+            receipt: `inf_${link.slug}_${Date.now()}`
+        });
+
+        pendingInfluencerOrders.set(order.id, {
+            userId,
+            amount: amountInr,
+            influencerLinkId: link._id.toString(),
+            slug: link.slug
+        });
+        // Optional: clear old entries by order id after some TTL (e.g. 1 hour)
+        setTimeout(() => pendingInfluencerOrders.delete(order.id), 60 * 60 * 1000);
+
+        res.json({
+            id: order.id,
+            amount: order.amount,
+            currency: order.currency,
+            receipt: order.receipt
+        });
+    } catch (error) {
+        console.error('Error creating influencer order:', error);
+        res.status(500).json({ message: "Failed to create order", success: false });
+    }
+};
+
+exports.verifyLandingPaymentInfluencer = async (req, res) => {
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature, userId } = req.body;
+
+    const body = razorpay_order_id + "|" + razorpay_payment_id;
+    const expectedSignature = crypto
+        .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET || '1pFXfyat0LN1xPEeadrz1RN4')
+        .update(body.toString())
+        .digest('hex');
+
+    if (expectedSignature !== razorpay_signature) {
+        return res.status(400).json({ message: "Invalid signature", success: false });
+    }
+
+    const pending = pendingInfluencerOrders.get(razorpay_order_id);
+    if (!pending) {
+        return res.status(400).json({ message: "Order not found or expired; use standard verify if this was a regular payment", success: false });
+    }
+    if (pending.userId !== userId) {
+        return res.status(400).json({ message: "User mismatch", success: false });
+    }
+
+    const paidAmount = pending.amount;
+    try {
+        await User.findByIdAndUpdate(userId, {
+            isPaid: true,
+            paymentAmount: paidAmount,
+            paymentId: razorpay_payment_id,
+            influencerDiscountApplied: true
+        });
+
+        await Payment.create({
+            userId,
+            transactionId: razorpay_payment_id,
+            amount: paidAmount,
+            type: 'registration',
+            status: 'completed',
+            paymentGateway: 'razorpay'
+        });
+
+        await Video.updateMany(
+            { userId, status: 'pending_payment' },
+            { status: 'completed' }
+        );
+
+        await InfluencerLink.findByIdAndUpdate(pending.influencerLinkId, {
+            $inc: { totalPayments: 1, totalRevenue: paidAmount }
+        });
+
+        pendingInfluencerOrders.delete(razorpay_order_id);
+
+        const user = await User.findById(userId).select('-password');
+        if (user && user.email) {
+            try {
+                const invoiceData = {
+                    paymentId: razorpay_payment_id,
+                    amount: paidAmount,
+                    originalName: 'Registration / Service Fee (Influencer)',
+                    createdAt: new Date()
+                };
+                const pdfBuffer = await createInvoiceBuffer(invoiceData, user);
+                await sendRegistrationInvoiceEmail(user, razorpay_payment_id, paidAmount, pdfBuffer);
+            } catch (emailErr) {
+                console.error('[Invoice Email] verifyLandingPaymentInfluencer failed:', emailErr?.message || emailErr);
+            }
+        }
+
+        res.json({ message: "Payment verified successfully", success: true });
+    } catch (error) {
+        console.error("Error in verifyLandingPaymentInfluencer:", error);
+        res.status(500).json({ message: "Payment verified but failed to update status", success: false });
     }
 };
