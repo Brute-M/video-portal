@@ -12,7 +12,7 @@ const RegistrationHero = () => {
     };
 
     return (
-        <section className="relative w-full h-auto py-10 md:py-0 md:h-[calc(100vh-80px)] flex items-center justify-center overflow-hidden bg-black">
+        <section className="relative w-full flex items-center justify-center overflow-hidden bg-black min-h-[420px] h-[55vw] max-h-[calc(100vh-70px)] py-10 md:py-0">
             {/* Background Image with Overlay */}
             <div
                 className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat"
