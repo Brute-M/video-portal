@@ -37,10 +37,8 @@ export const verifyLandingPayment = async (data: any) => {
     return response.data;
 };
 
-export const createOrderRegistrationInfluencer = async (userId: string, influencerSlug?: string | null) => {
-    const body: { userId: string; influencerSlug?: string } = { userId };
-    if (influencerSlug) body.influencerSlug = influencerSlug;
-    const response = await api.post(ENDPOINTS.PAYMENT.RAZORPAY_ORDER_INFLUENCER, body);
+export const createOrderRegistrationInfluencer = async (userId: string) => {
+    const response = await api.post(ENDPOINTS.PAYMENT.RAZORPAY_ORDER_INFLUENCER, { userId });
     return response.data;
 };
 

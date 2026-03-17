@@ -303,7 +303,7 @@ exports.getOrderDetails = async (req, res) => {
 // --- Influencer discount flow (separate from default 1499 flow) ---
 
 exports.createOrderRegistrationInfluencer = async (req, res) => {
-    const { userId, influencerSlug: bodySlug } = req.body;
+    const { userId } = req.body;
     if (!userId) {
         return res.status(400).json({ message: "userId is required", success: false });
     }
@@ -314,14 +314,11 @@ exports.createOrderRegistrationInfluencer = async (req, res) => {
         if (user.influencerDiscountApplied) {
             return res.status(400).json({ message: "Influencer discount already applied for this user", success: false });
         }
-
-        // Use slug from user (saved at registration) or from request (influencer URL flow when user record missed it)
-        const slugToUse = user.influencerSlug || (bodySlug ? String(bodySlug).trim().toLowerCase() : null);
-        if (!slugToUse) {
+        if (!user.influencerSlug) {
             return res.status(400).json({ message: "No influencer attribution; use standard payment", success: false });
         }
 
-        const link = await InfluencerLink.findOne({ slug: slugToUse, status: 'active' });
+        const link = await InfluencerLink.findOne({ slug: user.influencerSlug, status: 'active' });
         if (!link) {
             return res.status(400).json({ message: "Influencer link not found or inactive", success: false });
         }
