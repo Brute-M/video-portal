@@ -319,11 +319,12 @@ const Auth = ({ forceRegister }: AuthProps) => {
 
     } catch (error: any) {
       console.error("Failed to register step 1", error);
+      const msg = error.response?.data?.data?.message || error.response?.data?.message || "Something went wrong. Please try again.";
       toast({
         variant: "destructive",
         title: "Registration Failed",
-        description: error.response?.data?.message || "Something went wrong. Please try again."
-      })
+        description: msg
+      });
     } finally {
       setIsLoading(false);
     }
