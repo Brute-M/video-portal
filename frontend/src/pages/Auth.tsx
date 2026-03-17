@@ -104,8 +104,11 @@ const Auth = ({ forceRegister }: AuthProps) => {
     const mode = searchParams.get("mode");
     setIsRegister(mode === "register");
 
-    // Auto-fill referral code
+    // Auto-fill referral code (from URL or persisted for session)
     const refCode = searchParams.get("ref") || localStorage.getItem("brpl_ref_code");
+    if (searchParams.get("ref")) {
+      try { localStorage.setItem("brpl_ref_code", searchParams.get("ref")!); } catch (_) {}
+    }
     // Auto-fill campaign code
     const campCode = searchParams.get("campaign");
 
@@ -118,11 +121,11 @@ const Auth = ({ forceRegister }: AuthProps) => {
     }
   }, [searchParams, forceRegister]);
 
-  // Restore userId and influencerSlug from sessionStorage on mount (e.g. user refreshed on payment step)
+  // Restore userId and influencerSlug on mount (e.g. user refreshed on payment step)
   useEffect(() => {
     const stored = sessionStorage.getItem('brpl_registration_user_id');
     if (stored && !userId) setUserId(stored);
-    const storedSlug = sessionStorage.getItem('brpl_influencer_slug');
+    const storedSlug = sessionStorage.getItem('brpl_influencer_slug') || (typeof window !== 'undefined' ? localStorage.getItem('brpl_influencer_slug') : null);
     if (storedSlug && !influencerSlug) setInfluencerSlug(storedSlug);
   }, []);
 
@@ -289,8 +292,8 @@ const Auth = ({ forceRegister }: AuthProps) => {
         sessionStorage.setItem('brpl_registration_user_id', idStr);
         if (responseData.influencerSlug) {
           setInfluencerSlug(responseData.influencerSlug);
-          // store in localStorage so it survives across tabs
           localStorage.setItem('brpl_influencer_slug', responseData.influencerSlug);
+          try { sessionStorage.setItem('brpl_influencer_slug', responseData.influencerSlug); } catch (_) {}
         }
         setCurrentStep(2);
         toast({
@@ -304,6 +307,7 @@ const Auth = ({ forceRegister }: AuthProps) => {
         if (responseData.influencerSlug) {
           setInfluencerSlug(responseData.influencerSlug);
           localStorage.setItem('brpl_influencer_slug', responseData.influencerSlug);
+          try { sessionStorage.setItem('brpl_influencer_slug', responseData.influencerSlug); } catch (_) {}
         }
         setCurrentStep(2);
         toast({
@@ -351,6 +355,7 @@ const Auth = ({ forceRegister }: AuthProps) => {
       if (pdata?.influencerSlug && !pdata?.influencerDiscountApplied) {
         resolvedInfluencerSlug = pdata.influencerSlug;
         localStorage.setItem('brpl_influencer_slug', pdata.influencerSlug);
+        try { sessionStorage.setItem('brpl_influencer_slug', pdata.influencerSlug); } catch (_) {}
         setInfluencerSlug(pdata.influencerSlug);
       }
     } catch {
@@ -373,7 +378,7 @@ const Auth = ({ forceRegister }: AuthProps) => {
     try {
       let order: { id: string; amount: number; currency: string };
       if (useInfluencerPayment) {
-        order = await createOrderRegistrationInfluencer(userIdForPayment);
+        order = await createOrderRegistrationInfluencer(userIdForPayment, resolvedInfluencerSlug || undefined);
       } else {
         order = await createLandingOrder(1499);
       }
