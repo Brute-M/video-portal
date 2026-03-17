@@ -96,19 +96,9 @@ const Auth = ({ forceRegister }: AuthProps) => {
   const [availableCities, setAvailableCities] = useState<any[]>([]);
 
   useEffect(() => {
-    if (forceRegister) {
-      setIsRegister(true);
-      return;
-    }
-
-    const mode = searchParams.get("mode");
-    setIsRegister(mode === "register");
-
-    // Auto-fill referral code
+    // Always sync ref/campaign from URL or localStorage so backend gets influencer attribution
     const refCode = searchParams.get("ref") || localStorage.getItem("brpl_ref_code");
-    // Auto-fill campaign code
     const campCode = searchParams.get("campaign");
-
     if (refCode || campCode) {
       setFormData(prev => ({
         ...prev,
@@ -116,6 +106,14 @@ const Auth = ({ forceRegister }: AuthProps) => {
         campaignCode: campCode || prev.campaignCode
       }));
     }
+
+    if (forceRegister) {
+      setIsRegister(true);
+      return;
+    }
+
+    const mode = searchParams.get("mode");
+    setIsRegister(mode === "register");
   }, [searchParams, forceRegister]);
 
   // Restore userId and influencerSlug from sessionStorage on mount (e.g. user refreshed on payment step)
