@@ -348,16 +348,10 @@ const Auth = ({ forceRegister }: AuthProps) => {
     try {
       const prof = await getProfile();
       const pdata = prof?.data || prof;
-      if (pdata) {
-        if (pdata.influencerSlug && !pdata.influencerDiscountApplied) {
-          resolvedInfluencerSlug = pdata.influencerSlug;
-          localStorage.setItem('brpl_influencer_slug', pdata.influencerSlug);
-          setInfluencerSlug(pdata.influencerSlug);
-        } else {
-          resolvedInfluencerSlug = null;
-          localStorage.removeItem('brpl_influencer_slug');
-          setInfluencerSlug(null);
-        }
+      if (pdata?.influencerSlug && !pdata?.influencerDiscountApplied) {
+        resolvedInfluencerSlug = pdata.influencerSlug;
+        localStorage.setItem('brpl_influencer_slug', pdata.influencerSlug);
+        setInfluencerSlug(pdata.influencerSlug);
       }
     } catch {
       // ignore profile fetch failure; fallback to local storage/state
