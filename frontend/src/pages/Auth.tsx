@@ -96,17 +96,6 @@ const Auth = ({ forceRegister }: AuthProps) => {
   const [availableCities, setAvailableCities] = useState<any[]>([]);
 
   useEffect(() => {
-    // Always sync ref/campaign from URL or localStorage so backend gets influencer attribution
-    const refCode = searchParams.get("ref") || localStorage.getItem("brpl_ref_code");
-    const campCode = searchParams.get("campaign");
-    if (refCode || campCode) {
-      setFormData(prev => ({
-        ...prev,
-        referralCode: refCode || prev.referralCode,
-        campaignCode: campCode || prev.campaignCode
-      }));
-    }
-
     if (forceRegister) {
       setIsRegister(true);
       return;
@@ -114,6 +103,19 @@ const Auth = ({ forceRegister }: AuthProps) => {
 
     const mode = searchParams.get("mode");
     setIsRegister(mode === "register");
+
+    // Auto-fill referral code
+    const refCode = searchParams.get("ref") || localStorage.getItem("brpl_ref_code");
+    // Auto-fill campaign code
+    const campCode = searchParams.get("campaign");
+
+    if (refCode || campCode) {
+      setFormData(prev => ({
+        ...prev,
+        referralCode: refCode || prev.referralCode,
+        campaignCode: campCode || prev.campaignCode
+      }));
+    }
   }, [searchParams, forceRegister]);
 
   // Restore userId and influencerSlug from sessionStorage on mount (e.g. user refreshed on payment step)
@@ -319,12 +321,11 @@ const Auth = ({ forceRegister }: AuthProps) => {
 
     } catch (error: any) {
       console.error("Failed to register step 1", error);
-      const msg = error.response?.data?.data?.message || error.response?.data?.message || "Something went wrong. Please try again.";
       toast({
         variant: "destructive",
         title: "Registration Failed",
-        description: msg
-      });
+        description: error.response?.data?.message || "Something went wrong. Please try again."
+      })
     } finally {
       setIsLoading(false);
     }

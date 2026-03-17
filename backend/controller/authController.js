@@ -357,9 +357,12 @@ const register = async (req, res) => {
           if (influencerLink) {
             influencerSlug = influencerLink.slug;
             // Do not set referralSourceRole/SourceId; use influencerSlug for discount flow
+          } else {
+            return res.status(400).json({
+              statusCode: 400,
+              data: { message: 'Invalid referral code' }
+            });
           }
-          // If no Coach, old Influencer, or InfluencerLink match: proceed without attribution (no 400)
-          // so registration never fails due to missing/deleted ref; user just won't get discount
         }
       }
     }
