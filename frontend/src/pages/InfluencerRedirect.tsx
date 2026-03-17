@@ -27,7 +27,8 @@ const InfluencerRedirect = () => {
 
         const run = async () => {
             try {
-                const res = await api.get(`/influencer-links/track/${encodeURIComponent(slug)}`, {
+                // Use absolute /api path so it works regardless of axios baseURL (/api vs root)
+                const res = await api.get(`/api/influencer-links/track/${encodeURIComponent(slug)}`, {
                     params: { tid },
                 });
                 const data = res.data?.data ?? res.data;
@@ -36,6 +37,8 @@ const InfluencerRedirect = () => {
 
                 if (resolvedSlug) {
                     localStorage.setItem("brpl_ref_code", resolvedSlug);
+                    // Persist across tabs so discount flow works even if payment is opened in a new tab
+                    localStorage.setItem("brpl_influencer_slug", resolvedSlug);
                 }
 
                 if (redirectUrl && (redirectUrl.startsWith("http") || redirectUrl.startsWith("/"))) {

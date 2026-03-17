@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Mail, Lock, CheckCircle2, Phone, Eye, EyeOff, ArrowLeft, Loader2, ArrowRight, Swords, CircleDot, Shield, Zap } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { login, verifyAdminOtp, register, sendOtp, verifyOtp, forgotPassword, resetPassword, saveStep1Data, updateProfile, storeSyncData } from "@/apihelper/auth";
+import { login, verifyAdminOtp, register, sendOtp, verifyOtp, forgotPassword, resetPassword, saveStep1Data, updateProfile, storeSyncData, getProfile } from "@/apihelper/auth";
 import { createLandingOrder, verifyLandingPayment, createOrderRegistrationInfluencer, verifyLandingPaymentInfluencer } from "@/apihelper/payment";
 import { loadRazorpay } from "@/utils/loadRazorpay";
 
@@ -289,7 +289,8 @@ const Auth = ({ forceRegister }: AuthProps) => {
         sessionStorage.setItem('brpl_registration_user_id', idStr);
         if (responseData.influencerSlug) {
           setInfluencerSlug(responseData.influencerSlug);
-          sessionStorage.setItem('brpl_influencer_slug', responseData.influencerSlug);
+          // store in localStorage so it survives across tabs
+          localStorage.setItem('brpl_influencer_slug', responseData.influencerSlug);
         }
         setCurrentStep(2);
         toast({
@@ -302,7 +303,7 @@ const Auth = ({ forceRegister }: AuthProps) => {
         sessionStorage.setItem('brpl_registration_user_id', idStr);
         if (responseData.influencerSlug) {
           setInfluencerSlug(responseData.influencerSlug);
-          sessionStorage.setItem('brpl_influencer_slug', responseData.influencerSlug);
+          localStorage.setItem('brpl_influencer_slug', responseData.influencerSlug);
         }
         setCurrentStep(2);
         toast({
@@ -342,7 +343,21 @@ const Auth = ({ forceRegister }: AuthProps) => {
       return;
     }
 
-    const useInfluencerPayment = !!(influencerSlug || sessionStorage.getItem('brpl_influencer_slug'));
+    // Re-check from server so opening payment in a new tab still applies discount
+    let resolvedInfluencerSlug = influencerSlug || localStorage.getItem('brpl_influencer_slug');
+    try {
+      const prof = await getProfile();
+      const pdata = prof?.data || prof;
+      if (pdata?.influencerSlug && !pdata?.influencerDiscountApplied) {
+        resolvedInfluencerSlug = pdata.influencerSlug;
+        localStorage.setItem('brpl_influencer_slug', pdata.influencerSlug);
+        setInfluencerSlug(pdata.influencerSlug);
+      }
+    } catch {
+      // ignore profile fetch failure; fallback to local storage/state
+    }
+
+    const useInfluencerPayment = !!resolvedInfluencerSlug;
     const amountInr = useInfluencerPayment ? 999 : 1499;
 
     if (typeof window !== "undefined" && (window as any).fbq) {
@@ -393,7 +408,7 @@ const Auth = ({ forceRegister }: AuthProps) => {
             }
 
             sessionStorage.removeItem('brpl_registration_user_id');
-            sessionStorage.removeItem('brpl_influencer_slug');
+            localStorage.removeItem('brpl_influencer_slug');
             setPaymentId(response.razorpay_payment_id);
             if (resolvedUserId && !userId) setUserId(resolvedUserId);
             setInfluencerSlug(null);
@@ -901,7 +916,7 @@ const Auth = ({ forceRegister }: AuthProps) => {
                       <div className="space-y-6 animate-fade-in text-center py-6">
                         <div className="bg-secondary/30 p-6 rounded-xl border border-secondary">
                           <p className="text-sm text-zinc-300 uppercase tracking-widest mb-2 font-bold">Registration Fee</p>
-                          {(influencerSlug || (typeof window !== "undefined" ? sessionStorage.getItem("brpl_influencer_slug") : null)) ? (
+                          {(influencerSlug || (typeof window !== "undefined" ? localStorage.getItem("brpl_influencer_slug") : null)) ? (
                             <>
                               <div className="text-3xl text-zinc-400 line-through mb-1">₹ 1499</div>
                               <div className="text-5xl font-extrabold text-primary mb-2">₹ 999</div>
