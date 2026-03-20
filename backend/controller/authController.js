@@ -339,33 +339,33 @@ const register = async (req, res) => {
       }
     }
 
-    let influencerSlug = undefined; // Marketing influencer link (new system)
-    if (normalizedReferralCode) {
-      const coachSource = await Coach.findOne({ referralCode: normalizedReferralCode }).select('_id');
-      if (coachSource) {
-        referralSourceRole = 'coach';
-        referralSourceId = coachSource._id;
-      } else {
-        const influencerSource = await Influencer.findOne({ referralCode: normalizedReferralCode }).select('_id');
-        if (influencerSource) {
-          referralSourceRole = 'influencer';
-          referralSourceId = influencerSource._id;
-        } else {
-          // Check marketing influencer link by slug (lowercase)
-          const linkSlug = String(referralCodeUsed || '').trim().toLowerCase();
-          const influencerLink = await InfluencerLink.findOne({ slug: linkSlug, status: 'active' }).select('_id slug');
-          if (influencerLink) {
-            influencerSlug = influencerLink.slug;
-            // Do not set referralSourceRole/SourceId; use influencerSlug for discount flow
-          } else {
-            return res.status(400).json({
-              statusCode: 400,
-              data: { message: 'Invalid referral code' }
-            });
-          }
-        }
-      }
-    }
+    // let influencerSlug = undefined; // Marketing influencer link (new system)
+    // if (normalizedReferralCode) {
+    //   const coachSource = await Coach.findOne({ referralCode: normalizedReferralCode }).select('_id');
+    //   if (coachSource) {
+    //     referralSourceRole = 'coach';
+    //     referralSourceId = coachSource._id;
+    //   } else {
+    //     const influencerSource = await Influencer.findOne({ referralCode: normalizedReferralCode }).select('_id');
+    //     if (influencerSource) {
+    //       referralSourceRole = 'influencer';
+    //       referralSourceId = influencerSource._id;
+    //     } else {
+    //       // Check marketing influencer link by slug (lowercase)
+    //       const linkSlug = String(referralCodeUsed || '').trim().toLowerCase();
+    //       const influencerLink = await InfluencerLink.findOne({ slug: linkSlug, status: 'active' }).select('_id slug');
+    //       if (influencerLink) {
+    //         influencerSlug = influencerLink.slug;
+    //         // Do not set referralSourceRole/SourceId; use influencerSlug for discount flow
+    //       } else {
+    //         return res.status(400).json({
+    //           statusCode: 400,
+    //           data: { message: 'Invalid referral code' }
+    //         });
+    //       }
+    //     }
+    //   }
+    // }
 
     let normalizedCouponCode = couponCode ? String(couponCode).trim().toUpperCase() : '';
     let appliedCouponBenefits = [];
@@ -382,6 +382,12 @@ const register = async (req, res) => {
       appliedCouponBenefits = Array.isArray(matchedCoupon.benefits) ? matchedCoupon.benefits : [];
     }
 
+    // Influencer pricing attribution slug (new system)
+    const influencerSlug =
+      req.body?.influencerSlug != null && String(req.body.influencerSlug).trim()
+        ? String(req.body.influencerSlug).trim().toLowerCase()
+        : undefined;
+
     const newUser = new User({
       fname, lname, email, password: hashedPassword,
       mobile, otp, gender, zone_id, city, state, pincode,
@@ -394,7 +400,7 @@ const register = async (req, res) => {
       referralCodeUsed: normalizedReferralCode || undefined,
       referralSourceRole,
       referralSourceId,
-      influencerSlug: influencerSlug || undefined,
+      influencerSlug: influencerSlug,
       couponCodeUsed: normalizedCouponCode || undefined,
       couponBenefits: appliedCouponBenefits,
       isPaid: !!paymentId, // Set isPaid to true if paymentId is present

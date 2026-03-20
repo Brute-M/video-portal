@@ -7,6 +7,7 @@ import { Mail, Lock, CheckCircle2, Phone, Eye, EyeOff, ArrowLeft, Loader2, Arrow
 import { useToast } from "@/hooks/use-toast";
 import { login, verifyAdminOtp, register, sendOtp, verifyOtp, forgotPassword, resetPassword, saveStep1Data, updateProfile, storeSyncData, getProfile } from "@/apihelper/auth";
 import { createLandingOrder, verifyLandingPayment, createOrderRegistrationInfluencer, verifyLandingPaymentInfluencer } from "@/apihelper/payment";
+import { getSlugAmount } from "@/apihelper/influencerLinks";
 import { loadRazorpay } from "@/utils/loadRazorpay";
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -44,6 +45,8 @@ const Auth = ({ forceRegister }: AuthProps) => {
   const { toast } = useToast();
   const { settings } = useSiteSettings();
 
+  const DEFAULT_PRICE_INR = 1499;
+
   // Mode & Steps
   const [isRegister, setIsRegister] = useState(
     !!forceRegister || searchParams.get("mode") === "register"
@@ -64,6 +67,7 @@ const Auth = ({ forceRegister }: AuthProps) => {
   const [isPaymentProcessing, setIsPaymentProcessing] = useState(false);
   const [userId, setUserId] = useState("");
   const [influencerSlug, setInfluencerSlug] = useState<string | null>(null);
+  const [slugAmountInr, setSlugAmountInr] = useState<number | null>(null);
 
   // Admin 2FA (Google Authenticator) state
   const [requireAdminOtp, setRequireAdminOtp] = useState(false);
@@ -116,6 +120,15 @@ const Auth = ({ forceRegister }: AuthProps) => {
         campaignCode: campCode || prev.campaignCode
       }));
     }
+
+    // Treat ?ref=slug as influencer slug for dynamic pricing + discount attribution
+    const slugFromUrl = searchParams.get("ref");
+    if (slugFromUrl) {
+      const normalized = String(slugFromUrl).trim().toLowerCase();
+      setInfluencerSlug(normalized);
+      sessionStorage.setItem("brpl_influencer_slug", normalized);
+      localStorage.setItem("brpl_influencer_slug", normalized);
+    }
   }, [searchParams, forceRegister]);
 
   // Restore userId and influencerSlug from sessionStorage on mount (e.g. user refreshed on payment step)
@@ -125,6 +138,27 @@ const Auth = ({ forceRegister }: AuthProps) => {
     const storedSlug = sessionStorage.getItem('brpl_influencer_slug');
     if (storedSlug && !influencerSlug) setInfluencerSlug(storedSlug);
   }, []);
+
+  // Fetch dynamic amount for influencer slug (used for display/tracking)
+  useEffect(() => {
+    let cancelled = false;
+    const slug = influencerSlug || localStorage.getItem("brpl_influencer_slug");
+    if (!slug) {
+      setSlugAmountInr(null);
+      return;
+    }
+    (async () => {
+      try {
+        const amount = await getSlugAmount(slug);
+        if (!cancelled && Number.isFinite(amount) && amount > 0) setSlugAmountInr(amount);
+      } catch {
+        if (!cancelled) setSlugAmountInr(null);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [influencerSlug]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     // For mobile, only allow numbers and max 10 digits
@@ -246,6 +280,7 @@ const Auth = ({ forceRegister }: AuthProps) => {
       const response = await register({
         ...formData,
         referralCodeUsed: formData.referralCode,
+        influencerSlug: (influencerSlug || localStorage.getItem("brpl_influencer_slug") || searchParams.get("ref") || "").trim().toLowerCase() || undefined,
         trackingId,
         fbclid,
         isPaid: false, // Not paid yet
@@ -358,7 +393,7 @@ const Auth = ({ forceRegister }: AuthProps) => {
     }
 
     const useInfluencerPayment = !!resolvedInfluencerSlug;
-    const amountInr = useInfluencerPayment ? 999 : 1499;
+    const amountInr = useInfluencerPayment ? (slugAmountInr ?? 999) : DEFAULT_PRICE_INR;
 
     if (typeof window !== "undefined" && (window as any).fbq) {
       (window as any).fbq("track", "InitiateCheckout", {
@@ -375,7 +410,7 @@ const Auth = ({ forceRegister }: AuthProps) => {
       if (useInfluencerPayment) {
         order = await createOrderRegistrationInfluencer(userIdForPayment);
       } else {
-        order = await createLandingOrder(1499);
+        order = await createLandingOrder(DEFAULT_PRICE_INR);
       }
 
       const Razorpay = await loadRazorpay();
@@ -402,7 +437,7 @@ const Auth = ({ forceRegister }: AuthProps) => {
                 razorpay_payment_id: response.razorpay_payment_id,
                 razorpay_signature: response.razorpay_signature,
                 userId: resolvedUserId,
-                amount: 1499,
+                amount: DEFAULT_PRICE_INR,
                 isFromLandingPage: false,
               });
             }
@@ -565,7 +600,7 @@ const Auth = ({ forceRegister }: AuthProps) => {
         if (typeof window !== "undefined" && (window as any).fbq) {
           console.log("[Meta Pixel] CompleteRegistration: fbq available, tracking event.");
           (window as any).fbq("track", "CompleteRegistration", {
-            value: 1499,
+            value: DEFAULT_PRICE_INR,
             currency: "INR",
             content_name: "BRPL Registration",
             content_type: "registration",
@@ -918,13 +953,13 @@ const Auth = ({ forceRegister }: AuthProps) => {
                           <p className="text-sm text-zinc-300 uppercase tracking-widest mb-2 font-bold">Registration Fee</p>
                           {(influencerSlug || (typeof window !== "undefined" ? localStorage.getItem("brpl_influencer_slug") : null)) ? (
                             <>
-                              <div className="text-3xl text-zinc-400 line-through mb-1">₹ 1499</div>
-                              <div className="text-5xl font-extrabold text-primary mb-2">₹ 999</div>
+                              <div className="text-3xl text-zinc-400 line-through mb-1">₹ {DEFAULT_PRICE_INR}</div>
+                              <div className="text-5xl font-extrabold text-primary mb-2">₹ {slugAmountInr ?? 999}</div>
                               <p className="text-sm text-zinc-200 font-medium">Influencer offer — one-time payment for lifetime access</p>
                             </>
                           ) : (
                             <>
-                              <div className="text-5xl font-extrabold text-primary mb-2">₹ 1499</div>
+                              <div className="text-5xl font-extrabold text-primary mb-2">₹ {DEFAULT_PRICE_INR}</div>
                               <p className="text-sm text-zinc-200 font-medium">One-time payment for lifetime access</p>
                             </>
                           )}

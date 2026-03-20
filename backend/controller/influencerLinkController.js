@@ -6,6 +6,32 @@ const slugRegex = /^[a-z0-9][a-z0-9_-]{0,39}$/;
 
 const normalizeSlug = (s) => String(s || '').toLowerCase().trim().replace(/\s+/g, '-');
 
+// Public: fetch amount by slug (for dynamic pricing display)
+exports.getAmountBySlug = async (req, res) => {
+  try {
+    const slug = (req.params.slug || '').toLowerCase().trim();
+    if (!slugRegex.test(slug)) {
+      return res.status(400).json({ statusCode: 400, data: { message: 'Invalid slug' } });
+    }
+
+    const link = await InfluencerLink.findOne({ slug, status: 'active' }).lean();
+    if (!link) {
+      return res.status(404).json({ statusCode: 404, data: { message: 'Slug not found or inactive' } });
+    }
+
+    if (link.expiresAt && new Date(link.expiresAt) < new Date()) {
+      return res.status(404).json({ statusCode: 404, data: { message: 'Slug expired' } });
+    }
+
+    // Your example "test -> 999" maps to discountPrice.
+    const amount = link.discountPrice != null ? Number(link.discountPrice) : 999;
+    return res.json({ statusCode: 200, data: { slug: link.slug, amount } });
+  } catch (err) {
+    console.error('InfluencerLink getAmountBySlug error:', err);
+    return res.status(500).json({ statusCode: 500, data: { message: 'Failed to fetch slug amount' } });
+  }
+};
+
 // GET list (admin)
 exports.list = async (req, res) => {
   try {
