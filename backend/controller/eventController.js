@@ -5,16 +5,23 @@ const multer = require('multer');
 const multerS3 = require('multer-s3');
 
 // Configure S3 storage for Events
-const storage = multerS3({
-    s3: s3Client,
-    bucket: 'brpl-uploads',
-    contentType: multerS3.AUTO_CONTENT_TYPE,
-    key: function (req, file, cb) {
-        cb(null, `events/${Date.now()}-${file.originalname}`);
+// const storage = multerS3({
+//     s3: s3Client,
+//     bucket: 'brpl-uploads',
+//     contentType: multerS3.AUTO_CONTENT_TYPE,
+//     key: function (req, file, cb) {
+//         cb(null, `events/${Date.now()}-${file.originalname}`);
+//     }
+// });
+
+// const upload = multer({ storage: storage });
+
+const upload = multer({
+    storage: multer.memoryStorage(),
+    limits: {
+        fileSize: 500 * 1024 * 1024
     }
 });
-
-const upload = multer({ storage: storage });
 
 // Create Event
 const createEvent = async (req, res) => {
@@ -165,11 +172,12 @@ const updateEvent = async (req, res) => {
 
         // Handle image update
         if (req.files && req.files['image']) {
+            /* PLEASE REVERT THIS WHEN DELETETING IS ENABLED IN CLOUD-STORE */
             // Delete old image
-            if (event.image) {
-                const key = getKeyFromUrl(event.image);
-                if (key) await deleteFromS3(key).catch(e => console.error("Failed to delete old banner", e));
-            }
+            // if (event.image) {
+            //     const key = getKeyFromUrl(event.image);
+            //     if (key) await deleteFromS3(key).catch(e => console.error("Failed to delete old banner", e));
+            // }
             // Set new image
             event.image = req.files['image'][0].location;
         }
