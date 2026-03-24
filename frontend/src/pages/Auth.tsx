@@ -1163,7 +1163,7 @@ const Auth = ({ forceRegister }: AuthProps) => {
 
         {/* Right Panel - Auth Form */}
         <div id="auth-form-container" className="flex-1 flex flex-col items-center p-6 lg:p-12 relative z-10 overflow-auto">
-          <div className={`w-full ${isRegister ? 'max-w-xl' : 'max-w-md'} mt-10 mb-2 md:mt-24 md:mb-12 lg:my-auto`}>
+          <div className={`w-full ${isRegister ? 'max-w-xl' : 'max-w-md'} mt-[50vw] md:mt-[45vw] lg:my-auto lg:mt-0`}>
 
 
             <div className="bg-black/20 backdrop-blur-md border border-white/10 rounded-xl p-6 shadow-2xl">

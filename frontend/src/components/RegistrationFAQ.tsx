@@ -71,7 +71,7 @@ const RegistrationFAQ = () => {
                                 <AccordionTrigger className="text-left text-white font-bold uppercase hover:text-[#FFC928] hover:no-underline py-5 px-6 text-sm md:text-base data-[state=open]:text-[#FFC928]">
                                     {faq.question}
                                 </AccordionTrigger>
-                                <AccordionContent className="text-gray-300 text-sm md:text-base px-6 pb-6 leading-relaxed bg-[#1e293b]">
+                                <AccordionContent className="text-gray-300 text-sm md:text-base p-6 md:p-8 leading-relaxed bg-[#1e293b]">
                                     {faq.answer}
                                 </AccordionContent>
                             </AccordionItem>
