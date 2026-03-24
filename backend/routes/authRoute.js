@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
-const { login, register, upload, uploadProfileImage, uploadProfileImageHandler, sendOtp, verifyOtp, forgotPassword, resetPassword, registerCoach, loginCoach, resendWelcomeEmail, getPartnerProfile, getCoachMyPlayers, trackVisit, getVisits, saveStep1Data, storeSyncData, createSystemUser, updateSystemUser, deleteSystemUser, toggle2FA } = require('../controller/authController');
+const { login, loginWithOtp, register, upload, uploadProfileImage, uploadProfileImageHandler, sendOtp, verifyOtp, forgotPassword, resetPassword, registerCoach, loginCoach, resendWelcomeEmail, getPartnerProfile, getCoachMyPlayers, trackVisit, getVisits, saveStep1Data, storeSyncData, createSystemUser, updateSystemUser, deleteSystemUser, toggle2FA } = require('../controller/authController');
 const authenticate = require('../middleware/authMiddleware');
 const { uploadToPublicBucket } = require('../middleware/cloudStorageUploader');
 const { convertCloudUrlToStream } = require('../utils/cloudStore');
@@ -15,6 +15,7 @@ const uploadMemory = multer({
 });
 
 router.post('/login', login);
+router.post('/login-otp', loginWithOtp);
 
 // 'trail_video' is the field name for the file
 router.post('/register', upload.single('trail_video'), register);

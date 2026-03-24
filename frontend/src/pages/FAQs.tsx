@@ -32,15 +32,38 @@ function buildFaqPageSchema(faqs: FAQ[]) {
     };
 }
 
+const initialFaqs: FAQ[] = [
+    {
+        _id: "default-1",
+        question: "1. Is the fee refundable?",
+        answer: "The registration fee is non-refundable as it covers your backend processing and kit costs."
+    },
+    {
+        _id: "default-2",
+        question: "2. What if I don't get selected?",
+        answer: "Even if you are not selected for this season, your registration remains valuable. When you register for the next season, you will receive an exclusive offer on the registration fee."
+    },
+    {
+        _id: "default-3",
+        question: "3. What is the Age Limit?",
+        answer: "Open for players aged 18 to 40. Each team will include a minimum of 2 players from the 18–20 age group, with 1 player in the playing XI for every match."
+    },
+    {
+        _id: "default-4",
+        question: "4. Can I register now and upload video later?",
+        answer: "Yes! You can pay ₹1499 now to book your slot (before they fill up) and upload your trial video anytime within 7 days from your dashboard."
+    }
+];
+
 const FAQs = () => {
-    const [faqs, setFaqs] = useState<FAQ[]>([]);
+    const [faqs, setFaqs] = useState<FAQ[]>(initialFaqs);
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         const fetchFAQs = async () => {
             try {
                 const response = await apiClient.get('/api/faqs?activeOnly=true');
-                if (response.data.success) {
+                if (response.data.success && response.data.data && response.data.data.length > 0) {
                     setFaqs(response.data.data);
                 }
             } catch (error) {

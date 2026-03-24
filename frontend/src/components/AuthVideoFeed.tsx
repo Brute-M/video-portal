@@ -49,7 +49,7 @@ const AuthVideoFeed = () => {
     ];
 
     return (
-        <div className="w-full mt-0 md:mt-[175px] pt-8 pb-4 bg-black/40 backdrop-blur-md border-t border-white/10 relative">
+        <div className="w-full mt-5 pt-8 pb-4 bg-black/40 backdrop-blur-md border-t border-white/10 relative">
             <div className="flex items-center justify-center px-4">
                 <h2 className="text-center text-3xl md:text-5xl font-black text-white mb-12 uppercase tracking-tighter font-sans italic drop-shadow-2xl">
                     Latest <span className="text-[#FFC928]">Videos</span>

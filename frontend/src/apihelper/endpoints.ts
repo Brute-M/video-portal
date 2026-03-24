@@ -1,6 +1,7 @@
 export const ENDPOINTS = {
     AUTH: {
         LOGIN: '/auth/login',
+        LOGIN_OTP: '/auth/login-otp',
         REGISTER: '/auth/register',
         SEND_OTP: '/auth/send-otp',
         VERIFY_OTP: '/auth/verify-otp',
@@ -37,6 +38,8 @@ export const ENDPOINTS = {
         CHARTS: '/admin/charts',
         INVOICE: (id: string) => `/admin/invoice/${id}`,
         MANUAL_PAYMENT: (id: string) => `/admin/users/${id}/payment`,
+        CONTACT_LEADS: '/admin/contact-leads',
+        CONTACT_LEADS_EXPORT: '/admin/contact-leads/export',
         CREATE_USER: '/admin/users',
         VERIFY_OTP: '/admin/verify-otp',
     }

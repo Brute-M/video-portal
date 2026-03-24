@@ -7,6 +7,7 @@ const {
     getPayments, manualUserPaymentUpdate, getUnpaidUsers, createUser
 } = require('../controller/adminController');
 const authenticate = require('../middleware/authMiddleware');
+const { getContactLeads, exportContactLeadsExcel } = require('../controller/contactAdminController');
 
 // Admin Login (using same auth logic, strictly for admin creds)
 router.post('/login', login);
@@ -27,6 +28,9 @@ router.post('/users', authenticate, createUser);
 router.get('/step1-leads', authenticate, getStep1Leads);
 router.get('/step1-leads/export', authenticate, exportStep1Leads);
 router.get('/charts', authenticate, getDashboardChartData);
+// Contact Us submissions (admin lead list)
+router.get('/contact-leads', authenticate, getContactLeads);
+router.get('/contact-leads/export', authenticate, exportContactLeadsExcel);
 // Invoice Download
 router.get('/invoice/:userId', authenticate, downloadUserInvoice);
 

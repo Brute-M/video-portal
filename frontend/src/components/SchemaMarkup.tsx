@@ -94,10 +94,35 @@ export function SchemaMarkup({ organizationOnly, pathname, currentPageName, skip
             : undefined,
     };
 
+    const sportsEventSchema = {
+        "@context": "https://schema.org",
+        "@type": "SportsEvent",
+        name: SITE_NAME,
+        description: "A premier hard tennis ball cricket league giving grassroot players an opportunity to showcase their talent on a national stage.",
+        startDate: "2024-06-01T09:00",
+        endDate: "2025-12-31T18:00",
+        eventStatus: "https://schema.org/EventScheduled",
+        eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
+        location: {
+            "@type": "Place",
+            name: "Various Cities Across India",
+            address: {
+                "@type": "PostalAddress",
+                addressCountry: "IN"
+            }
+        },
+        organizer: {
+            "@type": "Organization",
+            name: SITE_NAME,
+            url: SITE_URL
+        }
+    };
+
     if (organizationOnly) {
         return (
             <Helmet>
                 <script type="application/ld+json">{JSON.stringify(organizationSchema)}</script>
+                <script type="application/ld+json">{JSON.stringify(sportsEventSchema)}</script>
             </Helmet>
         );
     }
@@ -108,6 +133,7 @@ export function SchemaMarkup({ organizationOnly, pathname, currentPageName, skip
     return (
         <Helmet>
             <script type="application/ld+json">{JSON.stringify(organizationSchema)}</script>
+            <script type="application/ld+json">{JSON.stringify(sportsEventSchema)}</script>
             <script type="application/ld+json">{JSON.stringify(breadcrumb)}</script>
         </Helmet>
     );

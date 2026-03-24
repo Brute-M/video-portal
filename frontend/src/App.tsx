@@ -68,6 +68,7 @@ const AdminProfile = lazy(() => import("./pages/AdminProfile"));
 const UserProfile = lazy(() => import("./pages/UserProfile"));
 const AdminInfluencerLinks = lazy(() => import("./pages/AdminInfluencerLinks"));
 const InfluencerRedirect = lazy(() => import("./pages/InfluencerRedirect"));
+const AdminContactUsLeads = lazy(() => import("./pages/AdminContactUsLeads"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -171,6 +172,7 @@ const App = () => {
                   <Route path="/admin/news" element={<AdminNews />} />
                   <Route path="/admin/marketing/influencer-links" element={<AdminInfluencerLinks />} />
                   <Route path="/admin/profile" element={<AdminProfile />} />
+                    <Route path="/admin/contact-us-leads" element={<AdminContactUsLeads />} />
                   {/* <Route path="/admin/nav-links" element={<AdminNavLinks />} /> */}
                 </Route>
 

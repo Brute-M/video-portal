@@ -5,13 +5,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Mail, Lock, CheckCircle2, Phone, Eye, EyeOff, ArrowLeft, Loader2, ArrowRight, Swords, CircleDot, Shield, Zap } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { login, verifyAdminOtp, register, sendOtp, verifyOtp, forgotPassword, resetPassword, saveStep1Data, updateProfile, storeSyncData, getProfile } from "@/apihelper/auth";
+import ResponseModal from "@/components/ResponseModal";
+import { login, loginOtp, verifyAdminOtp, register, sendOtp, verifyOtp, forgotPassword, resetPassword, saveStep1Data, updateProfile, storeSyncData, getProfile } from "@/apihelper/auth";
 import { createLandingOrder, verifyLandingPayment, createOrderRegistrationInfluencer, verifyLandingPaymentInfluencer } from "@/apihelper/payment";
 import { getSlugAmount } from "@/apihelper/influencerLinks";
 import { loadRazorpay } from "@/utils/loadRazorpay";
+import { getLocationsAPI } from "@/apihelper/location";
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
 import {
   Dialog,
   DialogContent,
@@ -42,10 +43,31 @@ type AuthProps = {
 const Auth = ({ forceRegister }: AuthProps) => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { toast } = useToast();
   const { settings } = useSiteSettings();
 
   const DEFAULT_PRICE_INR = 1499;
+
+  // Wireframe: show these major cities as "Trail City" options.
+  // Backend requires `city` + `state`, but `zone_id` is optional.
+  const STATIC_TRAIL_CITIES = [
+    { name: "Mumbai", state: "Maharashtra" },
+    { name: "Ahmedabad", state: "Gujarat" },
+    { name: "Kolkata", state: "West Bengal" },
+    { name: "Delhi", state: "Delhi" },
+    { name: "Chennai", state: "Tamil Nadu" },
+    { name: "Bengaluru", state: "Karnataka" },
+    { name: "Pune", state: "Maharashtra" },
+    { name: "Hyderabad", state: "Telangana" },
+    { name: "Nagpur", state: "Maharashtra" },
+    { name: "Lucknow", state: "Uttar Pradesh" },
+  ];
+
+  const buildStaticTrailCityOptions = () =>
+    STATIC_TRAIL_CITIES.map((c, idx) => ({
+      name: c.name,
+      state: c.state,
+      zoneId: `STATIC-${idx + 1}`,
+    }));
 
   // Mode & Steps
   const [isRegister, setIsRegister] = useState(
@@ -55,12 +77,40 @@ const Auth = ({ forceRegister }: AuthProps) => {
 
   const [isLoading, setIsLoading] = useState(false);
 
+  const [responseModal, setResponseModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    description: string;
+    type: "success" | "error";
+  }>({
+    isOpen: false,
+    title: "",
+    description: "",
+    type: "error",
+  });
+
+  const toast = (options: any) => {
+    setResponseModal({
+      isOpen: true,
+      title: options.title || "",
+      description: options.description || "",
+      type: options.variant === "destructive" ? "error" : "success",
+    });
+  };
+
   // OTP State
   const [showOtpModal, setShowOtpModal] = useState(false);
   const [otpInput, setOtpInput] = useState("");
   const [isPhoneVerified, setIsPhoneVerified] = useState(false);
   const [isSendingOtp, setIsSendingOtp] = useState(false);
   const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
+
+  // Login mode: players can sign in with mobile OTP (admin/subadmin/seo_content still use password login).
+  const [loginMode, setLoginMode] = useState<"otp" | "password">("otp");
+  const [showLoginOtpModal, setShowLoginOtpModal] = useState(false);
+  const [loginOtpInput, setLoginOtpInput] = useState("");
+  const [isSendingLoginOtp, setIsSendingLoginOtp] = useState(false);
+  const [isVerifyingLoginOtp, setIsVerifyingLoginOtp] = useState(false);
 
   // Payment State
   const [paymentId, setPaymentId] = useState("");
@@ -97,7 +147,70 @@ const Auth = ({ forceRegister }: AuthProps) => {
     campaignCode: "",
   });
 
-  const [availableCities, setAvailableCities] = useState<any[]>([]);
+  const [availableCities, setAvailableCities] = useState<any[]>(() => buildStaticTrailCityOptions());
+
+  // Registration UI states (wireframe-inspired)
+  const [fullName, setFullName] = useState("");
+  const [isLoadingLocations, setIsLoadingLocations] = useState(false);
+
+  // Load Trail City dropdown options
+  useEffect(() => {
+    if (!isRegister) return;
+    let cancelled = false;
+
+    (async () => {
+      setIsLoadingLocations(true);
+      try {
+        const locations = await getLocationsAPI();
+        if (cancelled) return;
+
+        const flattened: Array<{ name: string; state: string; zoneId: string }> = [];
+        if (Array.isArray(locations)) {
+          locations.forEach((s: any) => {
+            const stateName = s?.state || s?.name || "";
+            const cities = Array.isArray(s?.cities) ? s.cities : [];
+
+            // backend requires `state`, so we only include cities with a state
+            if (!String(stateName).trim()) return;
+
+            cities.forEach((c: any) => {
+              if (!c?.name) return;
+
+              // Radix SelectItem value must not be empty string.
+              const safeZoneId = String(c?.zoneId || c?.name || ""); // fallback to city name
+              if (!safeZoneId.trim()) return;
+
+              flattened.push({
+                name: String(c.name),
+                state: String(stateName),
+                zoneId: safeZoneId,
+              });
+            });
+          });
+        }
+
+        // Merge API results on top of static cities (dedupe by city+state)
+        const merged = new Map<string, any>();
+        buildStaticTrailCityOptions().forEach((c) => {
+          merged.set(`${c.state}::${c.name}`, c);
+        });
+        flattened.forEach((c) => {
+          merged.set(`${c.state}::${c.name}`, c);
+        });
+
+        setAvailableCities(Array.from(merged.values()));
+      } catch {
+        // Keep static options if API fails
+        if (!cancelled) setAvailableCities(buildStaticTrailCityOptions());
+      } finally {
+        if (!cancelled) setIsLoadingLocations(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isRegister]);
 
   useEffect(() => {
     if (forceRegister) {
@@ -175,6 +288,45 @@ const Auth = ({ forceRegister }: AuthProps) => {
     setFormData({ ...formData, [field]: value });
   };
 
+  const handleFullNameChange = (value: string) => {
+    setFullName(value);
+    const parts = value.trim().split(/\s+/).filter(Boolean);
+    const fname = parts[0] || "";
+    const lname = parts.length > 1 ? parts.slice(1).join(" ") : "";
+    setFormData(prev => ({ ...prev, fname, lname }));
+  };
+
+  const generatePassword = () => {
+    // Backend requires `password` but the wireframe doesn't show it,
+    // so we generate a strong password and send it via email.
+    const charset = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%^&*()-_=+?";
+    const length = 14;
+
+    try {
+      const arr = new Uint32Array(length);
+      if (typeof window !== "undefined" && window.crypto?.getRandomValues) {
+        window.crypto.getRandomValues(arr);
+        return Array.from(arr)
+          .map((n) => charset[n % charset.length])
+          .join("");
+      }
+    } catch {
+      // Fallback below
+    }
+
+    return Array.from({ length }, () => charset[Math.floor(Math.random() * charset.length)]).join("");
+  };
+
+  const handleTrailCityChange = (zoneId: string) => {
+    const selected = availableCities.find((c) => String(c.zoneId) === String(zoneId));
+    setFormData((prev) => ({
+      ...prev,
+      zone_id: selected?.zoneId ? String(selected.zoneId) : "",
+      city: selected?.name ? String(selected.name) : "",
+      state: selected?.state ? String(selected.state) : "",
+    }));
+  };
+
   const handleSendOtp = async () => {
     if (!formData.mobile || !/^\d{10}$/.test(formData.mobile)) {
       toast({
@@ -232,6 +384,261 @@ const Auth = ({ forceRegister }: AuthProps) => {
     }
   };
 
+  const handleLoginOtpSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!formData.mobile || !/^\d{10}$/.test(formData.mobile)) {
+      toast({
+        variant: "destructive",
+        title: "Invalid Mobile Number",
+        description: "Please enter a valid 10-digit mobile number.",
+      });
+      return;
+    }
+
+    setIsSendingLoginOtp(true);
+    try {
+      const response = await sendOtp(formData.mobile, false);
+      if (response.success) {
+        toast({
+          title: "OTP Sent",
+          description: `OTP sent to ${formData.mobile}.`,
+        });
+        setLoginOtpInput("");
+        setShowLoginOtpModal(true);
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Failed to Send OTP",
+          description: response?.message || "Please try again.",
+        });
+      }
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Failed to Send OTP",
+        description: error.response?.data?.message || "Something went wrong.",
+      });
+    } finally {
+      setIsSendingLoginOtp(false);
+    }
+  };
+
+  const handleVerifyLoginOtp = async () => {
+    if (!loginOtpInput || loginOtpInput.length !== 4) return;
+
+    setIsVerifyingLoginOtp(true);
+    try {
+      const response = await loginOtp({
+        mobile: formData.mobile,
+        otp: loginOtpInput,
+      });
+
+      const data = response.data || response;
+
+      const token = data.token || response.token || data?.accessToken;
+      const role = data.role || response.role;
+      const email = data.email || response.email || data?.userEmail;
+
+      if (!token || !role) {
+        toast({
+          variant: "destructive",
+          title: "Login Error",
+          description: "Invalid server response. Please try again.",
+        });
+        return;
+      }
+
+      if (["admin", "subadmin", "seo_content"].includes(role)) {
+        toast({
+          variant: "destructive",
+          title: "Use Password Login",
+          description: "Admin/SEO users cannot use OTP login. Please switch to Email & Password.",
+        });
+        setLoginMode("password");
+        setShowLoginOtpModal(false);
+        return;
+      }
+
+      localStorage.setItem("token", token);
+      if (email) localStorage.setItem("userEmail", email);
+      localStorage.setItem("userRole", role);
+
+      toast({
+        title: "Welcome Back!",
+        description: "You've successfully signed in.",
+      });
+
+      setShowLoginOtpModal(false);
+      setLoginOtpInput("");
+
+      navigate("/dashboard");
+    } catch (error: any) {
+      const message =
+        error.response?.data?.data?.message ||
+        error.response?.data?.message ||
+        "Failed to login.";
+
+      if (String(message).toLowerCase().includes("requires password")) {
+        setLoginMode("password");
+        setShowLoginOtpModal(false);
+      }
+
+      toast({
+        variant: "destructive",
+        title: "OTP Login Failed",
+        description: message,
+      });
+    } finally {
+      setIsVerifyingLoginOtp(false);
+    }
+  };
+
+  const completeRegistrationFlow = async () => {
+    try {
+      // Persist any extra details if provided (name/role/city/state etc).
+      await updateProfile({ ...formData });
+    } catch (err) {
+      console.error("Failed to update profile after payment:", err);
+    }
+
+    // Meta Pixel: CompleteRegistration
+    if (typeof window !== "undefined" && (window as any).fbq) {
+      (window as any).fbq("track", "CompleteRegistration", {
+        value: DEFAULT_PRICE_INR,
+        currency: "INR",
+        content_name: "BRPL Registration",
+        content_type: "registration",
+      });
+    }
+
+    navigate("/thank-you");
+    setIsRegister(false);
+  };
+
+  const startPaymentFlow = async (userIdForPayment: string) => {
+    // Re-check from server so opening payment in a new tab still applies discount
+    let resolvedInfluencerSlug = influencerSlug || localStorage.getItem("brpl_influencer_slug");
+    try {
+      const prof = await getProfile();
+      const pdata = prof?.data || prof;
+      if (pdata?.influencerSlug && !pdata?.influencerDiscountApplied) {
+        resolvedInfluencerSlug = pdata.influencerSlug;
+        localStorage.setItem("brpl_influencer_slug", pdata.influencerSlug);
+        setInfluencerSlug(pdata.influencerSlug);
+      }
+    } catch {
+      // ignore profile fetch failure; fallback to local storage/state
+    }
+
+    const useInfluencerPayment = !!resolvedInfluencerSlug;
+    const amountInr = useInfluencerPayment ? (slugAmountInr ?? DEFAULT_PRICE_INR) : DEFAULT_PRICE_INR;
+
+    if (typeof window !== "undefined" && (window as any).fbq) {
+      (window as any).fbq("track", "InitiateCheckout", {
+        value: amountInr,
+        currency: "INR",
+        content_name: "Registration Fee",
+        content_type: "product",
+      });
+    }
+
+    setIsPaymentProcessing(true);
+    try {
+      let order: { id: string; amount: number; currency: string };
+      if (useInfluencerPayment) {
+        order = await createOrderRegistrationInfluencer(userIdForPayment);
+      } else {
+        order = await createLandingOrder(DEFAULT_PRICE_INR);
+      }
+
+      const Razorpay = await loadRazorpay();
+      const options: any = {
+        key: import.meta.env.VITE_RAZORPAY_KEY_ID || "rzp_live_RsBsR05m5SGbtT",
+        amount: order.amount,
+        currency: order.currency || "INR",
+        name: "Beyond Reach Premier League",
+        description: useInfluencerPayment ? "Registration Fee (Influencer offer)" : "Registration Fee",
+        order_id: order.id,
+        handler: async (response: any) => {
+          try {
+            const resolvedUserId = userIdForPayment || sessionStorage.getItem("brpl_registration_user_id") || "";
+            if (useInfluencerPayment) {
+              await verifyLandingPaymentInfluencer({
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+                userId: resolvedUserId,
+              });
+            } else {
+              await verifyLandingPayment({
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+                userId: resolvedUserId,
+                amount: DEFAULT_PRICE_INR,
+                isFromLandingPage: false,
+              });
+            }
+
+            sessionStorage.removeItem("brpl_registration_user_id");
+            localStorage.removeItem("brpl_influencer_slug");
+
+            setPaymentId(response.razorpay_payment_id);
+            setInfluencerSlug(null);
+
+            if (typeof window !== "undefined" && (window as any).fbq) {
+              (window as any).fbq("track", "Purchase", {
+                value: amountInr,
+                currency: "INR",
+                content_name: "Registration Fee",
+                content_type: "product",
+                order_id: response.razorpay_order_id,
+                payment_id: response.razorpay_payment_id,
+                user_id: resolvedUserId,
+              });
+            }
+
+            toast({
+              title: "Payment Successful",
+              description: "Payment verified. Your registration is now complete.",
+            });
+
+            await completeRegistrationFlow();
+          } catch (verifyError: any) {
+            console.error("Verification failed", verifyError);
+            toast({
+              variant: "destructive",
+              title: "Payment Verification Failed",
+              description: "Contact support if money was deducted.",
+            });
+          } finally {
+            setIsPaymentProcessing(false);
+          }
+        },
+        prefill: {
+          name: `${formData.fname} ${formData.lname}`.trim(),
+          email: formData.email,
+          contact: formData.mobile,
+        },
+        theme: { color: "#0f172a" },
+        modal: { ondismiss: () => setIsPaymentProcessing(false) },
+      };
+
+      const rzp = new Razorpay(options);
+      rzp.open();
+    } catch (error: any) {
+      console.error("Payment initiation failed", error);
+      const msg = error.response?.data?.message || error.message || "Unknown error";
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: `Could not initiate payment: ${msg}`,
+      });
+      setIsPaymentProcessing(false);
+    }
+  };
+
   const handleStep1Submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isPhoneVerified) {
@@ -243,33 +650,42 @@ const Auth = ({ forceRegister }: AuthProps) => {
       return;
     }
 
-    if (!formData.email || !formData.password) {
+    if (!formData.email) {
       toast({
         variant: "destructive",
         title: "Missing Fields",
-        description: "Please enter your email and create a password.",
+        description: "Please enter your email.",
       });
       return;
     }
+
+    if (!formData.fname) {
+      toast({
+        variant: "destructive",
+        title: "Missing Fields",
+        description: "Please enter your full name.",
+      });
+      return;
+    }
+
+    if (!formData.state || !formData.city) {
+      toast({
+        variant: "destructive",
+        title: "Missing Fields",
+        description: "Please select your Trail City.",
+      });
+      return;
+    }
+
+    const generatedPassword = formData.password || generatePassword();
 
     setIsLoading(true);
     try {
       // If user is already created in this session (e.g. went back from Step 2), just update or proceed
       if (userId) {
-        // Optional: Update basic details if changed? 
-        // For now, let's just proceed to Step 2 to avoid "Mobile/Email already exists" error.
-        // If we want to support editing, we'd need an update API call here, or use updateProfile.
-        // Since Step 1 has core account fields (email/password/mobile), updating them is trickier.
-        // Let's assume for this flow, if they earned a userId, Step 1 is "done".
-        // But if they changed inputs?
-
-        // Better approach: Call updateProfile with the data, just in case they fixed a typo in Name/City/State.
         await updateProfile(formData);
-        setCurrentStep(2);
-        toast({
-          title: "Details Updated",
-          description: "Proceeding to payment.",
-        });
+        toast({ title: "Proceeding to payment", description: "Please complete your checkout." });
+        await startPaymentFlow(userId);
         return;
       }
 
@@ -281,10 +697,12 @@ const Auth = ({ forceRegister }: AuthProps) => {
         ...formData,
         referralCodeUsed: formData.referralCode,
         influencerSlug: (influencerSlug || localStorage.getItem("brpl_influencer_slug") || searchParams.get("ref") || "").trim().toLowerCase() || undefined,
+        // Password isn't shown in the wireframe; generate and email it after registration.
+        password: generatedPassword,
         trackingId,
         fbclid,
         isPaid: false, // Not paid yet
-        isFromLandingPage: false, // Website registration (not landing page)
+        isFromLandingPage: true, // Triggers email with generated password
       });
 
       console.log("Step 1 Response:", response);
@@ -327,11 +745,8 @@ const Auth = ({ forceRegister }: AuthProps) => {
           // store in localStorage so it survives across tabs
           localStorage.setItem('brpl_influencer_slug', responseData.influencerSlug);
         }
-        setCurrentStep(2);
-        toast({
-          title: "Account Created",
-          description: "Please complete payment to access full features.",
-        });
+        toast({ title: "Account Created", description: "Please complete your payment to finish registration." });
+        await startPaymentFlow(idStr);
       } else if (newUserId) {
         const idStr = String(newUserId);
         setUserId(idStr);
@@ -340,11 +755,8 @@ const Auth = ({ forceRegister }: AuthProps) => {
           setInfluencerSlug(responseData.influencerSlug);
           localStorage.setItem('brpl_influencer_slug', responseData.influencerSlug);
         }
-        setCurrentStep(2);
-        toast({
-          title: "Account Created",
-          description: "Proceeding to payment.",
-        });
+        toast({ title: "Account Created", description: "Proceeding to payment." });
+        await startPaymentFlow(idStr);
       } else {
         console.error("Critical: No token or userId in response");
         toast({
@@ -714,42 +1126,19 @@ const Auth = ({ forceRegister }: AuthProps) => {
     }
   };
 
-  const StepIndicator = () => (
-    <div className="w-full mb-8 px-1">
-      <div className="flex justify-between items-end mb-3">
-        {[
-          { id: 1, label: "Details" },
-          { id: 2, label: "Payment" },
-          { id: 3, label: "Account" }
-        ].map((step) => {
-          const isActive = currentStep >= step.id;
-          return (
-            <span
-              key={step.id}
-              className={`text-sm font-bold uppercase tracking-wider transition-all duration-300 ${isActive ? 'text-[#FFC928] drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)] scale-105' : 'text-zinc-100/80 hover:text-white'}`}
-            >
-              {step.label}
-            </span>
-          )
-        })}
-      </div>
-
-      {/* Progress Line */}
-      <div className="relative w-full h-[4px] bg-black/40 rounded-full overflow-hidden backdrop-blur-sm border border-white/10">
-        <div
-          className="absolute left-0 top-0 h-full bg-gradient-to-r from-yellow-600 via-[#FFC928] to-[#FFC928] shadow-[0_0_15px_#FFC928] rounded-full transition-all duration-500 ease-out"
-          style={{ width: `${(currentStep / 3) * 100}%` }}
-        />
-      </div>
-    </div>
-  );
-
   return (
     <div className="min-h-screen bg-background relative overflow-x-hidden flex flex-col">
       <SEO
         title={isRegister ? "Register" : "Login"}
         description={isRegister ? "Create your account to join the Beyond Reach Premier League community." : "Sign in to your Beyond Reach Premier League account."}
       />
+      {/* Local keyframes for animated border highlight */}
+      <style>{`
+        @keyframes borderSweep {
+          0% { background-position: 0% 50%; }
+          100% { background-position: 200% 50%; }
+        }
+      `}</style>
 
       {/* Full Screen Background Image */}
       <div className="absolute inset-0 z-0 bg-[#0F172A]">
@@ -764,93 +1153,240 @@ const Auth = ({ forceRegister }: AuthProps) => {
       <div className="flex flex-col lg:flex-row flex-1 w-full min-h-[calc(100vh-80px)] relative z-10">
 
         {/* Left Panel - Branding (Hidden on mobile) */}
-        <div className="flex flex-1 flex-col justify-between p-6 lg:p-12 relative overflow-hidden z-10 w-full lg:w-auto min-h-[300px] lg:min-h-auto items-center text-center lg:items-start lg:text-left">
+        <div className="flex flex-1 flex-col justify-between p-6 lg:p-12 relative overflow-hidden z-10 w-full lg:w-auto min-h-[140px] lg:min-h-auto items-center text-center lg:items-start lg:text-left">
           {/* Background Image REMOVED from here */}
 
           <div className="relative z-10 mt-12 lg:mt-32">
             {/* Buttons Section */}
-            {/* <div className="flex flex-col sm:flex-row gap-4 mt-8 md:mt-[32rem] animate-fade-in-up md:ml-12">
-              <button
-                onClick={() => document.getElementById('auth-form-container')?.scrollIntoView({ behavior: 'smooth' })}
-                className="bg-[#FFC928] text-black font-extrabold text-lg px-8 py-3 rounded-xl shadow-[0_0_20px_rgba(255,201,40,0.4)] hover:scale-105 transition-transform uppercase tracking-wider skew-x-[-10deg]"
-              >
-                <span className="block skew-x-[10deg]">Register Now</span>
-              </button>
-
-              <a
-                href={`tel:${settings.contactPhone.replace(/\D/g, "").replace(/^/, "+")}`}
-                className="bg-black/40 backdrop-blur-md border border-white/20 text-white font-bold text-lg px-8 py-3 rounded-xl hover:bg-black/60 transition-all flex items-center justify-center gap-2 skew-x-[-10deg]"
-              >
-                <span className="block skew-x-[10deg] not-italic">📞 {settings.contactPhone}</span>
-              </a>
-            </div> */}
-            {/* <div className="inline-flex items-center gap-3 bg-[#FFC928] backdrop-blur-sm px-6 py-2 rounded-full shadow-[0_0_15px_rgba(255,201,40,0.4)] border border-white/20">
-              <p className="text-lg lg:text-xl font-bold text-black tracking-wide">
-                Limited Slots in your City
-              </p>
-            </div>
-            <div className="mt-6 text-white text-lg font-semibold drop-shadow-md bg-black/40 px-4 py-2 rounded-lg inline-block backdrop-blur-sm border border-white/10">
-              📞 Call us: <a href={`tel:${settings.contactPhone.replace(/\D/g, "").replace(/^/, "+")}`} className="text-[#FFC928] hover:underline">{settings.contactPhone}</a>
-            </div> */}
           </div>
         </div>
 
         {/* Right Panel - Auth Form */}
         <div id="auth-form-container" className="flex-1 flex flex-col items-center p-6 lg:p-12 relative z-10 overflow-auto">
-          <div className={`w-full ${isRegister ? 'max-w-2xl' : 'max-w-md'} mt-10 mb-2 md:mt-24 md:mb-12 lg:my-auto`}>
+          <div className={`w-full ${isRegister ? 'max-w-xl' : 'max-w-md'} mt-10 mb-2 md:mt-24 md:mb-12 lg:my-auto`}>
 
 
-            <div className="bg-black/20 backdrop-blur-md border border-white/10 rounded-xl p-8 shadow-2xl">
-              {isRegister && <StepIndicator />}
-
+            <div className="bg-black/20 backdrop-blur-md border border-white/10 rounded-xl p-6 shadow-2xl">
               <div className="text-center mb-8">
-                <h2 className="text-2xl font-display font-bold text-white drop-shadow-md">
-                  {isRegister
-                    ? currentStep === 1 ? "" : currentStep === 2 ? "Payment" : "Create Account"
-                    : "Welcome back"}
-                </h2>
+                {isRegister ? (
+                  <div
+                    className="relative inline-block p-[2px] rounded-xl bg-[linear-gradient(90deg,#22C55E,#FFC928,#22C55E)] bg-[length:200%_200%]"
+                    style={{ animation: "borderSweep 2.2s linear infinite" }}
+                  >
+                    <div className="rounded-[10px] bg-[#0F172A]/65 px-6 py-2">
+                      <h2 className="text-2xl font-display font-bold text-white drop-shadow-md">
+                        Registration Open
+                      </h2>
+                    </div>
+                  </div>
+                ) : (
+                  <h2 className="text-2xl font-display font-bold text-white drop-shadow-md">
+                    Welcome back
+                  </h2>
+                )}
                 <p className="text-zinc-200 mt-2 font-medium drop-shadow-sm">
-                  {isRegister
-                    ? ""
-                    : "Sign in to continue to your dashboard"}
+                  {isRegister ? "" : "Sign in to continue to your dashboard"}
                 </p>
               </div>
 
-              <form onSubmit={!isRegister ? handleSubmit : currentStep === 1 ? handleStep1Submit : currentStep === 2 ? handleStep2Submit : handleSubmit} className="space-y-5">
+              <form
+                onSubmit={!isRegister ? (loginMode === "otp" ? handleLoginOtpSubmit : handleSubmit) : handleStep1Submit}
+                className="space-y-5"
+              >
 
                 {isRegister ? (
+                  <div className="space-y-4 animate-fade-in">
+                    <div className="space-y-2">
+                      <Label htmlFor="fullName" className="text-white font-semibold drop-shadow-sm">
+                        Enter Full Name
+                      </Label>
+                      <Input
+                        id="fullName"
+                        value={fullName}
+                        onChange={(e) => handleFullNameChange(e.target.value)}
+                        required
+                        placeholder="Enter Full Name"
+                        className="h-11 bg-white text-black placeholder:text-gray-500 border-white/20 focus-visible:ring-primary/50"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="mobile" className="text-white font-semibold drop-shadow-sm">
+                        Enter Mobile Number
+                      </Label>
+                      <div className="relative flex gap-2">
+                        <div className="relative flex-1">
+                          <div className="absolute left-3 top-1/2 -translate-y-1/2 flex items-center gap-2 z-10">
+                            <Phone className="w-4 h-4 text-muted-foreground" />
+                            <span className="text-sm text-muted-foreground font-medium">+91</span>
+                          </div>
+                          <Input
+                            id="mobile"
+                            className="pl-20 h-11 bg-white text-black placeholder:text-gray-500 border-white/20 focus-visible:ring-primary/50"
+                            value={formData.mobile}
+                            onChange={handleChange}
+                            disabled={isPhoneVerified}
+                            required
+                            inputMode="numeric"
+                            maxLength={10}
+                            placeholder="Enter Mobile Number"
+                          />
+                        </div>
+                        {isPhoneVerified ? (
+                          <Button type="button" variant="outline" className="h-11 border-green-500 text-green-500" disabled>
+                            <CheckCircle2 className="w-4 h-4 mr-2" />
+                            Verified
+                          </Button>
+                        ) : (
+                          <Button
+                            type="button"
+                            variant="default"
+                            className="h-11"
+                            onClick={handleSendOtp}
+                            disabled={isSendingOtp || !formData.mobile}
+                          >
+                            {isSendingOtp ? <Loader2 className="w-4 h-4 animate-spin" /> : "Send OTP"}
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="email" className="text-white font-semibold drop-shadow-sm">
+                        Enter Email ID
+                      </Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        value={formData.email}
+                        onChange={handleChange}
+                        required
+                        placeholder="Enter Email ID"
+                        className="h-11 bg-white text-black placeholder:text-gray-500 border-white/20 focus-visible:ring-primary/50"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="trailCity" className="text-white font-semibold drop-shadow-sm">
+                          Select Trail City
+                        </Label>
+                        <Select onValueChange={handleTrailCityChange} value={formData.zone_id} required>
+                          <SelectTrigger className="h-12 bg-white text-black border-white/20 focus:ring-primary/50">
+                            <SelectValue placeholder={isLoadingLocations ? "Loading..." : "Select Trail City"} />
+                          </SelectTrigger>
+                          <SelectContent position="popper" side="bottom" align="start">
+                            {availableCities.length ? (
+                              availableCities.map((c) => (
+                                <SelectItem key={c.zoneId} value={String(c.zoneId)}>
+                                  {c.name}
+                                </SelectItem>
+                              ))
+                            ) : (
+                              <SelectItem value="__no_cities__" disabled>
+                                {isLoadingLocations ? "Loading..." : "No cities available"}
+                              </SelectItem>
+                            )}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="playerRole" className="text-white font-semibold shadow-black/50 drop-shadow-sm">
+                          Select Role
+                        </Label>
+                        <Select
+                          onValueChange={(val) => handleSelectChange(val, "playerRole")}
+                          value={formData.playerRole}
+                          required
+                        >
+                          <SelectTrigger className="h-12 bg-white text-black border-white/20 focus:ring-primary/50">
+                            <SelectValue placeholder="Select Role" />
+                          </SelectTrigger>
+                          <SelectContent position="popper" side="bottom" align="start">
+                            <SelectItem value="Batsman">Batsman</SelectItem>
+                            <SelectItem value="Bowler">Bowler</SelectItem>
+                            <SelectItem value="Wicket Keeper">Wicket Keeper</SelectItem>
+                            <SelectItem value="All-Rounder">All-Rounder</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-2 pt-2">
+                      <input type="checkbox" id="terms" className="mt-1" required />
+                      <Label
+                        htmlFor="terms"
+                        className="text-sm text-zinc-200 font-medium leading-tight cursor-pointer drop-shadow-sm"
+                      >
+                        I agree to the{" "}
+                        <Link to="/terms" className="text-[#FFC928] hover:underline font-bold">
+                          Terms and Conditions
+                        </Link>{" "}
+                        &{" "}
+                        <Link to="/privacy" className="text-[#FFC928] hover:underline font-bold">
+                          Privacy Policy
+                        </Link>
+                      </Label>
+                    </div>
+
+                    <Button
+                      type="submit"
+                      variant="default"
+                      size="lg"
+                      className="w-full mt-2 bg-[#22C55E] hover:bg-[#16A34A] text-black font-bold shadow-[0_4px_20px_rgba(34,197,94,0.35)]"
+                      disabled={
+                        isLoading ||
+                        isPaymentProcessing ||
+                        isLoadingLocations ||
+                        !isPhoneVerified ||
+                        !fullName.trim() ||
+                        !formData.email ||
+                        !formData.city ||
+                        !formData.state ||
+                        !formData.playerRole
+                      }
+                    >
+                      {isLoading || isPaymentProcessing ? (
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                      ) : (
+                        <>Submit &amp; Pay ₹{DEFAULT_PRICE_INR}/-</>
+                      )}
+                    </Button>
+                  </div>
+                ) : (
                   <>
-                    {/* STEP 1: Details */}
-                    {currentStep === 1 && (
-                      <div className="space-y-4 animate-fade-in">
-                        <div className="space-y-2">
-                          <Label htmlFor="playerRole" className="text-white font-semibold shadow-black/50 drop-shadow-sm">Select Your Role</Label>
-                          <Select onValueChange={(val) => handleSelectChange(val, 'playerRole')} value={formData.playerRole} required>
-                            <SelectTrigger className="h-12 bg-white text-black border-white/20 focus:ring-primary/50">
-                              <SelectValue placeholder="Choose your playing role" />
-                            </SelectTrigger>
-                            <SelectContent position="popper" side="bottom" align="start">
-                              <SelectItem value="Batsman">Batsman</SelectItem>
-                              <SelectItem value="Bowler">Bowler</SelectItem>
-                              <SelectItem value="Wicket Keeper">Wicket Keeper</SelectItem>
-                              <SelectItem value="All-Rounder">All-Rounder</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
+                    <div className="flex gap-2 mb-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setLoginMode("otp");
+                          setLoginOtpInput("");
+                          setShowLoginOtpModal(false);
+                        }}
+                        className={`flex-1 h-10 rounded-lg text-sm font-semibold transition-colors ${loginMode === "otp" ? "bg-[#FFC928] text-black" : "bg-black/30 text-zinc-200 hover:bg-black/40"}`}
+                      >
+                        User Login
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setLoginMode("password");
+                          setLoginOtpInput("");
+                          setShowLoginOtpModal(false);
+                        }}
+                        className={`flex-1 h-10 rounded-lg text-sm font-semibold transition-colors ${loginMode === "password" ? "bg-[#FFC928] text-black" : "bg-black/30 text-zinc-200 hover:bg-black/40"}`}
+                      >
+                        Admin Login
+                      </button>
+                    </div>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                          <div className="space-y-2">
-                            <Label htmlFor="fname" className="text-white font-semibold drop-shadow-sm">First Name</Label>
-                            <Input id="fname" value={formData.fname} onChange={handleChange} required placeholder="First Name" className="h-11 bg-white text-black placeholder:text-gray-500 border-white/20 focus-visible:ring-primary/50" />
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="lname" className="text-white font-semibold drop-shadow-sm">Last Name</Label>
-                            <Input id="lname" value={formData.lname} onChange={handleChange} required placeholder="Last Name" className="h-11 bg-white text-black placeholder:text-gray-500 border-white/20 focus-visible:ring-primary/50" />
-                          </div>
-                        </div>
-
+                    {loginMode === "otp" ? (
+                      <>
                         <div className="space-y-2">
-                          <Label htmlFor="mobile" className="text-white font-semibold drop-shadow-sm">Mobile Number</Label>
+                          <Label htmlFor="mobile" className="text-white font-semibold drop-shadow-sm">
+                            Mobile Number
+                          </Label>
                           <div className="relative flex gap-2">
                             <div className="relative flex-1">
                               <div className="absolute left-3 top-1/2 -translate-y-1/2 flex items-center gap-2 z-10">
@@ -862,366 +1398,188 @@ const Auth = ({ forceRegister }: AuthProps) => {
                                 className="pl-20 h-11 bg-white text-black placeholder:text-gray-500 border-white/20 focus-visible:ring-primary/50"
                                 value={formData.mobile}
                                 onChange={handleChange}
-                                disabled={isPhoneVerified}
                                 required
                                 inputMode="numeric"
                                 maxLength={10}
-                                placeholder="Enter your mobile number"
+                                placeholder="Enter Mobile Number"
                               />
                             </div>
-                            {isPhoneVerified ? (
-                              <Button type="button" variant="outline" className="h-11 border-green-500 text-green-500" disabled>
-                                <CheckCircle2 className="w-4 h-4 mr-2" />
-                                Verified
-                              </Button>
-                            ) : (
-                              <Button
-                                type="button"
-                                variant="default"
-                                className="h-11"
-                                onClick={handleSendOtp}
-                                disabled={isSendingOtp || !formData.mobile}
-                              >
-                                {isSendingOtp ? <Loader2 className="w-4 h-4 animate-spin" /> : "Send OTP"}
-                              </Button>
-                            )}
                           </div>
                         </div>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                          <div className="space-y-2">
-                            <Label htmlFor="state" className="text-white font-semibold drop-shadow-sm">State</Label>
-                            <Input id="state" value={formData.state} onChange={handleChange} required placeholder="Select State" className="h-11 bg-white text-black placeholder:text-gray-500 border-white/20 focus-visible:ring-primary/50" />
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="city" className="text-white font-semibold drop-shadow-sm">City</Label>
-                            <Input id="city" value={formData.city} onChange={handleChange} required placeholder="City" className="h-11 bg-white text-black placeholder:text-gray-500 border-white/20 focus-visible:ring-primary/50" />
-                          </div>
-                        </div>
-
-                        {/* NEW: Email and Password in Step 1 */}
-                        {isPhoneVerified && (
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 animate-fade-in">
-                            <div className="space-y-2">
-                              <Label htmlFor="email" className="text-white font-semibold drop-shadow-sm">Email Address</Label>
-                              <div className="relative">
-                                <Input id="email" type="email" className="pl-3 h-11 bg-white text-black placeholder:text-gray-500 border-white/20 focus-visible:ring-primary/50" value={formData.email} onChange={handleChange} required placeholder="Enter Email" />
-                              </div>
-                            </div>
-
-                            <div className="space-y-2">
-                              <Label htmlFor="password" className="text-white font-semibold drop-shadow-sm">Create Password</Label>
-                              <div className="relative">
-                                <Input
-                                  id="password"
-                                  type={showRegisterPassword ? "text" : "password"}
-                                  className="pl-3 pr-10 h-11 bg-white text-black placeholder:text-gray-500 border-white/20 focus-visible:ring-primary/50"
-                                  value={formData.password}
-                                  onChange={handleChange}
-                                  required
-                                  placeholder="Create Password"
-                                />
-                                <button
-                                  type="button"
-                                  onClick={() => setShowRegisterPassword(!showRegisterPassword)}
-                                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                                >
-                                  {showRegisterPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                                </button>
-                              </div>
-                            </div>
-                          </div>
-                        )}
-
-                        <div className="flex items-start gap-2 pt-2">
-                          <input type="checkbox" id="terms" className="mt-1" required />
-                          <Label htmlFor="terms" className="text-sm text-zinc-200 font-medium leading-tight cursor-pointer drop-shadow-sm">
-                            I agree to the <Link to="/terms" className="text-[#FFC928] hover:underline font-bold">Terms and Conditions</Link> & <Link to="/privacy" className="text-[#FFC928] hover:underline font-bold">Privacy Policy</Link>
-                          </Label>
-                        </div>
-
-                        <Button type="submit" variant="hero" size="lg" className="w-full mt-2" disabled={isLoading}>
-                          {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <>Next <ArrowRight className="w-4 h-4 ml-2" /></>}
-                        </Button>
-                      </div>
-                    )}
-
-                    {/* STEP 2: Payment */}
-                    {currentStep === 2 && (
-                      <div className="space-y-6 animate-fade-in text-center py-6">
-                        <div className="bg-secondary/30 p-6 rounded-xl border border-secondary">
-                          <p className="text-sm text-zinc-300 uppercase tracking-widest mb-2 font-bold">Registration Fee</p>
-                          {(influencerSlug || (typeof window !== "undefined" ? localStorage.getItem("brpl_influencer_slug") : null)) ? (
-                            <>
-                              <div className="text-3xl text-zinc-400 line-through mb-1">₹ {DEFAULT_PRICE_INR}</div>
-                              <div className="text-5xl font-extrabold text-primary mb-2">₹ {slugAmountInr ?? 999}</div>
-                              <p className="text-sm text-zinc-200 font-medium">Influencer offer — one-time payment for lifetime access</p>
-                            </>
-                          ) : (
-                            <>
-                              <div className="text-5xl font-extrabold text-primary mb-2">₹ {DEFAULT_PRICE_INR}</div>
-                              <p className="text-sm text-zinc-200 font-medium">One-time payment for lifetime access</p>
-                            </>
-                          )}
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-4 text-left text-sm text-white font-medium max-w-sm mx-auto drop-shadow-sm">
-                          <div className="flex items-center gap-2">
-                            <CheckCircle2 className="w-4 h-4 text-green-500" />
-                            <span>Professional Trials</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <CheckCircle2 className="w-4 h-4 text-green-500" />
-                            <span>Live TV Coverage</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <CheckCircle2 className="w-4 h-4 text-green-500" />
-                            <span>Real Stadiums</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <CheckCircle2 className="w-4 h-4 text-green-500" />
-                            <span>Pro Jerseys</span>
-                          </div>
-                        </div>
-
-                        <Button type="submit" variant="hero" size="lg" className="w-full" disabled={isPaymentProcessing}>
-                          {isPaymentProcessing ? (
+                        <Button
+                          type="submit"
+                          variant="hero"
+                          size="lg"
+                          className="w-full"
+                          disabled={isSendingLoginOtp || isVerifyingLoginOtp || !/^\d{10}$/.test(formData.mobile)}
+                        >
+                          {isSendingLoginOtp ? (
                             <>
                               <Loader2 className="w-5 h-5 animate-spin mr-2" />
-                              Processing Payment...
+                              Sending OTP...
                             </>
                           ) : (
-                            <>Pay Securely Now <ArrowRight className="w-4 h-4 ml-2" /></>
+                            <>Send Login OTP</>
                           )}
                         </Button>
-
-                        <Button type="button" variant="ghost" onClick={() => setCurrentStep(1)} className="w-full" disabled={isPaymentProcessing}>
-                          Back to Details
-                        </Button>
-                      </div>
-                    )}
-
-                    {/* STEP 3: Create Account */}
-                    {/* STEP 3: Create Account - Now just additional info */}
-                    {currentStep === 3 && (
-                      <div className="space-y-4 animate-fade-in">
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                          {/* Email/Password removed from here */}
-
-                          <div className="space-y-2">
-                            <Label htmlFor="aadhaar" className="text-white font-semibold drop-shadow-sm">Aadhaar (Optional)</Label>
-                            {/* Assuming aadhaar field exists in formData but wasn't in original display?? Let's check formData init. Yes, aadhar is there. */}
-                            <Input id="aadhar" value={(formData as any).aadhar} onChange={handleChange} placeholder="Aadhaar Number" className="h-11 bg-white text-black placeholder:text-gray-500 border-white/20 focus-visible:ring-primary/50" />
+                      </>
+                    ) : (
+                      <>
+                        <div className="space-y-2">
+                          <Label htmlFor="email" className="text-white font-semibold drop-shadow-sm">Email or Mobile Number</Label>
+                          <div className="relative">
+                            {/^\+?\d+$/.test(formData.email) ? (
+                              <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+                            ) : (
+                              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+                            )}
+                            <Input
+                              id="email"
+                              type="text"
+                              placeholder="Email or Mobile"
+                              className="pl-12 bg-white text-black placeholder:text-gray-500 border-white/20 focus-visible:ring-primary/50"
+                              value={formData.email}
+                              onChange={handleChange}
+                              required
+                              autoComplete="username"
+                            />
                           </div>
                         </div>
 
-                        <Separator className="my-2" />
-
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                          <div className="space-y-2">
-                            <Label htmlFor="address1" className="text-white font-semibold drop-shadow-sm">Address Line 1</Label>
-                            <Input id="address1" value={formData.address1} onChange={handleChange} required placeholder="House No, Building" className="h-11 bg-white text-black placeholder:text-gray-500 border-white/20 focus-visible:ring-primary/50" />
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="address2" className="text-white font-semibold drop-shadow-sm">Address Line 2</Label>
-                            <Input id="address2" value={formData.address2} onChange={handleChange} placeholder="Street, Area" className="h-11 bg-white text-black placeholder:text-gray-500 border-white/20 focus-visible:ring-primary/50" />
-                          </div>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-4">
-                          <div className="space-y-2">
-                            <Label htmlFor="pincode" className="text-white font-semibold drop-shadow-sm">Pincode</Label>
-                            <Input id="pincode" value={formData.pincode} onChange={handleChange} required placeholder="Pincode" className="h-11 bg-white text-black placeholder:text-gray-500 border-white/20 focus-visible:ring-primary/50" />
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="zone_id" className="text-white font-semibold drop-shadow-sm">Zone</Label>
-                            <Select onValueChange={(val) => handleSelectChange(val, 'zone_id')} value={formData.zone_id}>
-                              <SelectTrigger className="h-11 bg-white text-black border-white/20 focus:ring-primary/50">
-                                <SelectValue placeholder="Select Zone" />
-                              </SelectTrigger>
-                              <SelectContent position="popper" side="bottom" align="start">
-                                {[
-                                  { zoneId: 1, zoneName: "North Zone" },
-                                  { zoneId: 2, zoneName: "South Zone" },
-                                  { zoneId: 3, zoneName: "East Zone" },
-                                  { zoneId: 4, zoneName: "West Zone" },
-                                  { zoneId: 5, zoneName: "Central Zone" },
-                                  { zoneId: 6, zoneName: "North-East Zone" }
-                                ].map((zone) => (
-                                  <SelectItem key={zone.zoneId} value={zone.zoneId.toString()}>
-                                    {zone.zoneName}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
+                        <div className="space-y-2">
+                          <Label htmlFor="password" className="text-white font-semibold drop-shadow-sm">Password</Label>
+                          <div className="relative">
+                            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+                            <Input
+                              id="password"
+                              type={showLoginPassword ? "text" : "password"}
+                              placeholder="••••••••"
+                              className="pl-12 pr-10 bg-white text-black placeholder:text-gray-500 border-white/20 focus-visible:ring-primary/50"
+                              value={formData.password}
+                              onChange={handleChange}
+                              required
+                              autoComplete="new-password"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowLoginPassword(!showLoginPassword)}
+                              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-black"
+                            >
+                              {showLoginPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                            </button>
                           </div>
                         </div>
 
-                        <Button type="submit" variant="hero" size="lg" className="w-full mt-4" disabled={isLoading}>
-                          {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Complete Profile"}
-                        </Button>
-
-                        <Button type="button" variant="ghost" onClick={() => setCurrentStep(2)} className="w-full">
-                          Back to Payment
-                        </Button>
-                      </div>
-                    )}
-                  </>
-                ) : (
-                  // Login Form (Unchanged)
-                  <>
-                    <div className="space-y-2">
-                      <Label htmlFor="email" className="text-white font-semibold drop-shadow-sm">Email or Mobile Number</Label>
-                      <div className="relative">
-                        {/^\+?\d+$/.test(formData.email) ? (
-                          <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
-                        ) : (
-                          <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
-                        )}
-                        <Input
-                          id="email"
-                          type="text"
-                          placeholder="Email or Mobile"
-                          className="pl-12 bg-white text-black placeholder:text-gray-500 border-white/20 focus-visible:ring-primary/50"
-                          value={formData.email}
-                          onChange={handleChange}
-                          required
-                          autoComplete="username"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="password" className="text-white font-semibold drop-shadow-sm">Password</Label>
-                      <div className="relative">
-                        <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
-                        <Input
-                          id="password"
-                          type={showLoginPassword ? "text" : "password"}
-                          placeholder="••••••••"
-                          className="pl-12 pr-10 bg-white text-black placeholder:text-gray-500 border-white/20 focus-visible:ring-primary/50"
-                          value={formData.password}
-                          onChange={handleChange}
-                          required
-                          autoComplete="new-password"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowLoginPassword(!showLoginPassword)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-black"
-                        >
-                          {showLoginPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="flex justify-end">
-                      <button
-                        type="button"
-                        onClick={() => setShowForgotModal(true)}
-                        className="text-sm text-[#FFC928] hover:underline font-medium drop-shadow-sm"
-                      >
-                        Forgot Password?
-                      </button>
-                    </div>
-
-                    <Dialog open={showForgotModal} onOpenChange={(open) => {
-                      setShowForgotModal(open);
-                      if (!open) setForgotStep(1);
-                    }}>
-                      <DialogContent className="sm:max-w-md">
-                        <DialogHeader>
-                          <DialogTitle>Reset Password</DialogTitle>
-                          <DialogDescription>
-                            {forgotStep === 1
-                              ? "Enter your email to receive a password reset OTP."
-                              : "Enter the OTP sent to your email and your new password."}
-                          </DialogDescription>
-                        </DialogHeader>
-
-                        <div className="space-y-4 py-4">
-                          {forgotStep === 1 ? (
-                            <div className="space-y-2">
-                              <Label htmlFor="forgot-email">Email Address</Label>
-                              <div className="relative">
-                                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                                <Input
-                                  id="forgot-email"
-                                  type="email"
-                                  placeholder="Enter your email"
-                                  className="pl-9"
-                                  value={forgotEmail}
-                                  onChange={(e) => setForgotEmail(e.target.value)}
-                                />
-                              </div>
-                            </div>
-                          ) : (
-                            <>
-                              <div className="space-y-2">
-                                <Label htmlFor="forgot-otp">Enter OTP</Label>
-                                <div className="flex justify-center">
-                                  <InputOTP
-                                    maxLength={4}
-                                    value={forgotOtp}
-                                    onChange={(value) => setForgotOtp(value)}
-                                  >
-                                    <InputOTPGroup>
-                                      <InputOTPSlot index={0} />
-                                      <InputOTPSlot index={1} />
-                                      <InputOTPSlot index={2} />
-                                      <InputOTPSlot index={3} />
-                                    </InputOTPGroup>
-                                  </InputOTP>
-                                </div>
-                              </div>
-                              <div className="space-y-2">
-                                <Label htmlFor="new-password">New Password</Label>
-                                <div className="relative">
-                                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                                  <Input
-                                    id="new-password"
-                                    type={showNewPassword ? "text" : "password"}
-                                    placeholder="Enter new password"
-                                    className="pl-9 pr-10"
-                                    value={newPassword}
-                                    onChange={(e) => setNewPassword(e.target.value)}
-                                  />
-                                  <button
-                                    type="button"
-                                    onClick={() => setShowNewPassword(!showNewPassword)}
-                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                                  >
-                                    {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                                  </button>
-                                </div>
-                              </div>
-                            </>
-                          )}
-
-                          <Button
-                            className="w-full"
-                            onClick={forgotStep === 1 ? handleForgotPassword : handleResetPassword}
-                            disabled={isForgotLoading}
+                        <div className="flex justify-end">
+                          <button
+                            type="button"
+                            onClick={() => setShowForgotModal(true)}
+                            className="text-sm text-[#FFC928] hover:underline font-medium drop-shadow-sm"
                           >
-                            {isForgotLoading
-                              ? <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                              : (forgotStep === 1 ? "Send OTP" : "Reset Password")
-                            }
-                          </Button>
+                            Forgot Password?
+                          </button>
                         </div>
-                      </DialogContent>
-                    </Dialog>
 
-                    <Button type="submit" variant="hero" size="lg" className="w-full" disabled={isLoading || (isRegister && !isPhoneVerified)}>
-                      {isLoading ? (
-                        <>
-                          <Loader2 className="w-5 h-5 animate-spin mr-2" />
-                          Signing In...
-                        </>
-                      ) : (
-                        <>Sign In</>
-                      )}
-                    </Button>
+                        <Dialog open={showForgotModal} onOpenChange={(open) => {
+                          setShowForgotModal(open);
+                          if (!open) setForgotStep(1);
+                        }}>
+                          <DialogContent className="sm:max-w-md">
+                            <DialogHeader>
+                              <DialogTitle>Reset Password</DialogTitle>
+                              <DialogDescription>
+                                {forgotStep === 1
+                                  ? "Enter your email to receive a password reset OTP."
+                                  : "Enter the OTP sent to your email and your new password."}
+                              </DialogDescription>
+                            </DialogHeader>
+
+                            <div className="space-y-4 py-4">
+                              {forgotStep === 1 ? (
+                                <div className="space-y-2">
+                                  <Label htmlFor="forgot-email">Email Address</Label>
+                                  <div className="relative">
+                                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                                    <Input
+                                      id="forgot-email"
+                                      type="email"
+                                      placeholder="Enter your email"
+                                      className="pl-9"
+                                      value={forgotEmail}
+                                      onChange={(e) => setForgotEmail(e.target.value)}
+                                    />
+                                  </div>
+                                </div>
+                              ) : (
+                                <>
+                                  <div className="space-y-2">
+                                    <Label htmlFor="forgot-otp">Enter OTP</Label>
+                                    <div className="flex justify-center">
+                                      <InputOTP
+                                        maxLength={4}
+                                        value={forgotOtp}
+                                        onChange={(value) => setForgotOtp(value)}
+                                      >
+                                        <InputOTPGroup>
+                                          <InputOTPSlot index={0} />
+                                          <InputOTPSlot index={1} />
+                                          <InputOTPSlot index={2} />
+                                          <InputOTPSlot index={3} />
+                                        </InputOTPGroup>
+                                      </InputOTP>
+                                    </div>
+                                  </div>
+                                  <div className="space-y-2">
+                                    <Label htmlFor="new-password">New Password</Label>
+                                    <div className="relative">
+                                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                                      <Input
+                                        id="new-password"
+                                        type={showNewPassword ? "text" : "password"}
+                                        placeholder="Enter new password"
+                                        className="pl-9 pr-10"
+                                        value={newPassword}
+                                        onChange={(e) => setNewPassword(e.target.value)}
+                                      />
+                                      <button
+                                        type="button"
+                                        onClick={() => setShowNewPassword(!showNewPassword)}
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                                      >
+                                        {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                      </button>
+                                    </div>
+                                  </div>
+                                </>
+                              )}
+
+                              <Button
+                                className="w-full"
+                                onClick={forgotStep === 1 ? handleForgotPassword : handleResetPassword}
+                                disabled={isForgotLoading}
+                              >
+                                {isForgotLoading
+                                  ? <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                                  : (forgotStep === 1 ? "Send OTP" : "Reset Password")
+                                }
+                              </Button>
+                            </div>
+                          </DialogContent>
+                        </Dialog>
+
+                        <Button type="submit" variant="hero" size="lg" className="w-full" disabled={isLoading}>
+                          {isLoading ? (
+                            <>
+                              <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                              Signing In...
+                            </>
+                          ) : (
+                            <>Sign In</>
+                          )}
+                        </Button>
+                      </>
+                    )}
                   </>
                 )}
 
@@ -1304,6 +1662,56 @@ const Auth = ({ forceRegister }: AuthProps) => {
         </DialogContent>
       </Dialog>
 
+      {/* Player Login OTP Modal */}
+      <Dialog
+        open={showLoginOtpModal}
+        onOpenChange={(open) => {
+          setShowLoginOtpModal(open);
+          if (!open) setLoginOtpInput("");
+        }}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>User Login OTP</DialogTitle>
+            <DialogDescription>
+              Enter the OTP sent to {formData.mobile} to sign in.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="login-otp-input">OTP</Label>
+              <div className="flex justify-center">
+                <InputOTP
+                  maxLength={4}
+                  value={loginOtpInput}
+                  onChange={(value) => setLoginOtpInput(value)}
+                >
+                  <InputOTPGroup>
+                    <InputOTPSlot index={0} />
+                    <InputOTPSlot index={1} />
+                    <InputOTPSlot index={2} />
+                    <InputOTPSlot index={3} />
+                  </InputOTPGroup>
+                </InputOTP>
+              </div>
+            </div>
+
+            <Button
+              onClick={handleVerifyLoginOtp}
+              className="w-full"
+              disabled={isVerifyingLoginOtp || !loginOtpInput || loginOtpInput.length !== 4}
+            >
+              {isVerifyingLoginOtp ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                "Verify & Sign in"
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Admin 2FA (Google Authenticator) Modal */}
       <Dialog open={requireAdminOtp} onOpenChange={(open) => { if (!open) { setRequireAdminOtp(false); setAdminOtpToken(""); setAdminOtpInput(""); setAdminQrCodeUrl(null); } }}>
         <DialogContent className="sm:max-w-md">
@@ -1346,6 +1754,14 @@ const Auth = ({ forceRegister }: AuthProps) => {
           </div>
         </DialogContent>
       </Dialog>
+      
+      <ResponseModal
+        isOpen={responseModal.isOpen}
+        onClose={() => setResponseModal(prev => ({ ...prev, isOpen: false }))}
+        title={responseModal.title}
+        description={responseModal.description}
+        type={responseModal.type}
+      />
     </div >
   );
 };

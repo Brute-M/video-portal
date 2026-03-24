@@ -260,6 +260,64 @@ const login = async (req, res) => {
   }
 }
 
+// Player login via mobile OTP (no password).
+// Only issues JWT for `user` role; admin/subadmin/seo_content must use password login.
+const loginWithOtp = async (req, res) => {
+  try {
+    const { mobile, otp } = req.body || {};
+
+    if (!mobile || !otp) {
+      return res.status(400).json({ statusCode: 400, data: { message: "Mobile and OTP are required" } });
+    }
+
+    const digitsOnly = String(mobile).replace(/\D/g, "");
+    const normalizedMobile = digitsOnly.length >= 10 ? digitsOnly.slice(-10) : digitsOnly;
+
+    const record = await Otp.findOne({ mobile: normalizedMobile, otp: String(otp) });
+    if (!record) {
+      return res.status(400).json({ statusCode: 400, data: { message: "Invalid or expired OTP" } });
+    }
+
+    // Prevent OTP reuse
+    await Otp.deleteOne({ _id: record._id });
+
+    const user = await User.findOne({ mobile: normalizedMobile });
+    if (!user) {
+      return res.status(401).json({ statusCode: 401, data: { message: "User not found" } });
+    }
+
+    const userRole = user.role || "user";
+
+    // Enforce: OTP login only for players (user role)
+    if (userRole !== "user") {
+      return res.status(403).json({
+        statusCode: 403,
+        data: { message: "This account requires password login." },
+      });
+    }
+
+    const token = jwt.sign(
+      { userId: user._id, role: userRole },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
+
+    return res.json({
+      statusCode: 200,
+      data: {
+        message: "Login successful",
+        userId: user._id,
+        email: user.email,
+        role: userRole,
+        token,
+      },
+    });
+  } catch (error) {
+    console.error("Login with OTP Error:", error);
+    return res.status(500).json({ statusCode: 500, data: { message: "Server error" } });
+  }
+};
+
 const register = async (req, res) => {
   // Note: req.body will contain text fields, req.file will contain the file
   try {
@@ -559,7 +617,8 @@ const sendOtp = async (req, res) => {
     // Send Real OTP via SMS API
     if (process.env.NODE_ENV === "production") {
       const { sendSmsOtp } = require('../utils/smsService');
-      await sendSmsOtp(mobile, otp);
+      const otpPurpose = String(checkExisting).toLowerCase() === 'true' ? 'registration' : 'login';
+      await sendSmsOtp(mobile, otp, otpPurpose);
     }
 
     console.log(`OTP generated for ${mobile}: ${otp}`);
@@ -1547,6 +1606,7 @@ const toggle2FA = async (req, res) => {
 
 module.exports = {
   login,
+  loginWithOtp,
   verifyAdminOtp,
   register,
   upload,

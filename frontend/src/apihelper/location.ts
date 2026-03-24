@@ -2,7 +2,7 @@ import api from './api';
 
 export const getLocationsAPI = async () => {
     try {
-        const response = await api.get('/api/locations');
+        const response = await api.get('/locations');
         return response.data;
     } catch (error) {
         console.error("Error fetching locations:", error);
@@ -12,7 +12,7 @@ export const getLocationsAPI = async () => {
 
 export const getStatesAPI = async () => {
     try {
-        const response = await api.get('/api/locations/states');
+        const response = await api.get('/locations/states');
         return response.data;
     } catch (error) {
         console.error("Error fetching states:", error);
@@ -22,7 +22,7 @@ export const getStatesAPI = async () => {
 
 export const getCitiesAPI = async (stateId: string) => {
     try {
-        const response = await api.get(`/api/locations/districts/${stateId}`);
+        const response = await api.get(`/locations/districts/${stateId}`);
         return response.data;
     } catch (error) {
         console.error(`Error fetching cities for state ${stateId}:`, error);

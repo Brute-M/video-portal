@@ -1,4 +1,4 @@
-
+import { Helmet } from "react-helmet-async";
 import {
     Accordion,
     AccordionContent,
@@ -21,12 +21,12 @@ const RegistrationFAQ = () => {
         {
             question: "3. What is the Age Limit?",
             answer:
-                "There are two categories: Under 19 and Open Category. Each team squad will include at least 2 Under 19 players, and 1 Under 19 player will be part of the playing XI in every match.",
+                "Open for players aged 18 to 40. Each team will include a minimum of 2 players from the 18–20 age group, with 1 player in the playing XI for every match.",
         },
         {
             question: "4. What if I don't get selected?",
             answer:
-                "Even if you are not selected for this season, your registration remains valuable. When you register for the next season, you will receive an exclusive offer on the registration fee.",
+                "Even if you are not selected for this season, your registration remainsvaluable. When you register for the next season, you will receive anexclusive offer on the registration fee."
         },
         {
             question: "5. Is the fee refundable?",
@@ -35,8 +35,24 @@ const RegistrationFAQ = () => {
         },
     ];
 
+    const faqSchema = {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        mainEntity: faqs.map((faq) => ({
+            "@type": "Question",
+            name: faq.question,
+            acceptedAnswer: {
+                "@type": "Answer",
+                text: faq.answer,
+            },
+        })),
+    };
+
     return (
         <section className="w-full bg-[#020617] py-16">
+            <Helmet>
+                <script type="application/ld+json">{JSON.stringify(faqSchema)}</script>
+            </Helmet>
             <div className="w-full max-w-7xl mx-auto px-4">
                 <div className="text-center mb-10">
                     <h2 className="text-3xl md:text-5xl font-black text-white mb-4 uppercase tracking-tighter font-sans italic drop-shadow-2xl">

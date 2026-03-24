@@ -21,6 +21,7 @@ import {
     ChevronRight,
     Info,
     Share2,
+    Mail,
     ImageIcon,
     FileText,
     Newspaper
@@ -91,6 +92,7 @@ const AdminLayout = () => {
         },
         { icon: HelpCircle, label: "Manage FAQs", path: "/admin/faqs" },
         { icon: Share2, label: "Social & Contact", path: "/admin/social-contact" },
+        { icon: Mail, label: "Contact Us Leads", path: "/admin/contact-us-leads" },
         { icon: ImageIcon, label: "Page Banner", path: "/admin/page-banner" },
         { icon: Shield, label: "Privacy Policy", path: "/admin/privacy-policy" },
         { icon: FileText, label: "Terms & Conditions", path: "/admin/terms-conditions" },
