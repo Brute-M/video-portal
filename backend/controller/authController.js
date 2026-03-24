@@ -334,16 +334,9 @@ const register = async (req, res) => {
       return res.status(400).json({ statusCode: 400, data: { message: 'Required fields are missing' } });
     }
 
-    const userExists = await User.findOne({
-      $or: [{ email }, { mobile }]
-    });
+    const userExists = await User.findOne({ mobile });
     if (userExists) {
-      if (userExists.email === email) {
-        return res.status(400).json({ statusCode: 400, data: { message: 'Email is already registered' } });
-      }
-      if (userExists.mobile === mobile) {
-        return res.status(400).json({ statusCode: 400, data: { message: 'Mobile number is already registered' } });
-      }
+      return res.status(400).json({ statusCode: 400, data: { message: 'Mobile number is already registered' } });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
