@@ -14,6 +14,7 @@ const VideoAnalysis = lazy(() => import("./pages/VideoAnalysis"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const DashboardLayout = lazy(() => import("./layouts/DashboardLayout"));
 const AdminLayout = lazy(() => import("./layouts/AdminLayout"));
+const AdminLogin = lazy(() => import("./pages/AdminLogin"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 const PaidUsers = lazy(() => import("./pages/PaidUsers"));
 const UnpaidUsers = lazy(() => import("./pages/UnpaidUsers"));
@@ -137,6 +138,7 @@ const App = () => {
                 <Route path="/i/:slug" element={<InfluencerRedirect />} />
                 <Route path="/thank-you" element={<ThankYou />} />
                 <Route path="/payment-successfull" element={<PaymentSuccessful />} />
+                <Route path="/admin/login" element={<AdminLogin />} />
 
                 <Route element={<AdminLayout />}>
                   <Route path="/admin/dashboard" element={<AdminDashboard />} />

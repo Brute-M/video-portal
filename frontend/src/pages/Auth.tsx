@@ -1356,31 +1356,6 @@ const Auth = ({ forceRegister }: AuthProps) => {
                   </div>
                 ) : (
                   <>
-                    <div className="flex gap-2 mb-2">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setLoginMode("otp");
-                          setLoginOtpInput("");
-                          setShowLoginOtpModal(false);
-                        }}
-                        className={`flex-1 h-10 rounded-lg text-sm font-semibold transition-colors ${loginMode === "otp" ? "bg-[#FFC928] text-black" : "bg-black/30 text-zinc-200 hover:bg-black/40"}`}
-                      >
-                        User Login
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setLoginMode("password");
-                          setLoginOtpInput("");
-                          setShowLoginOtpModal(false);
-                        }}
-                        className={`flex-1 h-10 rounded-lg text-sm font-semibold transition-colors ${loginMode === "password" ? "bg-[#FFC928] text-black" : "bg-black/30 text-zinc-200 hover:bg-black/40"}`}
-                      >
-                        Admin Login
-                      </button>
-                    </div>
-
                     {loginMode === "otp" ? (
                       <>
                         <div className="space-y-2">
