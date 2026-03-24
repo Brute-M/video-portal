@@ -1269,11 +1269,11 @@ const Auth = ({ forceRegister }: AuthProps) => {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label htmlFor="trailCity" className="text-white font-semibold drop-shadow-sm">
-                          Select Trail City
+                          Select Trial City
                         </Label>
                         <Select onValueChange={handleTrailCityChange} value={formData.zone_id} required>
                           <SelectTrigger className="h-12 bg-white text-black border-white/20 focus:ring-primary/50">
-                            <SelectValue placeholder={isLoadingLocations ? "Loading..." : "Select Trail City"} />
+                            <SelectValue placeholder={isLoadingLocations ? "Loading..." : "Select Trial City"} />
                           </SelectTrigger>
                           <SelectContent position="popper" side="bottom" align="start">
                             {availableCities.length ? (
@@ -1729,7 +1729,7 @@ const Auth = ({ forceRegister }: AuthProps) => {
           </div>
         </DialogContent>
       </Dialog>
-      
+
       <ResponseModal
         isOpen={responseModal.isOpen}
         onClose={() => setResponseModal(prev => ({ ...prev, isOpen: false }))}
