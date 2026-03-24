@@ -13,7 +13,8 @@ const sendSmsOtp = async (mobile, otp, otpPurpose = "registration") => {
         const senderId = 'SMSHUB'; // as per user example
         const gwid = '2';
 
-        const purpose = String(otpPurpose).toLowerCase() === "login" ? "login" : "registration";
+        // Hardcode to "registration" because DLT template in India likely only approves exact string matches (e.g. "Your OTP for registration is...")
+        const purpose = "registration";
         const message = `Welcome to the Beyond Reach Premiere League powered by SMSINDIAHUB. Your OTP for ${purpose} is ${otp}`;
         const encodedMessage = encodeURIComponent(message);
 

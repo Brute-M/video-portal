@@ -600,10 +600,19 @@ const sendOtp = async (req, res) => {
       return res.status(400).json({ message: "Mobile number is required" });
     }
 
+    const digitsOnly = String(mobile).replace(/\D/g, "");
+    const normalizedMobile = digitsOnly.length >= 10 ? digitsOnly.slice(-10) : digitsOnly;
+
     if (String(checkExisting).toLowerCase() === 'true') {
-      const existingUser = await User.findOne({ mobile });
+      const existingUser = await User.findOne({ mobile: normalizedMobile });
       if (existingUser) {
         return res.status(400).json({ message: "Mobile number already exists. Please login." });
+      }
+    } else {
+      // Login request - user MUST exist
+      const existingUser = await User.findOne({ mobile: normalizedMobile });
+      if (!existingUser) {
+        return res.status(404).json({ message: "Mobile number not registered. Please sign up." });
       }
     }
 
@@ -611,15 +620,14 @@ const sendOtp = async (req, res) => {
     const otp = Math.floor(1000 + Math.random() * 9000).toString();
 
     // Save to DB (upsert or delete old first)
-    await Otp.deleteMany({ mobile }); // Clear old OTPs
-    await Otp.create({ mobile, otp });
+
+    await Otp.deleteMany({ mobile: normalizedMobile }); // Clear old OTPs
+    await Otp.create({ mobile: normalizedMobile, otp });
 
     // Send Real OTP via SMS API
-    if (process.env.NODE_ENV === "production") {
-      const { sendSmsOtp } = require('../utils/smsService');
-      const otpPurpose = String(checkExisting).toLowerCase() === 'true' ? 'registration' : 'login';
-      await sendSmsOtp(mobile, otp, otpPurpose);
-    }
+    const { sendSmsOtp } = require('../utils/smsService');
+    const otpPurpose = String(checkExisting).toLowerCase() === 'true' ? 'registration' : 'login';
+    await sendSmsOtp(normalizedMobile, otp, otpPurpose);
 
     console.log(`OTP generated for ${mobile}: ${otp}`);
 
