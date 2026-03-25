@@ -1144,7 +1144,7 @@ const Auth = ({ forceRegister }: AuthProps) => {
   };
 
   return (
-    <div className="min-h-screen bg-[#0F172A] relative overflow-x-hidden flex flex-col">
+    <div className="bg-[#0F172A] relative overflow-x-hidden flex flex-col">
       <SEO
         title={isRegister ? "Register" : "Login"}
         description={isRegister ? "Create your account to join the Beyond Reach Premier League community." : "Sign in to your Beyond Reach Premier League account."}
