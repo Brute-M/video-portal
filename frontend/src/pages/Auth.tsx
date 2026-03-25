@@ -35,6 +35,8 @@ import RegistrationHero from "@/components/RegistrationHero";
 import FloatingRegisterButton from "@/components/FloatingRegisterButton";
 import FloatingWhatsAppButton from "@/components/FloatingWhatsAppButton";
 import AuthVideoFeed from "@/components/AuthVideoFeed";
+import apiClient from "@/apihelper/api";
+import { getImageUrl } from "@/utils/imageHelper";
 
 type AuthProps = {
   forceRegister?: boolean;
@@ -97,6 +99,21 @@ const Auth = ({ forceRegister }: AuthProps) => {
       type: options.variant === "destructive" ? "error" : "success",
     });
   };
+
+  // Dynamic banner & quote
+  const [authBannerImage, setAuthBannerImage] = useState("/auth-banner.png");
+  const [authQuote, setAuthQuote] = useState("Where skill is the only selection criteria and your dream is the only qualification.");
+
+  useEffect(() => {
+    apiClient.get("/api/registration-banner")
+      .then(res => {
+        if (res.data.success && res.data.data) {
+          if (res.data.data.backgroundImage) setAuthBannerImage(res.data.data.backgroundImage);
+          if (res.data.data.quote !== undefined) setAuthQuote(res.data.data.quote);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   // OTP State
   const [showOtpModal, setShowOtpModal] = useState(false);
@@ -1127,7 +1144,7 @@ const Auth = ({ forceRegister }: AuthProps) => {
   };
 
   return (
-    <div className="min-h-screen bg-background relative overflow-x-hidden flex flex-col">
+    <div className="min-h-screen bg-[#0F172A] relative overflow-x-hidden flex flex-col">
       <SEO
         title={isRegister ? "Register" : "Login"}
         description={isRegister ? "Create your account to join the Beyond Reach Premier League community." : "Sign in to your Beyond Reach Premier League account."}
@@ -1140,34 +1157,21 @@ const Auth = ({ forceRegister }: AuthProps) => {
         }
       `}</style>
 
-      {/* Full Screen Background Image */}
-      <div className="absolute inset-0 z-0 bg-[#0F172A]">
-        {/* <div className="absolute inset-0 bg-black/50 z-10" /> Dark Overlay */}
-        <div className="absolute inset-0 bg-[length:100%_auto] bg-top bg-no-repeat" style={{ backgroundImage: "url('/auth-banner.png')" }} />
-      </div>
-
       {isRegister && <FloatingRegisterButton />}
       {isRegister && <FloatingWhatsAppButton />}
 
-      {/* Main Content Area (Split View) */}
-      <div className="flex flex-col lg:flex-row flex-1 w-full min-h-[calc(100vh-80px)] relative z-10">
+      {/* Banner + Form Section */}
+      <div className="relative w-full">
+        {/* Banner Image - sets the height */}
+        <img src={getImageUrl(authBannerImage)} alt="" className="w-full h-auto block" loading="eager" />
 
-        {/* Left Panel - Branding (Hidden on mobile) */}
-        <div className="flex flex-1 flex-col justify-between p-6 lg:p-12 relative overflow-hidden z-10 w-full lg:w-auto min-h-[140px] lg:min-h-auto items-center text-center lg:items-start lg:text-left">
-          {/* Background Image REMOVED from here */}
-
-          <div className="relative z-10 mt-12 lg:mt-32">
-            {/* Buttons Section */}
-          </div>
-        </div>
-
-        {/* Right Panel - Auth Form */}
-        <div id="auth-form-container" className="flex-1 flex flex-col items-center p-6 lg:p-12 relative z-10 overflow-auto">
-          <div className={`w-full ${isRegister ? 'max-w-xl' : 'max-w-md'} mt-[50vw] md:mt-[45vw] lg:my-auto lg:mt-0`}>
+        {/* Form overlay - positioned over the right side of the banner */}
+        <div id="auth-form-container" className="lg:absolute lg:right-0 lg:top-0 lg:bottom-0 lg:w-[45%] flex flex-col items-center justify-center px-4 py-4 lg:px-8 bg-[#0F172A]/40 lg:bg-transparent">
+          <div className={`w-full ${isRegister ? 'max-w-xl' : 'max-w-md'}`}>
 
 
-            <div className="bg-black/20 backdrop-blur-md border border-white/10 rounded-xl p-6 shadow-2xl">
-              <div className="text-center mb-8">
+            <div className="bg-black/20 backdrop-blur-md border border-white/10 rounded-xl p-4 md:p-6 shadow-2xl">
+              <div className="text-center mb-4">
                 {isRegister ? (
                   <div
                     className="relative inline-block p-[2px] rounded-xl bg-[linear-gradient(90deg,#22C55E,#FFC928,#22C55E)] bg-[length:200%_200%]"
@@ -1175,7 +1179,7 @@ const Auth = ({ forceRegister }: AuthProps) => {
                   >
                     <div className="rounded-[10px] bg-[#0F172A]/65 px-6 py-2">
                       <h2 className="text-2xl font-display font-bold text-white drop-shadow-md">
-                        Registration Open
+                        Registrations Open
                       </h2>
                     </div>
                   </div>
@@ -1191,23 +1195,40 @@ const Auth = ({ forceRegister }: AuthProps) => {
 
               <form
                 onSubmit={!isRegister ? (loginMode === "otp" ? handleLoginOtpSubmit : handleSubmit) : handleStep1Submit}
-                className="space-y-5"
+                className="space-y-3"
               >
 
                 {isRegister ? (
-                  <div className="space-y-4 animate-fade-in">
-                    <div className="space-y-2">
-                      <Label htmlFor="fullName" className="text-white font-semibold drop-shadow-sm">
-                        Enter Full Name
-                      </Label>
-                      <Input
-                        id="fullName"
-                        value={fullName}
-                        onChange={(e) => handleFullNameChange(e.target.value)}
-                        required
-                        placeholder="Enter Full Name"
-                        className="h-11 bg-white text-black placeholder:text-gray-500 border-white/20 focus-visible:ring-primary/50"
-                      />
+                  <div className="space-y-3 animate-fade-in">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="fullName" className="text-white font-semibold drop-shadow-sm">
+                          Enter Full Name
+                        </Label>
+                        <Input
+                          id="fullName"
+                          value={fullName}
+                          onChange={(e) => handleFullNameChange(e.target.value)}
+                          required
+                          placeholder="Enter Full Name"
+                          className="h-11 bg-white text-black placeholder:text-gray-500 border-white/20 focus-visible:ring-primary/50"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="email" className="text-white font-semibold drop-shadow-sm">
+                          Enter Email ID
+                        </Label>
+                        <Input
+                          id="email"
+                          type="email"
+                          value={formData.email}
+                          onChange={handleChange}
+                          required
+                          placeholder="Enter Email ID"
+                          className="h-11 bg-white text-black placeholder:text-gray-500 border-white/20 focus-visible:ring-primary/50"
+                        />
+                      </div>
                     </div>
 
                     <div className="space-y-2">
@@ -1249,21 +1270,6 @@ const Auth = ({ forceRegister }: AuthProps) => {
                           </Button>
                         )}
                       </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="email" className="text-white font-semibold drop-shadow-sm">
-                        Enter Email ID
-                      </Label>
-                      <Input
-                        id="email"
-                        type="email"
-                        value={formData.email}
-                        onChange={handleChange}
-                        required
-                        placeholder="Enter Email ID"
-                        className="h-11 bg-white text-black placeholder:text-gray-500 border-white/20 focus-visible:ring-primary/50"
-                      />
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -1560,7 +1566,7 @@ const Auth = ({ forceRegister }: AuthProps) => {
 
               </form>
 
-              <div className="mt-6 text-center">
+              <div className="mt-3 text-center">
                 <p className="text-sm text-white drop-shadow-sm">
                   {isRegister ? "Already have an account?" : "Don't have an account?"}{" "}
                   <button
@@ -1585,9 +1591,44 @@ const Auth = ({ forceRegister }: AuthProps) => {
                 </p>
               </div>
             </div>
+
           </div>
         </div>
       </div>
+
+      {/* Marquee Quote - below banner */}
+      {authQuote && (
+        <div className="relative z-10 w-full bg-[#0F172A] border-y border-[#FFC928]/30 overflow-hidden -mt-[1px]">
+          <div
+            className="group py-3"
+            onMouseEnter={e => {
+              const inner = e.currentTarget.querySelector('.marquee-inner') as HTMLElement;
+              if (inner) inner.style.animationPlayState = 'paused';
+            }}
+            onMouseLeave={e => {
+              const inner = e.currentTarget.querySelector('.marquee-inner') as HTMLElement;
+              if (inner) inner.style.animationPlayState = 'running';
+            }}
+          >
+            <style>{`
+              @keyframes marqueeScroll {
+                0% { transform: translateX(0); }
+                100% { transform: translateX(-50%); }
+              }
+            `}</style>
+            <div
+              className="marquee-inner flex whitespace-nowrap"
+              style={{ animation: 'marqueeScroll 20s linear infinite' }}
+            >
+              {[...Array(6)].map((_, i) => (
+                <span key={i} className="mx-12 text-sm md:text-base bg-gradient-to-r from-[#FFC928] to-[#f59e0b] bg-clip-text text-transparent italic font-semibold cursor-default">
+                  "{authQuote}"
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {
         isRegister && (

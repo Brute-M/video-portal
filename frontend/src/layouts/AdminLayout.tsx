@@ -100,6 +100,21 @@ const AdminLayout = () => {
         { icon: Newspaper, label: "Blog / News", path: "/admin/blog" },
         { icon: Newspaper, label: "News", path: "/admin/news" },
         { icon: Settings, label: "Settings", path: "/admin/settings" },
+        {
+            icon: Newspaper,
+            label: "Registration Page",
+            path: "#",
+            children: [
+                { label: "Latest Videos", path: "/admin/registration-page" },
+                { label: "Numbers Speak", path: "/admin/numbers-speak" },
+                { label: "Journey Roadmap", path: "/admin/roadmap" },
+                { label: "Zone Deadline", path: "/admin/zone-deadline" },
+                { label: "Player Stories", path: "/admin/player-stories" },
+                { label: "Registration FAQs", path: "/admin/registration-faqs" },
+                { label: "Hero Banner", path: "/admin/registration-hero" },
+                { label: "Form Banner & Quote", path: "/admin/registration-banner" }
+            ]
+        },
         // { icon: LinkIcon, label: "Nav Links", path: "/admin/nav-links" },
         // { icon: Users, label: "Step 1 Leads", path: "/admin/step1-leads" },
     ];
@@ -122,7 +137,7 @@ const AdminLayout = () => {
 
         if (userRole === 'seo_content') {
             return allNavItems.filter(item =>
-                commonAllowed.includes(item.path) || item.label === "Meta Content" || item.label === "Blog / News" || item.label === "News" || item.label === "Home Page" || item.label === "About Us" || item.label === "Social & Contact" || item.label === "Page Banner" || item.label === "Privacy Policy" || item.label === "Terms & Conditions"
+                commonAllowed.includes(item.path) || item.label === "Meta Content" || item.label === "Blog / News" || item.label === "News" || item.label === "Home Page" || item.label === "About Us" || item.label === "Social & Contact" || item.label === "Page Banner" || item.label === "Privacy Policy" || item.label === "Terms & Conditions" || item.label === "Registration Page"
             );
         }
 

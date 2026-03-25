@@ -70,6 +70,14 @@ const UserProfile = lazy(() => import("./pages/UserProfile"));
 const AdminInfluencerLinks = lazy(() => import("./pages/AdminInfluencerLinks"));
 const InfluencerRedirect = lazy(() => import("./pages/InfluencerRedirect"));
 const AdminContactUsLeads = lazy(() => import("./pages/AdminContactUsLeads"));
+const AdminRegistrationPage = lazy(() => import("./pages/AdminRegistrationPage"));
+const AdminNumbersSpeak = lazy(() => import("./pages/AdminNumbersSpeak"));
+const AdminRoadmap = lazy(() => import("./pages/AdminRoadmap"));
+const AdminZoneDeadline = lazy(() => import("./pages/AdminZoneDeadline"));
+const AdminPlayerStories = lazy(() => import("./pages/AdminPlayerStories"));
+const AdminRegistrationFaqs = lazy(() => import("./pages/AdminRegistrationFaqs"));
+const AdminRegistrationHero = lazy(() => import("./pages/AdminRegistrationHero"));
+const AdminRegistrationBanner = lazy(() => import("./pages/AdminRegistrationBanner"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -175,6 +183,14 @@ const App = () => {
                   <Route path="/admin/marketing/influencer-links" element={<AdminInfluencerLinks />} />
                   <Route path="/admin/profile" element={<AdminProfile />} />
                     <Route path="/admin/contact-us-leads" element={<AdminContactUsLeads />} />
+                  <Route path="/admin/registration-page" element={<AdminRegistrationPage />} />
+                  <Route path="/admin/numbers-speak" element={<AdminNumbersSpeak />} />
+                  <Route path="/admin/roadmap" element={<AdminRoadmap />} />
+                  <Route path="/admin/zone-deadline" element={<AdminZoneDeadline />} />
+                  <Route path="/admin/player-stories" element={<AdminPlayerStories />} />
+                  <Route path="/admin/registration-faqs" element={<AdminRegistrationFaqs />} />
+                  <Route path="/admin/registration-hero" element={<AdminRegistrationHero />} />
+                  <Route path="/admin/registration-banner" element={<AdminRegistrationBanner />} />
                   {/* <Route path="/admin/nav-links" element={<AdminNavLinks />} /> */}
                 </Route>
 
