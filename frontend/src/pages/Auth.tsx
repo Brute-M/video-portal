@@ -102,6 +102,7 @@ const Auth = ({ forceRegister }: AuthProps) => {
 
   // Dynamic banner & quote
   const [authBannerImage, setAuthBannerImage] = useState("/auth-banner.png");
+  const [authMobileBannerImage, setAuthMobileBannerImage] = useState("");
   const [authQuote, setAuthQuote] = useState("Where skill is the only selection criteria and your dream is the only qualification.");
 
   useEffect(() => {
@@ -109,6 +110,7 @@ const Auth = ({ forceRegister }: AuthProps) => {
       .then(res => {
         if (res.data.success && res.data.data) {
           if (res.data.data.backgroundImage) setAuthBannerImage(res.data.data.backgroundImage);
+          if (res.data.data.mobileBackgroundImage) setAuthMobileBannerImage(res.data.data.mobileBackgroundImage);
           if (res.data.data.quote !== undefined) setAuthQuote(res.data.data.quote);
         }
       })
@@ -1163,7 +1165,12 @@ const Auth = ({ forceRegister }: AuthProps) => {
       {/* Banner + Form Section */}
       <div className="relative w-full">
         {/* Banner Image - sets the height */}
-        <img src={getImageUrl(authBannerImage)} alt="" className="w-full h-auto block" loading="eager" />
+        {/* Desktop banner - hidden on mobile if mobile banner exists */}
+        <img src={getImageUrl(authBannerImage)} alt="" className={`w-full h-auto block ${authMobileBannerImage ? 'hidden lg:block' : ''}`} loading="eager" />
+        {/* Mobile banner - shown only on mobile/tablet when set */}
+        {authMobileBannerImage && (
+          <img src={getImageUrl(authMobileBannerImage)} alt="" className="w-full h-auto block lg:hidden" loading="eager" />
+        )}
 
         {/* Form overlay - positioned over the right side of the banner */}
         <div id="auth-form-container" className="lg:absolute lg:right-0 lg:top-0 lg:bottom-0 lg:w-[45%] flex flex-col items-center justify-center px-4 py-4 lg:px-8 bg-[#0F172A]/40 lg:bg-transparent">

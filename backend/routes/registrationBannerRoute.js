@@ -14,6 +14,9 @@ const upload = multer({
 router.get('/', ctrl.getSettings);
 
 // Admin
-router.put('/settings', authenticate, upload.single('backgroundImageFile'), uploadToPublicBucket, ctrl.updateSettings);
+router.put('/settings', authenticate, upload.fields([
+  { name: 'backgroundImageFile', maxCount: 1 },
+  { name: 'mobileBackgroundImageFile', maxCount: 1 }
+]), uploadToPublicBucket, ctrl.updateSettings);
 
 module.exports = router;
