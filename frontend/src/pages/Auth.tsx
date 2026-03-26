@@ -232,17 +232,8 @@ const Auth = ({ forceRegister }: AuthProps) => {
   }, [isRegister]);
 
   useEffect(() => {
-    if (forceRegister) {
-      setIsRegister(true);
-      return;
-    }
-
-    const mode = searchParams.get("mode");
-    setIsRegister(mode === "register");
-
-    // Auto-fill referral code
+    // Auto-fill referral code & campaign code (must run before early return)
     const refCode = searchParams.get("ref") || localStorage.getItem("brpl_ref_code");
-    // Auto-fill campaign code
     const campCode = searchParams.get("campaign");
 
     if (refCode || campCode) {
@@ -261,6 +252,14 @@ const Auth = ({ forceRegister }: AuthProps) => {
       sessionStorage.setItem("brpl_influencer_slug", normalized);
       localStorage.setItem("brpl_influencer_slug", normalized);
     }
+
+    if (forceRegister) {
+      setIsRegister(true);
+      return;
+    }
+
+    const mode = searchParams.get("mode");
+    setIsRegister(mode === "register");
   }, [searchParams, forceRegister]);
 
   // Restore userId and influencerSlug from sessionStorage on mount (e.g. user refreshed on payment step)

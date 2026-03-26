@@ -74,6 +74,77 @@ exports.deleteCampaign = async (req, res) => {
     }
 }
 
+// GET unattributed users (no campaignCode, registered after campaigns existed)
+exports.getUnattributedUsers = async (req, res) => {
+    try {
+        const { from, to } = req.query;
+        const filter = {
+            $or: [{ campaignCode: { $exists: false } }, { campaignCode: '' }, { campaignCode: null }]
+        };
+        if (from || to) {
+            filter.createdAt = {};
+            if (from) filter.createdAt.$gte = new Date(from);
+            if (to) filter.createdAt.$lte = new Date(to + 'T23:59:59.999Z');
+        }
+        const users = await User.find(filter)
+            .select('fname lname email mobile city createdAt')
+            .sort({ createdAt: -1 })
+            .limit(500);
+        res.status(200).json({ success: true, data: users });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+// POST assign campaign code to users
+exports.assignCampaignToUsers = async (req, res) => {
+    try {
+        const { campaignCode, userIds } = req.body;
+        if (!campaignCode || !userIds || !userIds.length) {
+            return res.status(400).json({ success: false, message: 'campaignCode and userIds are required' });
+        }
+        const campaign = await Campaign.findOne({ code: campaignCode });
+        if (!campaign) {
+            return res.status(404).json({ success: false, message: 'Campaign not found' });
+        }
+        const result = await User.updateMany(
+            { _id: { $in: userIds } },
+            { $set: { campaignCode } }
+        );
+        res.status(200).json({ success: true, message: `${result.modifiedCount} users assigned to campaign ${campaignCode}` });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+// GET users registered via a specific campaign code
+exports.getCampaignUsers = async (req, res) => {
+    try {
+        const { code } = req.params;
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const skip = (page - 1) * limit;
+
+        const filter = { campaignCode: code };
+        const [users, total] = await Promise.all([
+            User.find(filter)
+                .select('fname lname email mobile city state isPaid createdAt')
+                .sort({ createdAt: -1 })
+                .skip(skip)
+                .limit(limit),
+            User.countDocuments(filter)
+        ]);
+
+        res.status(200).json({
+            success: true,
+            data: users,
+            pagination: { page, limit, total, totalPages: Math.ceil(total / limit) }
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
 exports.updateCampaign = async (req, res) => {
     try {
         const { id } = req.params;

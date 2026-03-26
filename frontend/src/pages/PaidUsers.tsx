@@ -5,8 +5,7 @@ import { Button } from "@/components/ui/button";
 import { UserTable } from "@/components/UserTable";
 import { FilterBar } from "@/components/FilterBar";
 import { exportUsersExcel } from "@/apihelper/admin";
-import { FileSpreadsheet, UserPlus } from "lucide-react";
-import { CreateUserModal } from "@/components/CreateUserModal";
+import { FileSpreadsheet } from "lucide-react";
 
 const PaidUsers = () => {
     const { toast } = useToast();
@@ -82,7 +81,7 @@ const PaidUsers = () => {
                         <FileSpreadsheet className="w-4 h-4" />
                         Export Excel
                     </Button>
-                    <CreateUserModal onUserCreated={() => fetchUsers(currentFilters)} />
+
                     <div className="flex items-center gap-2 px-4 py-2 bg-green-500/10 text-green-500 rounded-lg self-start sm:self-auto h-10">
                         <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
                         <span className="font-medium whitespace-nowrap">{totalRecords} Records Found</span>

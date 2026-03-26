@@ -8,6 +8,9 @@ const campaignController = require('../controller/campaignController');
 
 router.post('/create', campaignController.createCampaign);
 router.get('/', campaignController.getCampaigns);
+router.get('/unattributed-users', campaignController.getUnattributedUsers);
+router.get('/users/:code', campaignController.getCampaignUsers);
+router.post('/assign', campaignController.assignCampaignToUsers);
 router.delete('/:id', campaignController.deleteCampaign);
 router.put('/:id', campaignController.updateCampaign);
 
