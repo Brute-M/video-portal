@@ -786,10 +786,14 @@ const Auth = ({ forceRegister }: AuthProps) => {
 
     } catch (error: any) {
       console.error("Failed to register step 1", error);
+      const errMsg = error.response?.data?.data?.message || error.response?.data?.message || "";
+      const isAlreadyRegistered = errMsg.toLowerCase().includes("already registered");
       toast({
         variant: "destructive",
-        title: "Registration Failed",
-        description: error.response?.data?.message || "Something went wrong. Please try again."
+        title: isAlreadyRegistered ? "Already Registered" : "Registration Failed",
+        description: isAlreadyRegistered
+          ? "This mobile number is already registered. Please login using your existing credentials."
+          : errMsg || "Something went wrong. Please try again."
       })
     } finally {
       setIsLoading(false);
