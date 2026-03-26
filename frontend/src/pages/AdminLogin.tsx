@@ -89,7 +89,7 @@ const AdminLogin = () => {
       <SEO title="Admin Login" description="Beyond Reach Premier League Admin Portal" />
       
       {/* Background Image optional: */}
-      <div className="absolute inset-0 z-0 bg-[length:100%_auto] bg-top bg-no-repeat opacity-40" style={{ backgroundImage: "url('/auth-banner.png')" }} />
+      <div className="absolute inset-0 z-0 bg-[length:100%_auto] bg-top bg-no-repeat opacity-40" style={{ backgroundImage: "url('/register-footer.png')" }} />
 
       <div className="bg-black/40 backdrop-blur-md border border-white/10 rounded-xl p-8 shadow-2xl w-full max-w-md relative z-10">
         <div className="text-center mb-8">
