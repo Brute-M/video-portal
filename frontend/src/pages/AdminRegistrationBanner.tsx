@@ -14,7 +14,9 @@ const AdminRegistrationBanner = () => {
     const [isSaving, setIsSaving] = useState(false);
     const [quote, setQuote] = useState("Where skill is the only selection criteria and your dream is the only qualification.");
     const [backgroundImage, setBackgroundImage] = useState("/auth-banner.png");
+    const [bgUrlDirty, setBgUrlDirty] = useState(false);
     const [mobileBackgroundImage, setMobileBackgroundImage] = useState("");
+    const [mobileBgUrlDirty, setMobileBgUrlDirty] = useState(false);
 
     // Background image upload
     const [bgMode, setBgMode] = useState<"url" | "upload">("url");
@@ -78,15 +80,17 @@ const AdminRegistrationBanner = () => {
             const formData = new FormData();
             formData.append("quote", quote);
 
+            // Only send desktop banner if user uploaded a file or explicitly edited the URL
             if (bgMode === "upload" && bgFile) {
                 formData.append("backgroundImageFile", bgFile);
-            } else {
+            } else if (bgUrlDirty) {
                 formData.append("backgroundImage", backgroundImage);
             }
 
+            // Only send mobile banner if user uploaded a file or explicitly edited the URL
             if (mobileBgMode === "upload" && mobileBgFile) {
                 formData.append("mobileBackgroundImageFile", mobileBgFile);
-            } else {
+            } else if (mobileBgUrlDirty) {
                 formData.append("mobileBackgroundImage", mobileBackgroundImage);
             }
 
@@ -95,16 +99,19 @@ const AdminRegistrationBanner = () => {
             });
             if (res.data.success) {
                 toast.success("Settings updated successfully");
-                if (res.data.data?.backgroundImage) {
-                    setBackgroundImage(res.data.data.backgroundImage);
-                }
-                if (res.data.data?.mobileBackgroundImage !== undefined) {
-                    setMobileBackgroundImage(res.data.data.mobileBackgroundImage);
+                // Re-fetch to get properly converted display URLs
+                const refreshRes = await apiClient.get("/api/registration-banner");
+                if (refreshRes.data.success && refreshRes.data.data) {
+                    const s = refreshRes.data.data;
+                    setBackgroundImage(s.backgroundImage || "/auth-banner.png");
+                    setMobileBackgroundImage(s.mobileBackgroundImage || "");
                 }
                 resetBgFile();
                 setBgMode("url");
+                setBgUrlDirty(false);
                 resetMobileBgFile();
                 setMobileBgMode("url");
+                setMobileBgUrlDirty(false);
             }
         } catch (error: any) {
             toast.error(error.response?.data?.message || "Failed to update settings");
@@ -192,7 +199,7 @@ const AdminRegistrationBanner = () => {
 
                         {bgMode === "url" && (
                             <div className="space-y-2">
-                                <Input value={backgroundImage} onChange={e => setBackgroundImage(e.target.value)} placeholder="e.g. /auth-banner.png or https://..." />
+                                <Input value={backgroundImage} onChange={e => { setBackgroundImage(e.target.value); setBgUrlDirty(true); }} placeholder="e.g. /auth-banner.png or https://..." />
                                 {backgroundImage && (
                                     <img src={getImageUrl(backgroundImage)} alt="Banner preview" className="w-full h-40 object-cover rounded border mt-1" onError={e => (e.currentTarget.style.display = 'none')} />
                                 )}
@@ -239,7 +246,7 @@ const AdminRegistrationBanner = () => {
 
                         {mobileBgMode === "url" && (
                             <div className="space-y-2">
-                                <Input value={mobileBackgroundImage} onChange={e => setMobileBackgroundImage(e.target.value)} placeholder="e.g. /mobile-banner.png or https://..." />
+                                <Input value={mobileBackgroundImage} onChange={e => { setMobileBackgroundImage(e.target.value); setMobileBgUrlDirty(true); }} placeholder="e.g. /mobile-banner.png or https://..." />
                                 {mobileBackgroundImage && (
                                     <img src={getImageUrl(mobileBackgroundImage)} alt="Mobile banner preview" className="w-full h-40 object-cover rounded border mt-1" onError={e => (e.currentTarget.style.display = 'none')} />
                                 )}
