@@ -24,8 +24,8 @@ const userSchema = new mongoose.Schema({
   otp: { type: String }, // Storing OTP for verification logic if needed, or just as a field as requested
   gender: { type: String },
   zone_id: { type: String }, // Assuming string ID
-  city: { type: String, required: true },
-  state: { type: String, required: true },
+  city: { type: String },
+  state: { type: String },
   pincode: { type: String },
   address1: { type: String },
   address2: { type: String },

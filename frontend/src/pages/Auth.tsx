@@ -686,15 +686,15 @@ const Auth = ({ forceRegister }: AuthProps) => {
       return;
     }
 
-    if (!formData.state || !formData.city) {
+    if (!formData.playerRole) {
       toast({
         variant: "destructive",
         title: "Missing Fields",
-        description: "Please select your Trail City.",
+        description: "Please select your Role.",
       });
       return;
     }
-
+ 
     const generatedPassword = formData.password || generatePassword();
 
     setIsLoading(true);
