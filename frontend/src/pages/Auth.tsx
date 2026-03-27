@@ -1350,7 +1350,6 @@ const Auth = ({ forceRegister }: AuthProps) => {
                         !fullName.trim() ||
                         !formData.email ||
                         !formData.city ||
-                        !formData.state ||
                         !formData.playerRole
                       }
                     >
