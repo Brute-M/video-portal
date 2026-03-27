@@ -1285,26 +1285,17 @@ const Auth = ({ forceRegister }: AuthProps) => {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label htmlFor="trailCity" className="text-white font-semibold drop-shadow-sm">
-                          Select Trial City
+                          Preferred Trial City
                         </Label>
-                        <Select onValueChange={handleTrailCityChange} value={formData.zone_id} required>
-                          <SelectTrigger className="h-12 bg-white text-black border-white/20 focus:ring-primary/50">
-                            <SelectValue placeholder={isLoadingLocations ? "Loading..." : "Select Trial City"} />
-                          </SelectTrigger>
-                          <SelectContent position="popper" side="bottom" align="start">
-                            {availableCities.length ? (
-                              availableCities.map((c) => (
-                                <SelectItem key={c.zoneId} value={String(c.zoneId)}>
-                                  {c.name}
-                                </SelectItem>
-                              ))
-                            ) : (
-                              <SelectItem value="__no_cities__" disabled>
-                                {isLoadingLocations ? "Loading..." : "No cities available"}
-                              </SelectItem>
-                            )}
-                          </SelectContent>
-                        </Select>
+                        <Input
+                          id="trailCity"
+                          type="text"
+                          placeholder="Preferred Trial City"
+                          className="h-12 bg-white text-black border-white/20 focus:ring-primary/50"
+                          value={formData.city}
+                          onChange={(e) => setFormData((prev) => ({ ...prev, city: e.target.value }))}
+                          required
+                        />
                       </div>
 
                       <div className="space-y-2">
