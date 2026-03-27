@@ -33,6 +33,7 @@ export default function AdminSeoMeta() {
         { path: '/faqs', name: 'FAQs' },
         { path: '/registration', name: 'Registration' },
         { path: '/contact-us', name: 'Contact Us' },
+        { path: '/rule-book', name: 'Rule Book' },
         { path: '/login', name: 'Login' },
         { path: '/dashboard', name: 'User Dashboard' },
         { path: 'custom', name: '✨ Create Custom Route...' }

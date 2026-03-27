@@ -87,7 +87,7 @@ const Footer: React.FC = () => {
               {[
                 { name: "Privacy & Policy", path: "/privacy-policy" },
                 { name: "Terms & Condition", path: "/terms-and-conditions" },
-                // { name: "Cricket Rulebook", path: "/cricket-rulebook" },
+                { name: "Rule Book", path: "/rule-book" },
               ].map((item) => (
                 <li key={item.name} className="flex items-center gap-2 group cursor-pointer hover:translate-x-1 transition-transform">
                   <span className="text-[#FFC928] text-[8px]">●</span>

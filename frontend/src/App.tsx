@@ -62,6 +62,8 @@ const AdminSocialContact = lazy(() => import("./pages/AdminSocialContact"));
 const AdminPageBanner = lazy(() => import("./pages/AdminPageBanner"));
 const AdminPrivacyPolicy = lazy(() => import("./pages/AdminPrivacyPolicy"));
 const AdminTermsConditions = lazy(() => import("./pages/AdminTermsConditions"));
+const RuleBook = lazy(() => import("./pages/RuleBook"));
+const AdminRuleBook = lazy(() => import("./pages/AdminRuleBook"));
 const AdminSeoMeta = lazy(() => import("./pages/AdminSeoMeta"));
 const AdminBlog = lazy(() => import("./pages/AdminBlog"));
 const AdminNews = lazy(() => import("./pages/AdminNews"));
@@ -133,6 +135,7 @@ const App = () => {
                   <Route path="/contact-us" element={<ContactUs />} />
                   <Route path="/privacy-policy" element={<PrivacyPolicy />} />
                   <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
+                  <Route path="/rule-book" element={<RuleBook />} />
                   <Route path="/press/:id" element={<Press />} />
                   <Route path="/blog" element={<Blog />} />
                   <Route path="/blog/:slug" element={<BlogPost />} />
@@ -177,6 +180,7 @@ const App = () => {
                   <Route path="/admin/page-banner" element={<AdminPageBanner />} />
                   <Route path="/admin/privacy-policy" element={<AdminPrivacyPolicy />} />
                   <Route path="/admin/terms-conditions" element={<AdminTermsConditions />} />
+                  <Route path="/admin/rule-book" element={<AdminRuleBook />} />
                   <Route path="/admin/meta-content" element={<AdminSeoMeta />} />
                   <Route path="/admin/blog" element={<AdminBlog />} />
                   <Route path="/admin/news" element={<AdminNews />} />

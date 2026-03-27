@@ -96,6 +96,7 @@ const AdminLayout = () => {
         { icon: ImageIcon, label: "Page Banner", path: "/admin/page-banner" },
         { icon: Shield, label: "Privacy Policy", path: "/admin/privacy-policy" },
         { icon: FileText, label: "Terms & Conditions", path: "/admin/terms-conditions" },
+        { icon: FileText, label: "Rule Book", path: "/admin/rule-book" },
         { icon: FileText, label: "Meta Content", path: "/admin/meta-content" },
         { icon: Newspaper, label: "Blog / News", path: "/admin/blog" },
         { icon: Newspaper, label: "News", path: "/admin/news" },
@@ -137,7 +138,7 @@ const AdminLayout = () => {
 
         if (userRole === 'seo_content') {
             return allNavItems.filter(item =>
-                commonAllowed.includes(item.path) || item.label === "Meta Content" || item.label === "Blog / News" || item.label === "News" || item.label === "Home Page" || item.label === "About Us" || item.label === "Social & Contact" || item.label === "Page Banner" || item.label === "Privacy Policy" || item.label === "Terms & Conditions" || item.label === "Registration Page"
+                commonAllowed.includes(item.path) || item.label === "Meta Content" || item.label === "Blog / News" || item.label === "News" || item.label === "Home Page" || item.label === "About Us" || item.label === "Social & Contact" || item.label === "Page Banner" || item.label === "Privacy Policy" || item.label === "Terms & Conditions" || item.label === "Rule Book" || item.label === "Registration Page"
             );
         }
 
