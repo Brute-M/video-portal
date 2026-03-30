@@ -3,7 +3,7 @@ import { useSearchParams, useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Mail, Lock, CheckCircle2, Phone, Eye, EyeOff, ArrowLeft, Loader2, ArrowRight, Swords, CircleDot, Shield, Zap } from "lucide-react";
+import { Mail, Lock, CheckCircle2, Phone, Eye, EyeOff, ArrowLeft, Loader2, ArrowRight, Swords, CircleDot, Shield, Zap, Tag } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import ResponseModal from "@/components/ResponseModal";
 import { login, loginOtp, verifyAdminOtp, register, sendOtp, verifyOtp, forgotPassword, resetPassword, saveStep1Data, updateProfile, storeSyncData, getProfile } from "@/apihelper/auth";
@@ -11,6 +11,7 @@ import { createLandingOrder, verifyLandingPayment, createOrderRegistrationInflue
 import { getSlugAmount } from "@/apihelper/influencerLinks";
 import { loadRazorpay } from "@/utils/loadRazorpay";
 import { getLocationsAPI } from "@/apihelper/location";
+import { validateCoupon } from "@/apihelper/coupon";
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
@@ -137,6 +138,12 @@ const Auth = ({ forceRegister }: AuthProps) => {
   const [userId, setUserId] = useState("");
   const [influencerSlug, setInfluencerSlug] = useState<string | null>(null);
   const [slugAmountInr, setSlugAmountInr] = useState<number | null>(null);
+
+  // Coupon State
+  const [couponCode, setCouponCode] = useState("");
+  const [couponDiscount, setCouponDiscount] = useState<number | null>(null);
+  const [couponApplied, setCouponApplied] = useState(false);
+  const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
 
   // Admin 2FA (Google Authenticator) state
   const [requireAdminOtp, setRequireAdminOtp] = useState(false);
@@ -345,6 +352,36 @@ const Auth = ({ forceRegister }: AuthProps) => {
     }));
   };
 
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim()) {
+      toast({ variant: "destructive", title: "Enter Coupon", description: "Please enter a coupon code." });
+      return;
+    }
+    setIsApplyingCoupon(true);
+    try {
+      const res = await validateCoupon(couponCode.trim(), DEFAULT_PRICE_INR);
+      const data = res?.data;
+      if (data?.valid) {
+        setCouponDiscount(data.discount);
+        setCouponApplied(true);
+        toast({ title: "Coupon Applied", description: `You save ₹${data.discount}! Pay ₹${data.finalAmount}` });
+      }
+    } catch (error: any) {
+      const msg = error.response?.data?.data?.message || error.response?.data?.message || "Invalid coupon code.";
+      toast({ variant: "destructive", title: "Invalid Coupon", description: msg });
+      setCouponDiscount(null);
+      setCouponApplied(false);
+    } finally {
+      setIsApplyingCoupon(false);
+    }
+  };
+
+  const handleRemoveCoupon = () => {
+    setCouponCode("");
+    setCouponDiscount(null);
+    setCouponApplied(false);
+  };
+
   const handleSendOtp = async () => {
     if (!formData.mobile || !/^\d{10}$/.test(formData.mobile)) {
       toast({
@@ -550,7 +587,12 @@ const Auth = ({ forceRegister }: AuthProps) => {
     }
 
     const useInfluencerPayment = !!resolvedInfluencerSlug;
-    const amountInr = useInfluencerPayment ? (slugAmountInr ?? DEFAULT_PRICE_INR) : DEFAULT_PRICE_INR;
+    let amountInr = useInfluencerPayment ? (slugAmountInr ?? DEFAULT_PRICE_INR) : DEFAULT_PRICE_INR;
+
+    // Apply coupon discount to payment amount
+    if (couponApplied && couponDiscount && couponDiscount > 0) {
+      amountInr = Math.max(1, amountInr - couponDiscount);
+    }
 
     if (typeof window !== "undefined" && (window as any).fbq) {
       (window as any).fbq("track", "InitiateCheckout", {
@@ -567,7 +609,7 @@ const Auth = ({ forceRegister }: AuthProps) => {
       if (useInfluencerPayment) {
         order = await createOrderRegistrationInfluencer(userIdForPayment);
       } else {
-        order = await createLandingOrder(DEFAULT_PRICE_INR);
+        order = await createLandingOrder(amountInr);
       }
 
       const Razorpay = await loadRazorpay();
@@ -594,7 +636,7 @@ const Auth = ({ forceRegister }: AuthProps) => {
                 razorpay_payment_id: response.razorpay_payment_id,
                 razorpay_signature: response.razorpay_signature,
                 userId: resolvedUserId,
-                amount: DEFAULT_PRICE_INR,
+                amount: amountInr,
                 isFromLandingPage: false,
               });
             }
@@ -701,10 +743,17 @@ const Auth = ({ forceRegister }: AuthProps) => {
     try {
       // If user is already created in this session (e.g. went back from Step 2), just update or proceed
       if (userId) {
-        await updateProfile(formData);
-        toast({ title: "Proceeding to payment", description: "Please complete your checkout." });
-        await startPaymentFlow(userId);
-        return;
+        try {
+          await updateProfile(formData);
+          toast({ title: "Proceeding to payment", description: "Please complete your checkout." });
+          await startPaymentFlow(userId);
+          return;
+        } catch {
+          // Stale session - clear and fall through to fresh registration
+          setUserId("");
+          sessionStorage.removeItem("brpl_registration_user_id");
+          localStorage.removeItem("token");
+        }
       }
 
       // Register logic now moved to Step 1
@@ -721,6 +770,7 @@ const Auth = ({ forceRegister }: AuthProps) => {
         fbclid,
         isPaid: false, // Not paid yet
         isFromLandingPage: true, // Triggers email with generated password
+        couponCode: couponApplied ? couponCode.trim().toUpperCase() : undefined,
       });
 
       console.log("Step 1 Response:", response);
@@ -827,7 +877,12 @@ const Auth = ({ forceRegister }: AuthProps) => {
     }
 
     const useInfluencerPayment = !!resolvedInfluencerSlug;
-    const amountInr = useInfluencerPayment ? (slugAmountInr ?? 999) : DEFAULT_PRICE_INR;
+    let amountInr = useInfluencerPayment ? (slugAmountInr ?? 999) : DEFAULT_PRICE_INR;
+
+    // Apply coupon discount to payment amount
+    if (couponApplied && couponDiscount && couponDiscount > 0) {
+      amountInr = Math.max(1, amountInr - couponDiscount);
+    }
 
     if (typeof window !== "undefined" && (window as any).fbq) {
       (window as any).fbq("track", "InitiateCheckout", {
@@ -844,7 +899,7 @@ const Auth = ({ forceRegister }: AuthProps) => {
       if (useInfluencerPayment) {
         order = await createOrderRegistrationInfluencer(userIdForPayment);
       } else {
-        order = await createLandingOrder(DEFAULT_PRICE_INR);
+        order = await createLandingOrder(amountInr);
       }
 
       const Razorpay = await loadRazorpay();
@@ -871,7 +926,7 @@ const Auth = ({ forceRegister }: AuthProps) => {
                 razorpay_payment_id: response.razorpay_payment_id,
                 razorpay_signature: response.razorpay_signature,
                 userId: resolvedUserId,
-                amount: DEFAULT_PRICE_INR,
+                amount: amountInr,
                 isFromLandingPage: false,
               });
             }
@@ -1320,6 +1375,50 @@ const Auth = ({ forceRegister }: AuthProps) => {
                       </div>
                     </div>
 
+                    {/* Coupon Code */}
+                    <div className="space-y-2">
+                      <Label className="text-white font-semibold drop-shadow-sm">
+                        Have a Coupon Code?
+                      </Label>
+                      <div className="flex gap-2">
+                        <div className="relative flex-1">
+                          <div className="absolute left-3 top-1/2 -translate-y-1/2 z-10">
+                            <Tag className="w-4 h-4 text-muted-foreground" />
+                          </div>
+                          <Input
+                            placeholder="Enter coupon code"
+                            value={couponCode}
+                            onChange={(e) => {
+                              setCouponCode(e.target.value.toUpperCase());
+                              if (couponApplied) { setCouponApplied(false); setCouponDiscount(null); }
+                            }}
+                            disabled={couponApplied}
+                            className="pl-10 h-11 bg-white text-black placeholder:text-gray-500 border-white/20 focus-visible:ring-primary/50"
+                          />
+                        </div>
+                        {couponApplied ? (
+                          <Button type="button" variant="outline" className="h-11 border-red-400 text-red-400 hover:text-red-500" onClick={handleRemoveCoupon}>
+                            Remove
+                          </Button>
+                        ) : (
+                          <Button
+                            type="button"
+                            variant="default"
+                            className="h-11"
+                            onClick={handleApplyCoupon}
+                            disabled={isApplyingCoupon || !couponCode.trim()}
+                          >
+                            {isApplyingCoupon ? <Loader2 className="w-4 h-4 animate-spin" /> : "Apply"}
+                          </Button>
+                        )}
+                      </div>
+                      {couponApplied && couponDiscount !== null && (
+                        <p className="text-green-400 text-sm font-medium">
+                          Coupon applied! You save ₹{couponDiscount}
+                        </p>
+                      )}
+                    </div>
+
                     <div className="flex items-start gap-2 pt-2">
                       <input type="checkbox" id="terms" className="mt-1" required />
                       <Label
@@ -1355,6 +1454,8 @@ const Auth = ({ forceRegister }: AuthProps) => {
                     >
                       {isLoading || isPaymentProcessing ? (
                         <Loader2 className="w-5 h-5 animate-spin" />
+                      ) : couponApplied && couponDiscount ? (
+                        <>Submit &amp; Pay <span className="line-through opacity-60 mr-1">₹{DEFAULT_PRICE_INR}</span> ₹{DEFAULT_PRICE_INR - couponDiscount}/-</>
                       ) : (
                         <>Submit &amp; Pay ₹{DEFAULT_PRICE_INR}/-</>
                       )}

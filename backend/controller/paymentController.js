@@ -43,9 +43,12 @@ exports.createOrder = async (req, res) => {
 exports.createOrderLanding = async (req, res) => {
     const { amount, currency = 'INR', receipt } = req.body;
 
+    // Use requested amount if provided (e.g. after coupon discount), otherwise default
+    const finalAmount = (amount && Number(amount) > 0) ? Number(amount) : TEST_AMOUNT_INR;
+
     try {
         const options = {
-            amount: TEST_AMOUNT_INR * 100, // amount in smallest currency unit
+            amount: Math.round(finalAmount * 100), // amount in smallest currency unit (paise)
             currency,
             receipt,
         };

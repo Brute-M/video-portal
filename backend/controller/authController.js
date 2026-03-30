@@ -334,9 +334,47 @@ const register = async (req, res) => {
       return res.status(400).json({ statusCode: 400, data: { message: 'Required fields are missing' } });
     }
 
-    const userExists = await User.findOne({ mobile });
-    if (userExists) {
+    // Check if mobile or email is already taken
+    const userByMobile = await User.findOne({ mobile });
+    const userByEmail = email ? await User.findOne({ email: email.trim().toLowerCase() }) : null;
+    const existingUser = userByMobile || userByEmail;
+
+    // If user exists and is already paid, reject
+    if (existingUser && (existingUser.isPaid || existingUser.paymentId)) {
       return res.status(400).json({ statusCode: 400, data: { message: 'Mobile number is already registered' } });
+    }
+
+    // If unpaid user exists (stale registration), reuse and update their record
+    if (existingUser && !existingUser.isPaid) {
+      const hashedPw = await bcrypt.hash(password, 10);
+      existingUser.fname = fname || existingUser.fname;
+      existingUser.lname = lname || existingUser.lname;
+      existingUser.email = email || existingUser.email;
+      existingUser.password = hashedPw;
+      existingUser.mobile = mobile || existingUser.mobile;
+      existingUser.city = city || existingUser.city;
+      existingUser.state = state || existingUser.state;
+      existingUser.playerRole = playerRole || existingUser.playerRole;
+      if (couponCode) existingUser.couponCodeUsed = couponCode.trim().toUpperCase();
+      await existingUser.save();
+
+      const token = jwt.sign(
+        { userId: existingUser._id, role: existingUser.role, email: existingUser.email },
+        process.env.JWT_SECRET || 'hybg^&*fg3456789',
+        { expiresIn: '24h' }
+      );
+
+      return res.status(200).json({
+        statusCode: 200,
+        data: {
+          message: 'Registration resumed',
+          token,
+          userId: existingUser._id,
+          email: existingUser.email,
+          role: existingUser.role,
+          influencerSlug: existingUser.influencerSlug || undefined,
+        }
+      });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -419,7 +457,6 @@ const register = async (req, res) => {
     // }
 
     let normalizedCouponCode = couponCode ? String(couponCode).trim().toUpperCase() : '';
-    let appliedCouponBenefits = [];
     let matchedCoupon = null;
 
     if (normalizedCouponCode) {
@@ -430,7 +467,20 @@ const register = async (req, res) => {
           data: { message: 'Invalid coupon code' }
         });
       }
-      appliedCouponBenefits = Array.isArray(matchedCoupon.benefits) ? matchedCoupon.benefits : [];
+      // Check expiry
+      if (new Date() > new Date(matchedCoupon.expiryDate)) {
+        return res.status(400).json({
+          statusCode: 400,
+          data: { message: 'This coupon has expired' }
+        });
+      }
+      // Check usage limit
+      if (matchedCoupon.usageLimit && matchedCoupon.usedCount >= matchedCoupon.usageLimit) {
+        return res.status(400).json({
+          statusCode: 400,
+          data: { message: 'This coupon has reached its usage limit' }
+        });
+      }
     }
 
     // Influencer pricing attribution slug (new system)
@@ -453,7 +503,6 @@ const register = async (req, res) => {
       referralSourceId,
       influencerSlug: influencerSlug,
       couponCodeUsed: normalizedCouponCode || undefined,
-      couponBenefits: appliedCouponBenefits,
       isPaid: !!paymentId, // Set isPaid to true if paymentId is present
       ipAddress: clientIp,
       userAgent: clientUa,
@@ -479,7 +528,7 @@ const register = async (req, res) => {
     if (matchedCoupon) {
       matchedCoupon.usedCount = (matchedCoupon.usedCount || 0) + 1;
       matchedCoupon.usedBy = matchedCoupon.usedBy || [];
-      matchedCoupon.usedBy.push(newUser._id);
+      matchedCoupon.usedBy.push({ userId: newUser._id, usedAt: new Date() });
       await matchedCoupon.save();
     }
 

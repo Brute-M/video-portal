@@ -19,6 +19,7 @@ const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 const PaidUsers = lazy(() => import("./pages/PaidUsers"));
 const UnpaidUsers = lazy(() => import("./pages/UnpaidUsers"));
 const CouponUsage = lazy(() => import("./pages/CouponUsage"));
+const AdminCoupons = lazy(() => import("./pages/AdminCoupons"));
 const PublicLayout = lazy(() => import("./layouts/PublicLayout"));
 const AboutUs = lazy(() => import("./pages/AboutUs"));
 const TeamsPage = lazy(() => import("./pages/TeamsPage"));
@@ -155,7 +156,7 @@ const App = () => {
                   <Route path="/admin/dashboard" element={<AdminDashboard />} />
                   <Route path="/admin/paid-users" element={<PaidUsers />} />
                   <Route path="/admin/unpaid-users" element={<UnpaidUsers />} />
-                  {/* <Route path="/admin/coupon-usage" element={<CouponUsage />} /> */}
+                  <Route path="/admin/coupons" element={<AdminCoupons />} />
                   <Route path="/admin/registered-users" element={<RegisteredUsers />} />
                   <Route path="/admin/users/:userId" element={<UserDetails />} />
                   {/* <Route path="/admin/step1-leads" element={<Step1Leads />} /> */}

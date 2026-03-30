@@ -60,7 +60,8 @@ const Footer: React.FC = () => {
                 { name: "About Us", path: "/about-us" },
                 { name: "Videos", path: "#" },
                 { name: "Blog", path: "/blog" },
-                { name: "News & Events", path: "/events" }
+                { name: "News", path: "/news" },
+                { name: "Events", path: "/events" }
               ].map((item) => (
                 <li key={item.name} className="flex items-center gap-2 group cursor-pointer hover:translate-x-1 transition-transform">
                   <span className="text-[#FFC928] text-[8px]">●</span>
@@ -108,7 +109,7 @@ const Footer: React.FC = () => {
             <ul className="space-y-3">
               {[
                 { name: "Contact Us", path: "/contact-us" },
-                { name: "News", path: "#" }
+                { name: "News", path: "/news" }
               ].map((item) => (
                 <li key={item.name} className="flex items-center gap-2 group cursor-pointer hover:translate-x-1 transition-transform">
                   <span className="text-[#FFC928] text-[8px]">●</span>

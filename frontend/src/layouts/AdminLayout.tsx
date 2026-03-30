@@ -54,7 +54,7 @@ const AdminLayout = () => {
         { icon: LayoutDashboard, label: "Dashboard", path: "/admin/dashboard" },
         { icon: UserCheck, label: "Paid Users", path: "/admin/paid-users" },
         { icon: UserX, label: "Unpaid Users", path: "/admin/unpaid-users" },
-        // { icon: Users, label: "Coupon Usage", path: "/admin/coupon-usage" },
+        { icon: CreditCard, label: "Coupons", path: "/admin/coupons" },
         { icon: Users, label: "Registered Users", path: "/admin/registered-users" },
         { icon: CreditCard, label: "Events", path: "/admin/events" },
         { icon: Briefcase, label: "Manage Jobs", path: "/admin/jobs" },
