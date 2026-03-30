@@ -46,3 +46,15 @@ export const validateCoupon = async (code: string, orderAmount: number) => {
     const response = await api.post('/api/coupons/validate', { code, orderAmount });
     return response.data;
 };
+
+export const getCouponUsage = async (params?: { page?: number; limit?: number; code?: string; isActive?: boolean }) => {
+    const searchParams = new URLSearchParams();
+    if (params?.page) searchParams.append('page', String(params.page));
+    if (params?.limit) searchParams.append('limit', String(params.limit));
+    if (params?.code) searchParams.append('code', params.code);
+    if (typeof params?.isActive === 'boolean') searchParams.append('isActive', String(params.isActive));
+
+    const suffix = searchParams.toString() ? `?${searchParams.toString()}` : '';
+    const response = await api.get(`/api/coupons/usage${suffix}`);
+    return response.data;
+};
