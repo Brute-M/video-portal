@@ -82,8 +82,8 @@ exports.getSitemap = async (req, res) => {
             urls.push({
                 loc: `${baseUrl}/blog/${post.slug}`,
                 lastmod: post.updatedAt ? new Date(post.updatedAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-                changefreq: 'monthly',
-                priority: '0.5',
+                changefreq: 'weekly',
+                priority: '0.8',
             });
         }
 
