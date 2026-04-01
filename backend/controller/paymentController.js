@@ -444,8 +444,10 @@ exports.verifyLandingPaymentInfluencer = async (req, res) => {
 exports.sendPaymentSuccessToWati = async (req, res) => {
     try {
         const { userId, paymentId, amount, invoice } = req.body;
+        console.log('[WATI Webhook] Request received', { userId, paymentId, amount, invoice });
 
         if (!userId || !paymentId || amount == null) {
+            console.warn('[WATI Webhook] Missing required fields', { userId, paymentId, amount });
             return res.status(400).json({
                 success: false,
                 message: "userId, paymentId and amount are required"
@@ -454,6 +456,7 @@ exports.sendPaymentSuccessToWati = async (req, res) => {
 
         const user = await User.findById(userId).select('fname lname email mobile');
         if (!user) {
+            console.warn('[WATI Webhook] User not found', { userId, paymentId });
             return res.status(404).json({
                 success: false,
                 message: "User not found"
@@ -490,6 +493,12 @@ exports.sendPaymentSuccessToWati = async (req, res) => {
                 },
                 timeout: 10000,
             });
+            console.log('[WATI Webhook] Working fine: notification sent successfully', {
+                userId,
+                paymentId,
+                amount,
+                invoice: invoice || null
+            });
 
             return res.json({
                 success: true,
@@ -498,6 +507,11 @@ exports.sendPaymentSuccessToWati = async (req, res) => {
             });
         } catch (err) {
             console.error('Error calling WATI API:', err?.message || err);
+            console.error('[WATI Webhook] Not working: failed to send notification', {
+                userId,
+                paymentId,
+                amount
+            });
             return res.status(502).json({
                 success: false,
                 message: "Failed to call WATI API",
