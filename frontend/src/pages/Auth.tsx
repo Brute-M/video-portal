@@ -7,7 +7,7 @@ import { Mail, Lock, CheckCircle2, Phone, Eye, EyeOff, ArrowLeft, Loader2, Arrow
 import { useToast } from "@/hooks/use-toast";
 import ResponseModal from "@/components/ResponseModal";
 import { login, loginOtp, verifyAdminOtp, register, sendOtp, verifyOtp, forgotPassword, resetPassword, saveStep1Data, updateProfile, storeSyncData, getProfile } from "@/apihelper/auth";
-import { createLandingOrder, verifyLandingPayment, createOrderRegistrationInfluencer, verifyLandingPaymentInfluencer } from "@/apihelper/payment";
+import { createLandingOrder, verifyLandingPayment, createOrderRegistrationInfluencer, verifyLandingPaymentInfluencer, sendWatiPaymentSuccess } from "@/apihelper/payment";
 import { getSlugAmount } from "@/apihelper/influencerLinks";
 import { loadRazorpay } from "@/utils/loadRazorpay";
 import { getLocationsAPI } from "@/apihelper/location";
@@ -641,6 +641,14 @@ const Auth = ({ forceRegister }: AuthProps) => {
               });
             }
 
+            // Trigger WATI only in registration-form payment success flow
+            await sendWatiPaymentSuccess({
+              userId: resolvedUserId,
+              paymentId: response.razorpay_payment_id,
+              amount: amountInr,
+              invoice: `INV-${response.razorpay_payment_id}`,
+            });
+
             sessionStorage.removeItem("brpl_registration_user_id");
             localStorage.removeItem("brpl_influencer_slug");
 
@@ -930,6 +938,14 @@ const Auth = ({ forceRegister }: AuthProps) => {
                 isFromLandingPage: false,
               });
             }
+
+            // Trigger WATI only in registration-form payment success flow
+            await sendWatiPaymentSuccess({
+              userId: resolvedUserId,
+              paymentId: response.razorpay_payment_id,
+              amount: amountInr,
+              invoice: `INV-${response.razorpay_payment_id}`,
+            });
 
             sessionStorage.removeItem('brpl_registration_user_id');
             localStorage.removeItem('brpl_influencer_slug');
@@ -1378,7 +1394,7 @@ const Auth = ({ forceRegister }: AuthProps) => {
                     {/* Coupon Code */}
                     <div className="space-y-2">
                       <Label className="text-white font-semibold drop-shadow-sm">
-                        Have a Coupon Code?
+                        Have a Referral Code?
                       </Label>
                       <div className="flex gap-2">
                         <div className="relative flex-1">
@@ -1386,7 +1402,7 @@ const Auth = ({ forceRegister }: AuthProps) => {
                             <Tag className="w-4 h-4 text-muted-foreground" />
                           </div>
                           <Input
-                            placeholder="Enter coupon code"
+                            placeholder="Enter Referral code"
                             value={couponCode}
                             onChange={(e) => {
                               setCouponCode(e.target.value.toUpperCase());

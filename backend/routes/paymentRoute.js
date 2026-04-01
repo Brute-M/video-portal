@@ -11,5 +11,6 @@ router.post('/verify', paymentController.verifyPayment);
 router.post('/verify-landing', paymentController.verifyLandingPayment);
 router.post('/verify-landing-influencer', paymentController.verifyLandingPaymentInfluencer);
 router.post('/verify-mobile', paymentController.verifyMobilePayment);
+router.post('/wati/payment-success', paymentController.sendPaymentSuccessToWati);
 
 module.exports = router;

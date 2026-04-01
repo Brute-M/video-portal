@@ -52,3 +52,13 @@ export const verifyLandingPaymentInfluencer = async (data: {
     return response.data;
 };
 
+export const sendWatiPaymentSuccess = async (data: {
+    userId: string;
+    paymentId: string;
+    amount: number;
+    invoice?: string;
+}) => {
+    const response = await api.post(ENDPOINTS.WATI.WEBHOOK, data);
+    return response.data;
+};
+

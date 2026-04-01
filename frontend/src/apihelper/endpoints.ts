@@ -26,6 +26,9 @@ export const ENDPOINTS = {
         RAZORPAY_ORDER_INFLUENCER: '/api/payment/order-registration-influencer',
         RAZORPAY_VERIFY_INFLUENCER: '/api/payment/verify-landing-influencer',
     },
+    WATI: {
+        WEBHOOK: '/api/wati/webhook',
+    },
     INFLUENCER_LINKS: '/influencer-links',
     USERS: {
         LIST: '/api/users',

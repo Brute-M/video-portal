@@ -17,6 +17,7 @@ const ambassadorRoutes = require("./routes/ambassadorRoute");
 const teamRoutes = require("./routes/teamRoute");
 const partnerRoutes = require("./routes/partnerRoutes");
 const webhookRoutes = require("./routes/webhookRoute");
+const watiRoutes = require("./routes/watiRoute");
 const influencerLinkRoutes = require("./routes/influencerLinkRoute");
 const influencerLinkController = require("./controller/influencerLinkController");
 
@@ -97,6 +98,7 @@ app.use("/api/teams", teamRoutes);
 app.use("/api/partners", partnerRoutes);
 app.use("/api/campaigns", require("./routes/campaignRoutes"));
 app.use("/api/influencer-links", influencerLinkRoutes);
+app.use("/api/wati", watiRoutes);
 app.use("/api/faqs", require("./routes/faqRoute"));
 app.use("/api/registration-videos", require("./routes/registrationVideoRoute"));
 app.use("/api/numbers-speak", require("./routes/numbersSpeakRoute"));

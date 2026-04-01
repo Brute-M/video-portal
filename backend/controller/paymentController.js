@@ -4,6 +4,7 @@ const Video = require('../model/video.model');
 const User = require('../model/user.model');
 const Payment = require('../model/payment.model');
 const InfluencerLink = require('../model/InfluencerLink.model');
+const axios = require('axios');
 const { createInvoiceBuffer } = require('../utils/pdfGenerator');
 const { sendRegistrationInvoiceEmail } = require('../utils/emailService');
 
@@ -426,5 +427,87 @@ exports.verifyLandingPaymentInfluencer = async (req, res) => {
     } catch (error) {
         console.error("Error in verifyLandingPaymentInfluencer:", error);
         res.status(500).json({ message: "Payment verified but failed to update status", success: false });
+    }
+};
+
+/**
+ * WATI integration endpoint
+ * Purpose: After a successful Razorpay transaction and user update,
+ *          this endpoint is called to trigger WhatsApp communication via WATI.
+ *
+ * Expected body:
+ *  - userId: MongoDB ObjectId of the user
+ *  - paymentId: Razorpay payment id
+ *  - amount: number (INR)
+ *  - invoice: string (invoice number or URL) - optional but recommended
+ */
+exports.sendPaymentSuccessToWati = async (req, res) => {
+    try {
+        const { userId, paymentId, amount, invoice } = req.body;
+
+        if (!userId || !paymentId || amount == null) {
+            return res.status(400).json({
+                success: false,
+                message: "userId, paymentId and amount are required"
+            });
+        }
+
+        const user = await User.findById(userId).select('fname lname email mobile');
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found"
+            });
+        }
+
+        const fullName = `${user.fname || ''} ${user.lname || ''}`.trim();
+        const username = user.mobile || user.email;
+
+        const watiUrl = process.env.WATI_WEBHOOK_URL;
+        const watiApiKey = process.env.WATI_API_KEY;
+
+        if (!watiUrl || !watiApiKey) {
+            console.error('WATI configuration missing: WATI_WEBHOOK_URL or WATI_API_KEY not set');
+            return res.status(500).json({
+                success: false,
+                message: "WATI configuration missing on server"
+            });
+        }
+
+        const payload = {
+            username,
+            name: fullName,
+            paymentId,
+            invoice: invoice || null,
+            amount,
+        };
+
+        try {
+            const response = await axios.post(watiUrl, payload, {
+                headers: {
+                    Authorization: `Bearer ${watiApiKey}`,
+                    'Content-Type': 'application/json',
+                },
+                timeout: 10000,
+            });
+
+            return res.json({
+                success: true,
+                message: "WATI notification sent successfully",
+                data: response.data,
+            });
+        } catch (err) {
+            console.error('Error calling WATI API:', err?.message || err);
+            return res.status(502).json({
+                success: false,
+                message: "Failed to call WATI API",
+            });
+        }
+    } catch (error) {
+        console.error('sendPaymentSuccessToWati error:', error);
+        return res.status(500).json({
+            success: false,
+            message: "Internal server error while sending WATI notification",
+        });
     }
 };
