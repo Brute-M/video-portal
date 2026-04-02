@@ -83,6 +83,8 @@ const SEO = ({ title, description, keywords, image, url, breadcrumbCurrentName }
         scriptNodes.forEach((node) => {
             if (node.nodeType === Node.ELEMENT_NODE) {
                 const oldEl = node as HTMLElement;
+                if (oldEl.tagName.toLowerCase() === 'noscript') return;
+                
                 const newEl = document.createElement(oldEl.tagName);
                 newEl.setAttribute(DATA_ATTR, "true");
 

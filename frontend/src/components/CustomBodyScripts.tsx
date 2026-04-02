@@ -4,8 +4,8 @@ import { useSiteSettings } from "@/hooks/useSiteSettings";
 const DATA_ATTR = "data-custom-body-script";
 
 /**
- * Injects admin-configured scripts and markup (e.g. GTM noscript) into document.body.
- * Parses the stored HTML string: scripts are re-created so they execute; other elements (noscript, etc.) are appended as-is.
+ * Injects admin-configured scripts into document.body.
+ * Note: dynamically-created <noscript> can render raw text in SPA apps, so we skip it.
  */
 export function CustomBodyScripts() {
     const { settings } = useSiteSettings();
@@ -31,10 +31,9 @@ export function CustomBodyScripts() {
             if (node.nodeType !== Node.ELEMENT_NODE) return;
             const oldEl = node as HTMLElement;
             const tag = oldEl.tagName.toLowerCase();
-            const newEl = document.createElement(oldEl.tagName);
-            newEl.setAttribute(DATA_ATTR, "true");
-
             if (tag === "script") {
+                const newEl = document.createElement(oldEl.tagName);
+                newEl.setAttribute(DATA_ATTR, "true");
                 const script = newEl as HTMLScriptElement;
                 const oldScript = oldEl as HTMLScriptElement;
                 if (oldScript.src) {
@@ -44,14 +43,10 @@ export function CustomBodyScripts() {
                 } else {
                     script.textContent = oldScript.textContent || "";
                 }
-            } else {
-                Array.from(oldEl.attributes).forEach((attr) => {
-                    newEl.setAttribute(attr.name, attr.value);
-                });
-                newEl.innerHTML = oldEl.innerHTML;
+                document.body.appendChild(newEl);
+                added.push(newEl);
             }
-            document.body.appendChild(newEl);
-            added.push(newEl);
+            // Avoid rendering visible garbage text/tokens from dynamic <noscript> and other markup.
         });
 
         return () => {
