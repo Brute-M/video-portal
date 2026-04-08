@@ -93,3 +93,8 @@ export const updateUserPayment = async (userId: string, paymentId: string, payme
     });
     return response.data;
 };
+
+export const sendThankYouEmail = async (userId: string) => {
+    const response = await api.post(ENDPOINTS.ADMIN.SEND_THANKYOU_EMAIL(userId));
+    return response.data;
+};

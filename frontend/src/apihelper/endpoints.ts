@@ -41,6 +41,7 @@ export const ENDPOINTS = {
         CHARTS: '/admin/charts',
         INVOICE: (id: string) => `/admin/invoice/${id}`,
         MANUAL_PAYMENT: (id: string) => `/admin/users/${id}/payment`,
+        SEND_THANKYOU_EMAIL: (id: string) => `/admin/users/${id}/send-thankyou-email`,
         CONTACT_LEADS: '/admin/contact-leads',
         CONTACT_LEADS_EXPORT: '/admin/contact-leads/export',
         CREATE_USER: '/admin/users',

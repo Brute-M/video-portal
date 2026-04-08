@@ -238,7 +238,7 @@ const AdminLayout = () => {
             </aside>
 
             {/* Main Content */}
-            <div className={`flex-1 flex flex-col transition-all duration-300 w-full ${isSidebarOpen ? "md:ml-64" : "md:ml-20"}`}>
+            <div className={`flex-1 flex flex-col transition-all duration-300 w-full min-w-0 ${isSidebarOpen ? "md:ml-64" : "md:ml-20"}`}>
                 {/* Header */}
                 <header className="h-16 glass-card border-b border-border flex items-center justify-between px-4 md:px-6 sticky top-0 z-10 bg-background/80 backdrop-blur-md">
                     <Button variant="ghost" size="icon" onClick={() => setIsSidebarOpen(!isSidebarOpen)}>
@@ -262,7 +262,7 @@ const AdminLayout = () => {
                 </header>
 
                 {/* Page Content */}
-                <main className="p-4 md:p-6 overflow-x-hidden">
+                <main className="p-4 md:p-6 min-w-0 overflow-x-auto">
                     <Outlet />
                 </main>
             </div>

@@ -5,8 +5,9 @@ const Video = require('../model/video.model');
 const Payment = require('../model/payment.model');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
-const { drawInvoice } = require('../utils/pdfGenerator');
+const { drawInvoice, createInvoiceBuffer } = require('../utils/pdfGenerator');
 const PDFDocument = require('pdfkit');
+const { sendRegistrationInvoiceEmail } = require('../utils/emailService');
 const SiteSettings = require('../model/siteSettings.model');
 
 const adminLandingLogin = async (req, res) => {
@@ -720,6 +721,51 @@ const createUser = async (req, res) => {
     }
 };
 
+const sendThankYouEmail = async (req, res) => {
+    try {
+        if (!['admin', 'subadmin'].includes(req.role) && req.userId !== 'admin') {
+            return res.status(403).json({ message: 'Forbidden' });
+        }
+
+        const { userId } = req.params;
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        if (!user.isPaid) {
+            return res.status(400).json({ message: 'User is not paid. Cannot send invoice email.' });
+        }
+
+        const video = await Video.findOne({ userId: user._id, status: 'completed' }).sort({ createdAt: -1 });
+
+        let invoiceData;
+        if (video) {
+            invoiceData = video;
+        } else {
+            invoiceData = {
+                paymentId: user.paymentId || `REG-${userId.substring(0, 8)}`,
+                amount: user.paymentAmount || 1499,
+                originalName: 'BRPL Registration'
+            };
+        }
+
+        const pdfBuffer = await createInvoiceBuffer(invoiceData, user);
+        const paymentId = invoiceData.paymentId || user.paymentId || 'N/A';
+        const amount = invoiceData.amount || user.paymentAmount || 1499;
+
+        await sendRegistrationInvoiceEmail(user, paymentId, amount, pdfBuffer);
+
+        res.json({
+            statusCode: 200,
+            message: `Thank you email with invoice sent successfully to ${user.email}`
+        });
+    } catch (error) {
+        console.error('Error sending thank you email:', error);
+        res.status(500).json({ message: 'Failed to send email. Please try again.' });
+    }
+};
+
 module.exports = {
     adminLandingLogin,
     getAllRecords,
@@ -730,6 +776,7 @@ module.exports = {
     getPayments,
     manualUserPaymentUpdate,
     getUnpaidUsers,
-    createUser
+    createUser,
+    sendThankYouEmail
 };
 

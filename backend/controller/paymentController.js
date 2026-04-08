@@ -104,6 +104,42 @@ exports.verifyPayment = async (req, res) => {
                     video.paymentId = razorpay_payment_id;
                     video.amount = TEST_AMOUNT_INR;
                     await video.save();
+
+                    // Mark user as paid, create payment record, and send invoice email
+                    const user = await User.findById(video.userId);
+                    if (user) {
+                        await User.findByIdAndUpdate(user._id, {
+                            isPaid: true,
+                            paymentAmount: TEST_AMOUNT_INR,
+                            paymentId: razorpay_payment_id
+                        });
+
+                        await Payment.create({
+                            userId: user._id,
+                            videoId: video._id,
+                            transactionId: razorpay_payment_id,
+                            amount: TEST_AMOUNT_INR,
+                            type: 'video',
+                            status: 'completed',
+                            paymentGateway: 'razorpay'
+                        });
+
+                        // Send thank you email with invoice
+                        try {
+                            const invoiceData = {
+                                paymentId: razorpay_payment_id,
+                                amount: TEST_AMOUNT_INR,
+                                originalName: video.originalName || 'Video Upload Service',
+                                createdAt: new Date()
+                            };
+                            const pdfBuffer = await createInvoiceBuffer(invoiceData, user);
+                            await sendRegistrationInvoiceEmail(user, razorpay_payment_id, TEST_AMOUNT_INR, pdfBuffer);
+                            console.log('[Invoice Email] verifyPayment: sent successfully to', user.email);
+                        } catch (emailErr) {
+                            console.error('[Invoice Email] verifyPayment: failed to send:', emailErr?.message || emailErr);
+                        }
+                    }
+
                     return res.json({ message: "Payment verified and video updated successfully", success: true });
                 }
             }

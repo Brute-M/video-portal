@@ -4,7 +4,8 @@ const { login, verifyAdminOtp, getStep1Leads, exportStep1Leads } = require('../c
 const {
     adminLandingLogin, getAllRecords, getPaginatedRecords,
     getAdminStats, getDashboardChartData, downloadUserInvoice,
-    getPayments, manualUserPaymentUpdate, getUnpaidUsers, createUser
+    getPayments, manualUserPaymentUpdate, getUnpaidUsers, createUser,
+    sendThankYouEmail
 } = require('../controller/adminController');
 const authenticate = require('../middleware/authMiddleware');
 const { getContactLeads, exportContactLeadsExcel } = require('../controller/contactAdminController');
@@ -44,5 +45,8 @@ router.get('/payments', authenticate, getPayments);
 
 // Manual Payment Update
 router.patch('/users/:userId/payment', authenticate, manualUserPaymentUpdate);
+
+// Send Thank You Email with Invoice
+router.post('/users/:userId/send-thankyou-email', authenticate, sendThankYouEmail);
 
 module.exports = router;

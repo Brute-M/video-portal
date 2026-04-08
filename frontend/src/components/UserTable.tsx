@@ -9,8 +9,8 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Eye, ChevronLeft, ChevronRight, Video, Download, CreditCard, Loader2, Activity, Edit } from "lucide-react";
-import { downloadUserInvoice, updateUserPayment } from "@/apihelper/admin";
+import { Eye, ChevronLeft, ChevronRight, Video, Download, CreditCard, Loader2, Activity, Edit, Mail } from "lucide-react";
+import { downloadUserInvoice, updateUserPayment, sendThankYouEmail } from "@/apihelper/admin";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -58,6 +58,20 @@ export const UserTable = ({ users, isLoading, type, page, totalPages, onPageChan
     const [transactionId, setTransactionId] = useState("");
     const [paymentAmount, setPaymentAmount] = useState("1");
     const [isUpdating, setIsUpdating] = useState(false);
+    const [sendingEmailUserId, setSendingEmailUserId] = useState<string | null>(null);
+
+    const handleSendEmail = async (user: User) => {
+        setSendingEmailUserId(user._id);
+        try {
+            await sendThankYouEmail(user._id);
+            toast({ title: "Success", description: `Thank you email sent to ${user.email}` });
+        } catch (error) {
+            console.error("Failed to send email", error);
+            toast({ variant: "destructive", title: "Error", description: "Failed to send email. Please try again." });
+        } finally {
+            setSendingEmailUserId(null);
+        }
+    };
 
     const handleDownloadInvoice = async (userId: string, userName: string) => {
         try {
@@ -169,45 +183,47 @@ export const UserTable = ({ users, isLoading, type, page, totalPages, onPageChan
     return (
         <div className="space-y-4">
             <div className="rounded-md border glass-card overflow-x-auto">
-                <Table>
+                <Table className="min-w-[1100px]">
                     <TableHeader className="bg-muted/50">
                         <TableRow>
-                            <TableHead>Name</TableHead>
-                            <TableHead>Email</TableHead>
-                            <TableHead>Role</TableHead>
-                            <TableHead>Videos</TableHead>
-                            <TableHead>Joined</TableHead>
-                            <TableHead>Price</TableHead>
-                            {type === 'paid' && <TableHead>Payment ID</TableHead>}
-                            {type === 'paid' && <TableHead>Invoice</TableHead>}
-                            <TableHead>Status</TableHead>
-                            <TableHead className="text-right">Actions</TableHead>
+                            <TableHead className="whitespace-nowrap">Name</TableHead>
+                            <TableHead className="whitespace-nowrap">Email</TableHead>
+                            <TableHead className="whitespace-nowrap">Role</TableHead>
+                            <TableHead className="whitespace-nowrap">Videos</TableHead>
+                            <TableHead className="whitespace-nowrap">Joined</TableHead>
+                            <TableHead className="whitespace-nowrap">Price</TableHead>
+                            {type === 'paid' && <TableHead className="whitespace-nowrap">Payment ID</TableHead>}
+                            {type === 'paid' && <TableHead className="whitespace-nowrap">Invoice</TableHead>}
+                            <TableHead className="whitespace-nowrap">Status</TableHead>
+                            <TableHead className="whitespace-nowrap text-right">Actions</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
                         {users.map((user) => (
                             <TableRow key={user._id} className="hover:bg-muted/30 transition-colors">
-                                <TableCell className="font-medium flex items-center gap-2">
-                                    {user.fname} {user.lname}
-                                    {(user.trail_video || (user.videos && user.videos.length > 0)) && (
-                                        <Video className="w-4 h-4 text-primary" />
-                                    )}
+                                <TableCell className="font-medium whitespace-nowrap">
+                                    <span className="flex items-center gap-2">
+                                        {user.fname} {user.lname}
+                                        {(user.trail_video || (user.videos && user.videos.length > 0)) && (
+                                            <Video className="w-4 h-4 text-primary flex-shrink-0" />
+                                        )}
+                                    </span>
                                 </TableCell>
-                                <TableCell className="text-muted-foreground">{user.email}</TableCell>
-                                <TableCell>
+                                <TableCell className="text-muted-foreground whitespace-nowrap max-w-[200px] truncate">{user.email}</TableCell>
+                                <TableCell className="whitespace-nowrap">
                                     <Badge variant="outline" className="bg-primary/5">
                                         {user.playerRole || 'Player'}
                                     </Badge>
                                 </TableCell>
                                 <TableCell className="font-mono">{user.videoCount || 0}</TableCell>
-                                <TableCell className="text-muted-foreground text-sm">
+                                <TableCell className="text-muted-foreground text-sm whitespace-nowrap">
                                     {new Date(user.createdAt).toLocaleDateString()}
                                 </TableCell>
-                                <TableCell className="font-medium text-green-600">
+                                <TableCell className="font-medium text-green-600 whitespace-nowrap">
                                     {new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(user.paymentAmount || 0)}
                                 </TableCell>
                                 {type === 'paid' && (
-                                    <TableCell className="font-mono text-xs text-muted-foreground">
+                                    <TableCell className="font-mono text-xs text-muted-foreground whitespace-nowrap max-w-[150px] truncate">
                                         {(user.lastPaymentId && user.lastPaymentId !== 'N/A') ? user.lastPaymentId : (user.paymentId || '-')}
                                     </TableCell>
                                 )}
@@ -230,40 +246,42 @@ export const UserTable = ({ users, isLoading, type, page, totalPages, onPageChan
                                     </Badge>
                                 </TableCell>
                                 <TableCell className="text-right">
-                                    <div className="flex justify-end gap-2">
+                                    <div className="flex justify-end gap-1">
                                         {type === 'unpaid' && (
                                             <Button
                                                 variant="outline"
-                                                size="sm"
-                                                className="border-green-500 text-green-600 hover:bg-green-50"
+                                                size="icon"
+                                                className="h-8 w-8 border-green-500 text-green-600 hover:bg-green-50"
                                                 onClick={() => handleOpenPaymentModal(user)}
+                                                title="Mark as Paid"
                                             >
-                                                <CreditCard className="w-4 h-4 mr-1" />
-                                                Mark Paid
+                                                <CreditCard className="w-4 h-4" />
                                             </Button>
                                         )}
-                                        <Button variant="ghost" size="sm" onClick={() => handleViewUser(user)}>
-                                            <Eye className="w-4 h-4 mr-1" />
-                                            View
+                                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleViewUser(user)} title="View User">
+                                            <Eye className="w-4 h-4" />
                                         </Button>
                                         {type === 'paid' && (
-                                            <Button variant="ghost" size="sm" onClick={() => handleOpenEditModal(user)} className="text-blue-600 hover:text-blue-700 hover:bg-blue-50">
-                                                <Edit className="w-4 h-4 mr-1" />
-                                                Edit
+                                            <Button variant="ghost" size="icon" className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50" onClick={() => handleOpenEditModal(user)} title="Edit Payment Details">
+                                                <Edit className="w-4 h-4" />
                                             </Button>
                                         )}
-                                        {/* {(user.videos && user.videos.length > 0) && (
+                                        {type === 'paid' && (
                                             <Button
                                                 variant="ghost"
-                                                size="sm"
-                                                className="text-primary hover:text-primary/80 hover:bg-primary/10"
-                                                onClick={() => handleViewUser(user)}
-                                                title="View Analysis"
+                                                size="icon"
+                                                className="h-8 w-8 text-green-600 hover:text-green-700 hover:bg-green-50"
+                                                onClick={() => handleSendEmail(user)}
+                                                disabled={sendingEmailUserId === user._id}
+                                                title="Send thank you email with invoice"
                                             >
-                                                <Activity className="w-4 h-4 mr-1" />
-                                                Report
+                                                {sendingEmailUserId === user._id ? (
+                                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                                ) : (
+                                                    <Mail className="w-4 h-4" />
+                                                )}
                                             </Button>
-                                        )} */}
+                                        )}
                                     </div>
                                 </TableCell>
                             </TableRow>
