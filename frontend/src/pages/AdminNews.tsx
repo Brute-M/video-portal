@@ -300,7 +300,7 @@ const AdminNews = () => {
                                     theme="snow"
                                     value={form.content}
                                     onChange={(value) => setForm((f) => ({ ...f, content: value }))}
-                                    className="min-h-[200px]"
+                                    className="min-h-[200px] blog-quill-editor"
                                     modules={{
                                         toolbar: [
                                             [{ header: [1, 2, 3, false] }],
