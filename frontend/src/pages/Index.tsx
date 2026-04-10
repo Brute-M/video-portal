@@ -13,8 +13,9 @@ const Index = () => {
     <div className="min-h-screen bg-transparent relative flex flex-col font-sans">
       <ScamAwarenessModal />
       <SEO
-        title="Home"
-        description="Welcome to Beyond Reach Premier League. The all-in-one platform for creators to upload high-quality videos, reach their audience, and start earning."
+        title="India's T10 Cricket League"
+        description="BRPL is India's grassroots T10 tennis-ball cricket league. Open cricket trials and player registration across all zones — your pathway to professional cricket starts here."
+        keywords="T10 cricket league in India, cricket trials, player registration, tennis ball cricket league, BRPL, grassroots cricket India, Beyond Reach Premier League"
       />
       {/* Hero Section */}
       <Banner />

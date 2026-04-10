@@ -62,6 +62,9 @@ const AmbassadorsSection: React.FC = () => {
                         BRPL Ambassadors
                     </h2>
                     <div className="h-1 w-24 bg-[#FFC928] rounded-full" />
+                    <p className="max-w-2xl text-center text-gray-200 text-sm md:text-base mt-4 leading-relaxed">
+                        Meet the cricket icons, mentors, and changemakers championing BRPL's mission to take grassroots T10 cricket to every corner of India.
+                    </p>
                     <p className="text-center text-amber-500 font-bold uppercase tracking-wider text-sm md:text-base mt-4 italic">
                         Bharat ki League, Bharatiyon ka Sapna
                     </p>

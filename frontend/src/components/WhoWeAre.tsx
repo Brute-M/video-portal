@@ -20,14 +20,18 @@ interface WhoWeAreData {
 }
 
 const DEFAULT_WHO_WE_ARE: WhoWeAreData = {
-    title: "Who We Are",
-    subtitle: "BRPL (Beyond Reach Premier League)",
+    title: "Beyond Reach Premier League",
+    titleHeadingLevel: "h1",
+    subtitle: "India's Grassroots T10 Cricket League",
     tagline: "\"BRPL – Bharat ki League, Bharatiyon ka Sapna\"",
     description: `<p class="text-gray-400 leading-relaxed mb-4">
-                            <span class="text-white font-semibold">Beyond Reach Premier League (BRPL)</span> is a professional <span class="text-white font-semibold">Indian T10 tennis ball cricket league</span> created to democratize access to competitive cricket. Designed around grassroots participation, zonal representation, and innovation, BRPL offers aspiring players from across India a structured pathway to professional cricket without bias, privilege, or geographical limitation.
+                            <span class="text-white font-semibold">Beyond Reach Premier League (BRPL)</span> is India's premier <span class="text-white font-semibold">T10 tennis-ball cricket league</span>, built to give every aspiring cricketer — regardless of city, background, or contacts — a fair, structured pathway to professional cricket. Through nationwide <span class="text-white font-semibold">cricket trials</span> and open <span class="text-white font-semibold">player registration</span> across five zones, BRPL is rewriting how talent is discovered in Indian cricket.
+                        </p>
+                        <p class="text-gray-400 leading-relaxed mb-4">
+                            What makes BRPL different is its commitment to <span class="text-white font-semibold">grassroots access</span>. Whether you're playing gully cricket in a small town or representing your district side, BRPL's zonal trials are designed to surface raw talent that conventional scouting overlooks. Selected players join franchise teams, compete in a fast-paced T10 format, and gain real exposure to scouts, mentors, and live broadcasts.
                         </p>
                         <p class="text-gray-400 leading-relaxed">
-                            BRPL blends <span class="text-white font-semibold">high-speed T10 action, nationwide talent discovery</span>, and <span class="text-white font-semibold">regional pride</span>, making it a league that is both competitive and deeply connected to India’s cricketing culture.
+                            Player benefits include <span class="text-white font-semibold">professional coaching, performance tracking, prize money, and scouting exposure</span> — a genuine shot at a long-term cricketing career. Every selected player represents their zone, wears their colours, and plays for a chance to inspire the next generation back home.
                         </p>`,
     image: "/home2.png",
 };
@@ -105,9 +109,9 @@ const WhoWeAre = () => {
                         />
 
                         <div className="pt-4 flex flex-wrap gap-4">
-                            <Link to="/about-us">
+                            <Link to="/registration">
                                 <Button className="bg-amber-500 hover:bg-amber-600 text-black font-bold rounded-full px-8 py-6 text-base shadow-[0_0_15px_rgba(245,158,11,0.3)] hover:shadow-[0_0_25px_rgba(245,158,11,0.5)] transition-all duration-300">
-                                    Read More
+                                    Register for Trials
                                     <MoveRight className="ml-2 w-5 h-5" />
                                 </Button>
                             </Link>

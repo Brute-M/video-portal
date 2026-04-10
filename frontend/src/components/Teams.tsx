@@ -94,12 +94,15 @@ const Teams: React.FC = () => {
         <div className="relative max-w-12xl mx-auto flex flex-col items-center" data-aos="fade-up">
           {/* Heading */}
           <h2
-            className="text-center text-[#FFD700] text-3xl md:text-4xl lg:text-[40px] font-extrabold tracking-[0.05em] mb-8 md:mb-10"
+            className="text-center text-[#FFD700] text-3xl md:text-4xl lg:text-[40px] font-extrabold tracking-[0.05em] mb-4"
             style={{ fontFamily: "'Rye', serif" }}
           >
             BRPL Teams
           </h2>
-          <p className="text-center text-amber-500 font-bold uppercase tracking-wider text-sm md:text-base mb-8 md:mb-10 -mt-6 italic">
+          <p className="max-w-2xl text-center text-gray-200 text-sm md:text-base mb-4 leading-relaxed">
+            Five franchise teams. Five zones. One league. Discover the squads competing in India's most accessible T10 tennis-ball cricket tournament.
+          </p>
+          <p className="text-center text-amber-500 font-bold uppercase tracking-wider text-sm md:text-base mb-8 md:mb-10 italic">
             Bharat ki League, Bharatiyon ka Sapna
           </p>
 
