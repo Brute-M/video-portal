@@ -1442,11 +1442,11 @@ const Auth = ({ forceRegister }: AuthProps) => {
                         className="text-sm text-zinc-200 font-medium leading-tight cursor-pointer drop-shadow-sm"
                       >
                         I agree to the{" "}
-                        <Link to="/terms" className="text-[#FFC928] hover:underline font-bold">
+                        <Link to="/terms-and-conditions" target="_blank" className="text-[#FFC928] hover:underline font-bold">
                           Terms and Conditions
                         </Link>{" "}
                         &{" "}
-                        <Link to="/privacy" className="text-[#FFC928] hover:underline font-bold">
+                        <Link to="/privacy-policy" target="_blank" className="text-[#FFC928] hover:underline font-bold">
                           Privacy Policy
                         </Link>
                       </Label>
