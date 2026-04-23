@@ -1391,8 +1391,8 @@ const Auth = ({ forceRegister }: AuthProps) => {
                       </div>
                     </div>
 
-                    {/* Coupon Code */}
-                    <div className="space-y-2">
+                    {/* Coupon Code - Hidden for now */}
+                    {/* <div className="space-y-2">
                       <Label className="text-white font-semibold drop-shadow-sm">
                         Have a Referral Code?
                       </Label>
@@ -1433,7 +1433,7 @@ const Auth = ({ forceRegister }: AuthProps) => {
                           Coupon applied! You save ₹{couponDiscount}
                         </p>
                       )}
-                    </div>
+                    </div> */}
 
                     <div className="flex items-start gap-2 pt-2">
                       <input type="checkbox" id="terms" className="mt-1" required />
@@ -1683,9 +1683,11 @@ const Auth = ({ forceRegister }: AuthProps) => {
 
               </form>
 
-              <div className="mt-3 text-center">
-                <p className="text-sm text-white drop-shadow-sm">
-                  {isRegister ? "Already have an account?" : "Don't have an account?"}{" "}
+              <div className="mt-4 text-center">
+                <p className="text-sm text-white/80 mb-3 drop-shadow-sm">
+                  {isRegister ? "Already have an account?" : "Don't have an account?"}
+                </p>
+                <div className="inline-block">
                   <button
                     type="button"
                     onClick={() => {
@@ -1701,11 +1703,16 @@ const Auth = ({ forceRegister }: AuthProps) => {
                         }
                       }
                     }}
-                    className="text-[#FFC928] hover:underline font-bold ml-1"
+                    className="relative p-[1.5px] rounded-lg bg-[linear-gradient(90deg,#22C55E,#FFC928,#22C55E)] bg-[length:200%_200%] shadow-[0_0_15px_rgba(255,201,40,0.2)] hover:shadow-[0_0_25px_rgba(255,201,40,0.4)] transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
+                    style={{ animation: "borderSweep 2s linear infinite" }}
                   >
-                    {isRegister ? "Sign in" : "Register"}
+                    <div className="rounded-[7px] bg-[#0F172A] px-8 py-2">
+                      <span className="text-sm font-bold text-[#FFC928] uppercase tracking-wider">
+                        {isRegister ? "Sign in" : "Register Now"}
+                      </span>
+                    </div>
                   </button>
-                </p>
+                </div>
               </div>
             </div>
 
