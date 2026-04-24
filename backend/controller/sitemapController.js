@@ -130,7 +130,6 @@ exports.getRobots = (req, res) => {
         'Disallow: /dashboard',
         'Disallow: /dashboard/',
         'Disallow: /auth',
-        'Disallow: /api/',
         '',
         `Sitemap: ${sitemapUrl}`,
     ];

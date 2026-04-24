@@ -16,8 +16,9 @@ import { Trash, Edit, Loader2, Upload, X, ImageIcon } from "lucide-react";
 import { toast } from "sonner";
 import api from "@/apihelper/api";
 import { getImageUrl } from "@/utils/imageHelper";
-import ReactQuill from "react-quill";
-import "react-quill/dist/quill.snow.css";
+import RichBlogEditor from "@/components/RichBlogEditor";
+// import ReactQuill from "react-quill"; // Replaced with RichBlogEditor
+// import "react-quill/dist/quill.snow.css";
 
 const NEWS_FEATURED_IMAGE_MAX_MB = 10;
 const NEWS_FEATURED_IMAGE_MAX_BYTES = NEWS_FEATURED_IMAGE_MAX_MB * 1024 * 1024;
@@ -295,23 +296,12 @@ const AdminNews = () => {
 
                         <div className="space-y-2">
                             <Label>Content</Label>
-                            <div className="border rounded-md overflow-hidden">
-                                <ReactQuill
-                                    theme="snow"
-                                    value={form.content}
-                                    onChange={(value) => setForm((f) => ({ ...f, content: value }))}
-                                    className="min-h-[200px] blog-quill-editor"
-                                    modules={{
-                                        toolbar: [
-                                            [{ header: [1, 2, 3, false] }],
-                                            ["bold", "italic", "underline", "strike"],
-                                            [{ list: "ordered" }, { list: "bullet" }],
-                                            ["link"],
-                                            ["clean"],
-                                        ],
-                                    }}
-                                />
-                            </div>
+                            <RichBlogEditor
+                                value={form.content}
+                                onChange={(value) => setForm((f) => ({ ...f, content: value }))}
+                                placeholder="Write news content here..."
+                                height="600px"
+                            />
                         </div>
 
                         <div className="flex flex-wrap gap-6">

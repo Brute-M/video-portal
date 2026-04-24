@@ -182,36 +182,45 @@
 
   /* Blog/News editor: distinct heading styles so content hierarchy is visually clear */
   .blog-quill-editor .ql-editor h1 {
-    font-size: 2rem;
+    font-size: 2.25rem;
+    font-weight: 800;
+    color: #111827;
+    margin-top: 1.5rem;
+    margin-bottom: 1rem;
+    line-height: 1.2;
+  }
+  .blog-quill-editor .ql-editor h2 {
+    font-size: 1.875rem;
     font-weight: 700;
-    color: #1a202c;
+    color: #1f2937;
     margin-top: 1.5rem;
     margin-bottom: 0.75rem;
     line-height: 1.3;
-    border-bottom: 1px solid #e2e8f0;
-    padding-bottom: 0.4rem;
-  }
-  .blog-quill-editor .ql-editor h2 {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: #2d3748;
-    margin-top: 1.25rem;
-    margin-bottom: 0.5rem;
-    line-height: 1.35;
   }
   .blog-quill-editor .ql-editor h3 {
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: #4a5568;
-    margin-top: 1rem;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #374151;
+    margin-top: 1.25rem;
     margin-bottom: 0.5rem;
     line-height: 1.4;
   }
   .blog-quill-editor .ql-editor p {
-    font-size: 1rem;
-    line-height: 1.75;
-    color: #4a5568;
-    margin-bottom: 0.75rem;
+    font-size: 1.125rem;
+    line-height: 1.8;
+    color: #4b5563;
+    margin-bottom: 1rem;
+  }
+  .blog-quill-editor .ql-editor ul, 
+  .blog-quill-editor .ql-editor ol {
+    padding-left: 1.5rem;
+    margin-bottom: 1rem;
+  }
+  .blog-quill-editor .ql-editor li {
+    font-size: 1.125rem;
+    line-height: 1.8;
+    color: #4b5563;
+    margin-bottom: 0.25rem;
   }
 
   /* Legal pages: match admin editor styling on public site (links, headings, body) */
